@@ -182,3 +182,97 @@ what-to-eat/
 ├── 📜 .gitignore      # 新增
 ├── 📜 .env            # (本地端，不應上傳)
 └── 📜 README.md
+
+# 今天吃什麼？ What To Eat Today?
+
+一款旨在解決日常「用餐選擇困難症」的 Web App。透過互動式地圖探索、AI 智慧分類與充滿儀式感的決策工具，提供充滿質感與樂趣的美食探索體驗。
+
+✨ **核心功能 (Features)**
+* 📍 **互動式地圖探索**: 定位使用者，並在真實地圖上透過拖曳手把，直觀地「畫」出一個圓形的美食探索半徑。
+* 🧠 **AI 智慧分類**: 自動抓取範圍內的所有餐廳，並透過後端 Gemini API 進行智慧分類，現在更能動態產生最貼切的 Emoji 圖示！
+* 🌊 **沉浸式探索流程**: 在地圖上無縫瀏覽不同分類的店家列表與資訊，過程無須跳轉頁面，提供不中斷的「心流」體驗。
+* 🎡 **充滿儀式感的決策工具**: 將感興趣的店家加入「候選清單」，並透過一個設計精良、動畫流暢的「命運羅盤」做出最終決定。
+* 📖 **豐富的店家詳情**: 查看店家的真實照片、使用者評論、完整營業時間、電話、網站等詳細資訊。
+
+---
+
+### **v3.0 主要更新 (Recent Updates)**
+
+此版本專注於**程式碼架構的現代化重構**與**開發流程的簡化**，大幅提升了專案的健壯性與可維護性。
+
+* **前端架構現代化**:
+    * 將原先龐大的 `js/app.js` 檔案，**全面重構為 ES6 模組化架構**。程式碼被拆分為 `api.js`, `map.js`, `ui.js` 等多個職責單一的模組，使邏輯更清晰、未來擴充更容易。
+
+* **更智慧的 AI 分類**:
+    * 後端 AI Prompt 經過優化，現在 Gemini API 在回傳美食分類時，會**自動附上最適合的 Emoji 圖示** (例如 `牛肉麵 🍜`)。這使得前端的圖示系統完全由 AI 驅動，更具彈性與趣味性。
+
+* **開發流程整合與簡化**:
+    * 後端 Flask 伺服器現在**整合了前端靜態檔案的託管功能**。解決了先前因 `file:///` 協議導致的 CORS 模組載入錯誤，現在開發者只需運行一個指令即可啟動完整的應用程式。
+
+* **API 穩定性修正**:
+    * 修正了先前呼叫 Google Maps Place API 時，因 `fields` 參數命名錯誤 (`photos`應為`photo`) 而導致的後端伺服器錯誤，提升了 API 穩定性。
+
+---
+
+🚀 **技術棧 (Tech Stack)**
+* **前端 (Frontend)**:
+    * HTML5 / CSS3 (Flexbox, Keyframe Animations)
+    * JavaScript (ES6+, **模組化 (Modules)**, 無框架)
+    * Leaflet.js (開源地圖函式庫)
+* **後端 (Backend)**:
+    * Python 3 / Flask
+    * **Google Maps Platform API**: 用於地理定位與餐廳資料搜尋。
+    * **Google Gemini API**: 用於餐廳智慧分類與 Emoji 生成。
+    * `python-dotenv`: 用於管理環境變數。
+
+🔧 **如何運行 (Getting Started)**
+
+1.  **Clone Repo**
+    ```bash
+    git clone [https://github.com/YOUR_USERNAME/what-to-eat.git](https://github.com/YOUR_USERNAME/what-to-eat.git)
+    cd what-to-eat
+    ```
+
+2.  **取得 API 金鑰**
+    * 前往 [Google Cloud Console](https://console.cloud.google.com/) 申請 API 金鑰，並啟用 `Places API`。
+    * 前往 [Google AI Studio](https://aistudio.google.com/) 取得 Gemini API 金鑰。
+
+3.  **設定環境變數**
+    * 在專案根目錄下，建立一個名為 `.env` 的檔案，並填入您的金鑰：
+        ```
+        GOOGLE_MAPS_API_KEY="你的Google地圖API金鑰"
+        GEMINI_API_KEY="你的Gemini API金鑰"
+        ```
+
+4.  **安裝與啟動伺服器**
+    ```bash
+    # 安裝所需的 Python 套件
+    pip install -r requirements.txt
+
+    # 啟動整合後的前後端伺服器
+    python app.py
+    ```
+
+5.  **開啟 App**
+    * 伺服器將會運行在 `http://127.0.0.1:5000`。
+    * 請打開您的網頁瀏覽器 (建議使用 Chrome)，並直接訪問 **`http://127.0.0.1:5000`**。
+    * **注意**：由於已改為模組化架構，請**不要**再直接點開 `index.html` 檔案，否則會因 CORS 策略而無法運行。
+
+📂 **專案結構 (Project Structure)**
+what-to-eat/
+├── 📂 css/
+│   └── 📜 style.css
+├── 📂 js/
+│   ├── 📜 api.js
+│   ├── 📜 handlers.js
+│   ├── 📜 main.js         # (主入口)
+│   ├── 📜 map.js
+│   ├── 📜 navigation.js
+│   ├── 📜 state.js
+│   └── 📜 ui.js
+├── 📜 app.py                # (整合後端 API 與前端服務)
+├── 📜 index.html
+├── 📜 requirements.txt
+├── 📜 .gitignore
+├── 📜 .env                # (本地端，不應上傳)
+└── 📜 README.md
