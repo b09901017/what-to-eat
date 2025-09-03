@@ -61,23 +61,20 @@ body { font-family: var(--font-sans); background-color: #333; color: var(--text-
     height: 100%;
     z-index: 0; /* 確保地圖在最底層 */
 }
-/* 新增：UI 懸浮層容器 */
 .map-ui-overlay {
-    position: relative; /* 使用 relative 即可，因為父層 page 已經是 absolute */
+    position: relative;
     z-index: 1000;
     width: 100%;
     height: 100%;
     padding: 2rem 1.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* 將頁首推到頂部，頁尾推到底部 */
-    pointer-events: none; /* 容器本身不攔截點擊事件 */
+    justify-content: space-between;
+    pointer-events: none;
 }
-/* 讓懸浮層內的元素可以被點擊 */
 .map-ui-overlay > * {
     pointer-events: auto;
 }
-/* 調整原有的 page-header 和 page-footer */
 .page#map-page .page-header {
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 50%, transparent);
     text-align: center;
@@ -89,18 +86,41 @@ body { font-family: var(--font-sans); background-color: #333; color: var(--text-
     padding: 0;
     margin: 0;
 }
+
+/* *** 優化第一點：美化「回到中心」按鈕 *** */
 .recenter-btn {
     position: absolute;
     bottom: 120px;
     right: 20px;
-    z-index: 1001; /* 確保在懸浮層之上 */
+    z-index: 1001;
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--text-dark);
 }
+.recenter-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+.recenter-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
 .radius-label {
     position: absolute;
     bottom: 135px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1001; /* 確保在懸浮層之上 */
+    z-index: 1001;
     background-color: rgba(255, 255, 255, 0.8);
     padding: 0.5rem 1rem;
     border-radius: 20px;
@@ -109,17 +129,28 @@ body { font-family: var(--font-sans); background-color: #333; color: var(--text-
     color: var(--text-dark);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
+
+/* *** 優化第一點：擴大拖曳手把的觸控區域 *** */
+.radius-drag-handle-container {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+}
 .radius-drag-handle {
     width: 20px;
     height: 20px;
     background-color: white;
     border: 3px solid var(--primary-color);
     border-radius: 50%;
-    cursor: grab;
+    pointer-events: none; /* 讓事件穿透到父層 container */
 }
-.leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-drag-handle {
+.leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-drag-handle-container {
     cursor: grabbing;
 }
+
 
 /* --- 美食地圖頁面 --- */
 .leaflet-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }

@@ -42,7 +42,13 @@ export function initRadiusMap(location, radius, onRadiusChange) {
     if (radiusDragMarker) radiusDragMarker.remove();
     radiusDragMarker = L.marker(edgeLatLng, {
         draggable: true,
-        icon: L.divIcon({ html: '<div class="radius-drag-handle"></div>', className: 'radius-drag-handle-icon', iconSize: [20, 20] })
+        // *** 優化第一點：擴大拖曳手把的觸控區域 ***
+        icon: L.divIcon({ 
+            html: '<div class="radius-drag-handle-container"><div class="radius-drag-handle"></div></div>', 
+            className: '', // className 留空，由內部 div 控制樣式
+            iconSize: [40, 40], // 擴大 icon 的整體尺寸
+            iconAnchor: [20, 20] // 將錨點置中
+        })
     }).addTo(radiusMapInstance);
 
     radiusDragMarker.on('drag', (e) => {
