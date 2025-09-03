@@ -8,15 +8,14 @@ export const state = {
     isSpinning: false,
     userLocation: null,
     searchRadiusMeters: 500,
-    restaurantData: {}, // 儲存從 API 獲取的原始、未經篩選的資料
+    restaurantData: {},
     activeCategory: null,
     currentWheelRotation: 0,
     animationFrameId: null,
-    // *** 優化第二點：新增篩選器狀態 ***
     filters: {
         openNow: true,
-        priceLevel: 0, // 0: 不拘, 1-4: $, $$, $$$...
-        rating: 0, // 0: 不拘, 4: 4.0+, 4.5: 4.5+
+        priceLevel: 0,
+        rating: 0,
     },
 };
 
@@ -53,9 +52,12 @@ export const DOMElements = {
     addToWheelDetailsBtn: document.getElementById('add-to-wheel-details-btn'),
     detailsHoursList: document.querySelector('.details-hours-list'),
     detailsReviewsList: document.querySelector('.details-reviews-list'),
-    // *** 優化第二點：新增篩選器 DOM 元素 ***
+    
+    // *** 優化第二點：新增 DOM 元素參照 ***
+    categoriesPage: document.getElementById('categories-page'), // 整個頁面容器
     filterBtn: document.getElementById('filter-btn'),
     filterPanel: document.getElementById('filter-panel'),
+    closeFilterBtn: document.getElementById('close-filter-btn'), // 關閉按鈕
     openNowToggle: document.getElementById('open-now-toggle'),
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),

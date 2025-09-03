@@ -9,9 +9,10 @@ import {
     handleCategoryInteraction,
     handlePreviewCardInteraction,
     handleAddToWheelFromDetails,
-    // *** 優化第二點：引入新的事件處理器 ***
     toggleFilterPanel,
-    handleFilterChange
+    handleFilterChange,
+    // *** 優化第二點：引入新的事件處理器 ***
+    handleClickToCloseFilter
 } from './handlers.js';
 import { hideResult, updateWheelCount } from './ui.js';
 
@@ -34,8 +35,9 @@ function init() {
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
-    // *** 優化第二點：綁定篩選器事件 ***
+    // *** 優化第二點：綁定篩選器相關事件 ***
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
+    DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel); // 關閉按鈕也使用同一個函式
     DOMElements.openNowToggle.addEventListener('change', handleFilterChange);
     DOMElements.priceFilterButtons.addEventListener('click', handleFilterChange);
     DOMElements.ratingFilterButtons.addEventListener('click', handleFilterChange);

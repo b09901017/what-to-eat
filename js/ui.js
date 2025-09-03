@@ -11,7 +11,6 @@ export function renderPageContent(pageId) {
             getUserLocation();
             break;
         case 'categories-page':
-            // 頁面初次顯示時不需要做任何事，因為渲染邏輯已移至 handleConfirmRadius
             break;
         case 'wheel-page':
             renderWheel();
@@ -22,11 +21,9 @@ export function renderPageContent(pageId) {
         case 'splash-page':
             break;
     }
-    // 當離開 map-page 時，銷毀地圖實例以釋放資源
     if (pageId !== 'map-page') {
         destroyRadiusMap();
     }
-    // 離開 categories-page 時，隱藏篩選面板
     if (pageId !== 'categories-page') {
         DOMElements.filterPanel.classList.remove('visible');
     }
@@ -45,9 +42,9 @@ export function updateRadiusLabel(radius) {
     DOMElements.radiusLabel.textContent = `${radius} 公尺`;
 }
 
-// *** 優化第二點：重大改造，接收篩選後的資料 ***
 export function initCategoriesMapAndRender(filteredData) {
-    state.activeCategory = null;
+    // 渲染前，先將 activeCategory 設為 null，避免篩選後舊的 active 狀態殘留
+    state.activeCategory = null; 
     const map = initCategoriesMap();
     
     const allFilteredCoords = Object.values(filteredData).flat().map(r => [r.lat, r.lon]);
@@ -55,23 +52,33 @@ export function initCategoriesMapAndRender(filteredData) {
         allFilteredCoords.push([state.userLocation.lat, state.userLocation.lon]);
     }
     
-    // 根據篩選後的地點調整地圖視野
     fitMapToBounds(allFilteredCoords);
 
     if (Object.keys(filteredData).length === 0) {
         DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
-        renderRestaurantPreviewList(null, {}); // 傳入空物件來清空列表
+        DOMElements.categoryList.classList.remove('three-rows'); // 清除樣式
+        DOMElements.categoryList.parentElement.classList.remove('three-rows');
+        renderRestaurantPreviewList(null, {});
     } else {
         renderCategories(filteredData);
-        updateMapMarkers(filteredData, state.userLocation);
+        updateMapMarkers(filteredData, state.userLocation, null);
         renderRestaurantPreviewList(null, filteredData);
     }
 }
 
-// *** 優化第二點：根據篩選後的資料渲染分類 ***
 function renderCategories(filteredData) {
     DOMElements.categoryList.innerHTML = '';
     const categoryKeys = Object.keys(filteredData);
+
+    // *** 動態決定行數 ***
+    // 如果分類超過 8 個，就切換到三行佈局
+    if (categoryKeys.length > 8) {
+        DOMElements.categoryList.classList.add('three-rows');
+        DOMElements.categoryList.parentElement.classList.add('three-rows');
+    } else {
+        DOMElements.categoryList.classList.remove('three-rows');
+        DOMElements.categoryList.parentElement.classList.remove('three-rows');
+    }
 
     // 更新分類按鈕的 active 狀態
     const allItems = DOMElements.categoryList.querySelectorAll('.category-list-item');
@@ -89,12 +96,10 @@ function renderCategories(filteredData) {
     });
 }
 
-// *** 優化第二點：接收篩選後的資料來渲染預覽列表 ***
 export function renderRestaurantPreviewList(category, filteredData) {
     const listEl = DOMElements.restaurantPreviewList;
     listEl.innerHTML = '';
 
-    // 如果沒有指定分類，或該分類在篩選後沒有店家，則隱藏列表
     if (!category || !filteredData[category] || filteredData[category].length === 0) {
         listEl.classList.remove('visible');
         return;
@@ -233,16 +238,13 @@ export function hideResult() {
     renderWheel();
 }
 
-// *** 優化第二點：新增更新篩選器 UI 的函式 ***
 export function updateFilterUI() {
     const { priceLevel, rating } = state.filters;
 
-    // 更新價位按鈕
     DOMElements.priceFilterButtons.querySelectorAll('button').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.value) === priceLevel);
     });
 
-    // 更新評分按鈕
     DOMElements.ratingFilterButtons.querySelectorAll('button').forEach(btn => {
         btn.classList.toggle('active', Number(btn.dataset.value) === rating);
     });
