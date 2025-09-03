@@ -1,0 +1,151 @@
+/* --- 全局設定與變數 --- */
+:root {
+    --bg-color: #F8F5F2;
+    --primary-color: #E57373;
+    --primary-hover: #EF9A9A;
+    --secondary-color: #E0E0E0;
+    --secondary-hover: #F5F5F5;
+    --text-dark: #424242;
+    --text-light: #9E9E9E;
+    --border-color: #E0E0E0;
+    --winner-color: #FFD54F;
+    
+    --font-serif: 'Noto Serif TC', serif;
+    --font-sans: 'Noto Sans TC', sans-serif;
+
+    --transition-fast: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background-color: #333; color: var(--text-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+.font-serif { font-family: var(--font-serif); font-weight: 600; }
+
+/* --- App 容器 --- */
+.app-container { width: 100%; max-width: 414px; height: 100vh; max-height: 896px; position: relative; background-color: var(--bg-color); border-radius: 40px; box-shadow: 0 0 40px rgba(0,0,0,0.3); overflow: hidden; }
+
+/* --- 頁面切換 --- */
+.page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 2rem 1.5rem; opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity var(--transition-slow), transform var(--transition-slow); overflow: hidden; }
+.page.details-page { transform: translateY(100%); transition: transform var(--transition-slow); }
+.page#categories-page, .page#map-page { padding: 0; }
+.page.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.page-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+/* --- 共享元件 --- */
+.page-header { margin-bottom: 2rem; }
+.page-header.with-back-btn { display: flex; align-items: center; width: 100%; gap: 1rem; z-index: 10; }
+.page-header h1, .page-header h2 { font-size: 2rem; margin-bottom: 0.5rem; letter-spacing: 0.1em; }
+.page-header p { font-size: 1rem; color: var(--text-light); }
+.page-footer { margin-top: auto; padding: 1.5rem 0 0 0; width: 100%; }
+.btn-primary, .btn-secondary { padding: 1rem 2.5rem; border-radius: 50px; border: none; font-size: 1rem; font-weight: 400; cursor: pointer; transition: background-color var(--transition-fast), transform var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; }
+.btn-primary:disabled { background-color: var(--secondary-color); cursor: not-allowed; }
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:not(:disabled):hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+.btn-secondary { background-color: white; color: var(--text-dark); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background-color: var(--secondary-hover); transform: translateY(-2px); }
+.back-btn { background: none; border: none; font-size: 2rem; color: var(--text-light); cursor: pointer; transition: color var(--transition-fast); }
+.back-btn:hover { color: var(--text-dark); }
+
+/* --- 歡迎頁面 --- */
+.splash-content { text-align: center; animation: content-fade-in 1s var(--transition-slow) forwards; opacity: 0;}
+.splash-content h1 { font-size: 2.5rem; }
+.splash-content p { margin: 1rem 0 2rem; }
+@keyframes content-fade-in { to { opacity: 1; } }
+
+/* --- 範圍選擇頁面 --- */
+.page-header-overlay, .page-footer-overlay { position: relative; z-index: 1000; width: 100%; padding: 0 1.5rem; pointer-events: none; }
+.page-header-overlay { padding-top: 2rem; background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 50%, transparent); }
+.page-footer-overlay { padding-bottom: 2rem; background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 50%, transparent); }
+.page-header-overlay > *, .page-footer-overlay > * { pointer-events: auto; }
+.radius-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+.recenter-btn { position: absolute; bottom: 120px; right: 20px; z-index: 1000; width: 50px; height: 50px; border-radius: 50%; border: none; background-color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; color: var(--text-dark); }
+.radius-label { position: absolute; bottom: 135px; left: 50%; transform: translateX(-50%); background-color: rgba(255, 255, 255, 0.8); padding: 0.5rem 1rem; border-radius: 20px; font-family: var(--font-serif); font-size: 1.2rem; color: var(--text-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+.radius-drag-handle { width: 20px; height: 20px; background-color: white; border: 3px solid var(--primary-color); border-radius: 50%; cursor: grab; }
+.leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-drag-handle { cursor: grabbing; }
+
+/* --- 美食地圖頁面 --- */
+.leaflet-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+.leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
+.user-location-marker { background-color: #4A90E2; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(74, 144, 226, 0.8); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(74, 144, 226, 0); } 100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); } }
+.leaflet-marker-icon.marker-active { animation: bounce 0.6s; }
+@keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-15px);} 60% {transform: translateY(-7px);} }
+.category-list-container { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; background: linear-gradient(to top, var(--bg-color) 70%, transparent); transition: transform var(--transition-slow); }
+.page-header-condensed { text-align: center; margin-bottom: 1rem; padding: 0 1.5rem; }
+.page-header-condensed h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+.page-header-condensed p { font-size: 0.9rem; color: var(--text-light); }
+.category-list, .restaurant-preview-list { display: flex; gap: 0.75rem; overflow-x: auto; padding: 0.5rem 1.5rem 1.5rem 1.5rem; -ms-overflow-style: none; scrollbar-width: none; }
+.category-list::-webkit-scrollbar, .restaurant-preview-list::-webkit-scrollbar { display: none; }
+.category-list-item { flex: 0 0 auto; padding: 0.75rem 1.5rem; border-radius: 30px; background: white; border: 1px solid var(--border-color); cursor: pointer; text-align: center; transition: all var(--transition-fast); }
+.category-list-item:hover, .category-list-item.active { background-color: var(--primary-color); color: white; transform: translateY(-4px); border-color: var(--primary-color); }
+.wheel-count-badge { background-color: var(--primary-color); color: white; border: 2px solid var(--bg-color); border-radius: 50%; width: 1.75rem; height: 1.75rem; font-size: 0.8rem; display: inline-flex; justify-content: center; align-items: center; position: absolute; top: -0.5rem; right: -0.5rem;}
+.category-list-container .page-footer { padding: 0 1.5rem; }
+.restaurant-preview-list { height: 0; opacity: 0; padding: 0 1.5rem; transition: all var(--transition-fast); }
+.restaurant-preview-list.visible { height: 90px; opacity: 1; padding: 0 1.5rem 1rem 1.5rem; }
+.restaurant-preview-card { flex: 0 0 200px; background-color: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 0.75rem; cursor: pointer; transition: all var(--transition-fast); }
+.restaurant-preview-card:hover { transform: translateY(-4px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.restaurant-preview-card h5 { font-family: var(--font-serif); font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.restaurant-preview-card p { font-size: 0.9rem; color: var(--text-light); }
+.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.leaflet-popup-content { margin: 0; width: 220px !important; font-family: var(--font-sans); }
+.popup-content { padding: 1rem; }
+.popup-content h4 { font-family: var(--font-serif); font-size: 1.25rem; margin-bottom: 0.5rem; }
+.popup-info { display: flex; justify-content: space-between; align-items: center; color: var(--text-light); margin-bottom: 1rem; }
+.popup-info span { font-weight: 600; color: var(--text-dark); }
+.popup-actions { display: flex; gap: 0.5rem; }
+.popup-actions .btn-secondary { flex-grow: 1; padding: 0.5rem; font-size: 0.9rem; }
+.popup-actions .btn-primary { flex-shrink: 0; width: 44px; height: 44px; padding: 0; font-size: 1.5rem; }
+.popup-actions .add-to-wheel-btn.added { background-color: var(--winner-color); }
+.leaflet-popup-tip { box-shadow: none; }
+
+/* --- 命運羅盤 --- */
+.wheel-main-content { flex-grow: 1; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.wheel-assembly { position: relative; width: 320px; height: 320px; display: flex; justify-content: center; align-items: center; margin: 2rem 0; }
+.wheel-pointer { position: absolute; top: -10px; z-index: 2; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--primary-color); filter: drop-shadow(0 -2px 2px rgba(0,0,0,0.15)); }
+.wheel-container { width: 100%; height: 100%; border-radius: 50%; border: 10px solid #fff; box-shadow: 0 0 20px rgba(0,0,0,0.15), inset 0 0 15px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+.wheel-slice { position: absolute; width: 50%; height: 100%; left: 50%; transform-origin: 0 50%; transition: filter 0.5s ease; }
+.wheel-slice.winner-glow { filter: drop-shadow(0 0 20px var(--winner-color)) brightness(1.1); }
+.wheel-slice-content { position: absolute; left: -100%; width: 200%; height: 100%; display: flex; align-items: center; justify-content: center; transform: rotate(calc(var(--slice-angle) / 2)); padding-left: 20px; text-align: center; }
+.wheel-slice-text { font-family: var(--font-serif); color: var(--text-dark); font-weight: 600; font-size: 1rem; display: block; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transform: translateX(-10px); }
+.spin-button { margin-top: 2rem; width: 80%; }
+.wheel-placeholder { text-align: center; color: var(--text-light); font-size: 1.2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+
+/* --- 全新：店家詳情頁面 --- */
+.details-page { display: block; padding: 0; overflow-y: auto; background-color: var(--bg-color); }
+.details-header { position: absolute; top: 0; left: 0; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent); padding-top: 1.5rem; }
+.details-header .back-btn { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.details-header-image { width: 100%; height: 300px; background-size: cover; background-position: center; }
+.details-content { transform: translateY(-50px); padding: 0 1.5rem 2rem 1.5rem; z-index: 5; position: relative; }
+.details-card { background-color: white; border-radius: 20px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+.details-title { text-align: center; font-size: 2.2rem; margin-bottom: 1rem; }
+.details-meta { display: flex; justify-content: space-around; align-items: center; text-align: center; margin-bottom: 1.5rem; color: var(--text-light); }
+.details-meta span { font-weight: 600; color: var(--text-dark); }
+.details-actions { display: flex; gap: 1rem; }
+.action-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; background: var(--bg-color); border: none; border-radius: 12px; padding: 1rem 0; cursor: pointer; font-family: var(--font-sans); transition: background-color var(--transition-fast); }
+.action-btn:hover { background-color: var(--secondary-hover); }
+.action-btn.added { background-color: var(--winner-color); color: var(--text-dark); }
+.action-btn svg { width: 24px; height: 24px; color: var(--text-dark); }
+.details-section { margin-bottom: 2rem; }
+.details-section h3 { font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+.details-hours-list { list-style: none; }
+.details-hours-list li { margin-bottom: 0.5rem; color: var(--text-dark); }
+.details-reviews-list .review-card { background: white; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1rem; }
+.review-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.review-author { font-weight: 600; }
+.review-time { margin-left: auto; font-size: 0.9rem; color: var(--text-light); }
+.review-rating { color: var(--winner-color); }
+.review-text { color: var(--text-dark); line-height: 1.6; }
+
+/* --- 全域覆蓋層 --- */
+.global-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 245, 242, 0.8); backdrop-filter: blur(5px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; opacity: 0; visibility: hidden; transition: opacity var(--transition-fast); }
+.global-overlay.visible { opacity: 1; visibility: visible; }
+.spinner { width: 40px; height: 40px; border: 4px solid var(--secondary-color); border-top-color: var(--primary-color); border-radius: 50%; animation: loading-spin 1s linear infinite; }
+.global-overlay p { margin-top: 1rem; color: var(--text-dark); }
+@keyframes loading-spin { to { transform: rotate(360deg); } }
+.result-overlay .result-content { text-align: center; }
+.result-overlay h3 { font-size: 1.5rem; color: var(--text-light); margin-bottom: 1rem; }
+.result-text-typing { font-family: var(--font-serif); font-size: 3rem; color: var(--text-dark); min-height: 4rem; display: inline-block; border-right: 3px solid var(--text-dark); white-space: nowrap; overflow: hidden; animation: typing 2s steps(40, end), blink-caret .75s step-end infinite; }
+.result-actions { margin-top: 3rem; width: 250px; }
+@keyframes typing { from { width: 0 } to { width: 100% } }
+@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--text-dark); } }
+
