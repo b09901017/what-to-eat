@@ -35,7 +35,7 @@ def get_categories_from_gemini(restaurants_for_ai):
     if not restaurants_for_ai:
         return {}
         
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     
     # 優化第二點：修改 Prompt
     prompt = f"""
