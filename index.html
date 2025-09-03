@@ -59,10 +59,44 @@
             <div id="leaflet-map" class="leaflet-map"></div>
             
             <div class="category-list-container">
-                 <header class="page-header-condensed">
-                    <h2 class="font-serif">附近的美食地圖</h2>
-                    <p>點選下方類別，或直接探索地圖</p>
+                <header class="page-header-condensed">
+                    <div class="header-content">
+                        <h2 class="font-serif">附近的美食地圖</h2>
+                        <p>點選下方類別，或透過篩選器精準搜尋</p>
+                    </div>
+                    <button id="filter-btn" class="filter-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                        <span>篩選</span>
+                    </button>
                 </header>
+
+                <div id="filter-panel" class="filter-panel">
+                    <div class="filter-option">
+                        <label for="open-now-toggle">目前營業中</label>
+                        <div class="switch-toggle">
+                            <input type="checkbox" id="open-now-toggle" data-filter="openNow" checked>
+                            <label for="open-now-toggle"></label>
+                        </div>
+                    </div>
+                    <div class="filter-option">
+                        <label>價位選擇</label>
+                        <div class="filter-buttons" data-filter="priceLevel">
+                            <button data-value="0" class="active">不拘</button>
+                            <button data-value="1">$</button>
+                            <button data-value="2">$$</button>
+                            <button data-value="3">$$$</button>
+                            <button data-value="4">$$$$</button>
+                        </div>
+                    </div>
+                    <div class="filter-option">
+                        <label>評分標準</label>
+                        <div class="filter-buttons" data-filter="rating">
+                            <button data-value="0" class="active">不拘</button>
+                            <button data-value="4">4.0+</button>
+                            <button data-value="4.5">4.5+</button>
+                        </div>
+                    </div>
+                </div>
                 
                 <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
 

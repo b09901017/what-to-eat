@@ -1,7 +1,7 @@
 // 處理所有 DOM 渲染和更新
 
 import { state, DOMElements } from './state.js';
-import { getUserLocation, handleConfirmRadius } from './handlers.js';
+import { getUserLocation } from './handlers.js';
 import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap } from './map.js';
 
 // 此函式在 navigate.js 中被呼叫，根據頁面 ID 執行特定的渲染邏輯
@@ -11,7 +11,7 @@ export function renderPageContent(pageId) {
             getUserLocation();
             break;
         case 'categories-page':
-            initCategoriesMapAndRender();
+            // 頁面初次顯示時不需要做任何事，因為渲染邏輯已移至 handleConfirmRadius
             break;
         case 'wheel-page':
             renderWheel();
@@ -20,12 +20,15 @@ export function renderPageContent(pageId) {
             renderDetailsPage();
             break;
         case 'splash-page':
-            // splash-page 通常是靜態的，不需要特別渲染
             break;
     }
     // 當離開 map-page 時，銷毀地圖實例以釋放資源
     if (pageId !== 'map-page') {
         destroyRadiusMap();
+    }
+    // 離開 categories-page 時，隱藏篩選面板
+    if (pageId !== 'categories-page') {
+        DOMElements.filterPanel.classList.remove('visible');
     }
 }
 
@@ -42,47 +45,62 @@ export function updateRadiusLabel(radius) {
     DOMElements.radiusLabel.textContent = `${radius} 公尺`;
 }
 
-function initCategoriesMapAndRender() {
+// *** 優化第二點：重大改造，接收篩選後的資料 ***
+export function initCategoriesMapAndRender(filteredData) {
     state.activeCategory = null;
     const map = initCategoriesMap();
     
-    const allCoords = Object.values(state.restaurantData).flat().map(r => [r.lat, r.lon]);
+    const allFilteredCoords = Object.values(filteredData).flat().map(r => [r.lat, r.lon]);
     if (state.userLocation) {
-        allCoords.push([state.userLocation.lat, state.userLocation.lon]);
+        allFilteredCoords.push([state.userLocation.lat, state.userLocation.lon]);
     }
-    fitMapToBounds(allCoords);
+    
+    // 根據篩選後的地點調整地圖視野
+    fitMapToBounds(allFilteredCoords);
 
-    if (Object.keys(state.restaurantData).length === 0) {
-        DOMElements.categoryList.innerHTML = `<p class="empty-state-message">這個範圍內好像沒有餐廳耶，試著擴大搜尋範圍看看？</p>`;
-        renderRestaurantPreviewList(null);
+    if (Object.keys(filteredData).length === 0) {
+        DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
+        renderRestaurantPreviewList(null, {}); // 傳入空物件來清空列表
     } else {
-        renderCategories();
-        updateMapMarkers(state.restaurantData, state.userLocation);
-        renderRestaurantPreviewList(null);
+        renderCategories(filteredData);
+        updateMapMarkers(filteredData, state.userLocation);
+        renderRestaurantPreviewList(null, filteredData);
     }
 }
 
-function renderCategories() {
+// *** 優化第二點：根據篩選後的資料渲染分類 ***
+function renderCategories(filteredData) {
     DOMElements.categoryList.innerHTML = '';
-    const categoryKeys = Object.keys(state.restaurantData);
+    const categoryKeys = Object.keys(filteredData);
 
+    // 更新分類按鈕的 active 狀態
+    const allItems = DOMElements.categoryList.querySelectorAll('.category-list-item');
+    allItems.forEach(item => item.classList.remove('active'));
+    
     categoryKeys.forEach(category => {
         const item = document.createElement('div');
         item.className = 'category-list-item';
-        item.textContent = category; // API直接回傳 "名稱 + Emoji"
+        item.textContent = category;
         item.dataset.category = category;
+        if (state.activeCategory === category) {
+            item.classList.add('active');
+        }
         DOMElements.categoryList.appendChild(item);
     });
 }
 
-export function renderRestaurantPreviewList(category) {
+// *** 優化第二點：接收篩選後的資料來渲染預覽列表 ***
+export function renderRestaurantPreviewList(category, filteredData) {
     const listEl = DOMElements.restaurantPreviewList;
     listEl.innerHTML = '';
-    if (!category || !state.restaurantData[category]) {
+
+    // 如果沒有指定分類，或該分類在篩選後沒有店家，則隱藏列表
+    if (!category || !filteredData[category] || filteredData[category].length === 0) {
         listEl.classList.remove('visible');
         return;
     }
-    state.restaurantData[category].forEach(restaurant => {
+
+    filteredData[category].forEach(restaurant => {
         const card = document.createElement('div');
         card.className = 'restaurant-preview-card';
         card.dataset.name = restaurant.name;
@@ -195,7 +213,6 @@ export function showResult(winner) {
     DOMElements.resultText.textContent = '';
     DOMElements.resultOverlay.classList.add('visible');
     
-    // 打字機效果
     let i = 0;
     function typeWriter() {
         if (i < winner.length) {
@@ -214,4 +231,19 @@ export function hideResult() {
         winnerSlice.classList.remove('winner-glow');
     }
     renderWheel();
+}
+
+// *** 優化第二點：新增更新篩選器 UI 的函式 ***
+export function updateFilterUI() {
+    const { priceLevel, rating } = state.filters;
+
+    // 更新價位按鈕
+    DOMElements.priceFilterButtons.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.value) === priceLevel);
+    });
+
+    // 更新評分按鈕
+    DOMElements.ratingFilterButtons.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.value) === rating);
+    });
 }

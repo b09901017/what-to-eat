@@ -8,11 +8,16 @@ export const state = {
     isSpinning: false,
     userLocation: null,
     searchRadiusMeters: 500,
-    restaurantData: {},
+    restaurantData: {}, // 儲存從 API 獲取的原始、未經篩選的資料
     activeCategory: null,
-    // 地圖實例不再儲存在 state 中，改由 map.js 模組自行管理
     currentWheelRotation: 0,
     animationFrameId: null,
+    // *** 優化第二點：新增篩選器狀態 ***
+    filters: {
+        openNow: true,
+        priceLevel: 0, // 0: 不拘, 1-4: $, $$, $$$...
+        rating: 0, // 0: 不拘, 4: 4.0+, 4.5: 4.5+
+    },
 };
 
 export const DOMElements = {
@@ -48,4 +53,10 @@ export const DOMElements = {
     addToWheelDetailsBtn: document.getElementById('add-to-wheel-details-btn'),
     detailsHoursList: document.querySelector('.details-hours-list'),
     detailsReviewsList: document.querySelector('.details-reviews-list'),
+    // *** 優化第二點：新增篩選器 DOM 元素 ***
+    filterBtn: document.getElementById('filter-btn'),
+    filterPanel: document.getElementById('filter-panel'),
+    openNowToggle: document.getElementById('open-now-toggle'),
+    priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
+    ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
 };

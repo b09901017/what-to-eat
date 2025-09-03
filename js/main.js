@@ -8,7 +8,10 @@ import {
     handleSpinWheel,
     handleCategoryInteraction,
     handlePreviewCardInteraction,
-    handleAddToWheelFromDetails
+    handleAddToWheelFromDetails,
+    // *** 優化第二點：引入新的事件處理器 ***
+    toggleFilterPanel,
+    handleFilterChange
 } from './handlers.js';
 import { hideResult, updateWheelCount } from './ui.js';
 
@@ -30,6 +33,12 @@ function init() {
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
+
+    // *** 優化第二點：綁定篩選器事件 ***
+    DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
+    DOMElements.openNowToggle.addEventListener('change', handleFilterChange);
+    DOMElements.priceFilterButtons.addEventListener('click', handleFilterChange);
+    DOMElements.ratingFilterButtons.addEventListener('click', handleFilterChange);
     
     // 初始渲染
     updateWheelCount();
