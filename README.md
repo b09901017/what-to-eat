@@ -1,188 +1,3 @@
-今天吃什麼？ What To Eat Today?
-一款旨在解決日常「用餐選擇困難症」的 Web App。透過互動式地圖探索、AI 智慧分類與充滿儀式感的命運羅盤，提供充滿質感與樂趣的美食決策體驗。
-
-✨ 核心功能 (Features)
-📍 互動式地圖探索: 定位使用者，並在真實地圖上透過拖曳手把，直觀地「畫」出一個圓形的美食探索半徑。
-
-🧠 智慧美食分類: 自動抓取範圍內的所有餐廳，並透過後端 AI 進行智慧分類 (例如：義式風情 🍝, 健康早午餐 🥪)。
-
-🌊 沉浸式探索流程: 在地圖上無縫瀏覽不同分類的店家列表與資訊，過程無須跳轉頁面，提供不中斷的「心流」體驗。
-
-🎡 充滿儀式感的隨機決定: 將感興趣的店家加入「候選清單」，並透過一個設計精良、動畫流暢的「命運羅盤」做出最終決定。
-
-📖 豐富的店家詳情: 查看店家的真實照片、使用者評論、完整營業時間、電話、網站等詳細資訊。
-
-🎨 UI/UX 風格 (UI/UX Style)
-高質感與舒適感: 整體風格追求「柔和的美食冒險手冊」，避免廉價感。介面有大量留白，採用溫暖、協調的配色與優雅的字體。
-
-流暢的動畫與微交互: 所有的頁面切換、元件互動都必須有精心設計的過場動畫，提供如原生 App 般順滑的沉浸式體驗。
-
-🚀 技術棧 (Tech Stack)
-前端 (Frontend):
-
-HTML5
-
-CSS3 (包含 Flexbox, Grid, Keyframe Animations)
-
-JavaScript (ES6+) (Vanilla JS, 無框架)
-
-Leaflet.js (開源地圖函式庫)
-
-後端 (Backend):
-
-Python 3
-
-Flask (輕量級 Web 框架)
-
-Flask-CORS (處理跨域請求)
-
-🔧 如何運行 (Getting Started)
-請依照以下步驟在您的本機端運行此專案。
-
-事前準備
-請確認您的電腦已安裝：
-
-Python 3.x
-
-pip (Python 套件安裝程式)
-
-安裝步驟
-Clone Repo
-
-Bash
-
-git clone https://github.com/YOUR_USERNAME/what-to-eat.git
-cd what-to-eat
-設定並啟動後端伺服器
-
-Bash
-
-# 安裝所需的 Python 套件
-pip install -r requirements.txt
-
-# 啟動 Flask 伺服器
-python app.py
-伺服器將會運行在 http://127.0.0.1:5000。請保持此終端機視窗開啟。
-
-開啟前端頁面
-
-直接在您的網頁瀏覽器 (建議使用 Chrome) 中，打開專案根目錄下的 index.html 檔案。
-
-您現在應該可以看到 App 的歡迎畫面，並可以開始互動。
-
-📂 專案結構 (Project Structure)
-what-to-eat/
-├── 📂 css/
-│   └── 📜 style.css         # 主要樣式與動畫
-├── 📂 js/
-│   └── 📜 app.js           # 核心前端邏輯
-├── 📜 app.py                # Flask 後端伺服器
-├── 📜 index.html            # App 頁面骨架
-├── 📜 requirements.txt      # Python 套件需求
-└── 📜 README.md             # 就是這個檔案
-🔮 未來方向 (Future Development)
-串接真實 API: 後端 app.py 已經預留了呼叫 Google Maps API 和 Gemini API 的程式碼邏輯。下一步的核心任務是申請 API 金鑰，並將模擬數據替換為真實的 API 請求。
-
-數據持久化: 目前的「候選清單」在重新整理頁面後會消失。未來可以考慮使用 localStorage 或引入後端資料庫 (如 SQLite) 來保存使用者的清單。
-
-完善錯誤處理: 增加更多錯誤處理機制，例如當 API 請求失敗、或是在特定區域找不到任何餐廳時，給予使用者更友善的提示。
-
-# 今天吃什麼？ What To Eat Today?
-
-一款旨在解決日常「用餐選擇困難症」的 Web App。透過互動式地圖探索、AI 智慧分類與充滿儀式感的決策工具，提供充滿質感與樂趣的美食探索體驗。
-
-✨ **核心功能 (Features)**
-* 📍 **互動式地圖探索**: 定位使用者，並在真實地圖上透過拖曳手把，直觀地「畫」出一個圓形的美食探索半徑。
-* 🧠 **AI 智慧分類**: 自動抓取範圍內的所有餐廳，並透過後端 Gemini API 進行智慧分類 (例如：日式, 火鍋, 咖啡廳)。
-* 🌊 **沉浸式探索流程**: 在地圖上無縫瀏覽不同分類的店家列表與資訊，過程無須跳轉頁面，提供不中斷的「心流」體驗。
-* 🎡 **多樣的決策工具**:
-    * **命運羅盤**: 將感興趣的店家加入「候選清單」，透過動畫流暢的羅盤做出最終決定。
-    * **地圖隨機選**: 新增「隨機選一家！」功能，透過地圖上所有圖示閃爍跳動的動畫，直接為您決定好今天的命運！
-* 📖 **豐富的店家詳情**: 查看店家的真實照片、使用者評論、完整營業時間、電話、網站等詳細資訊。
-
-🎨 **UI/UX 風格 (UI/UX Style)**
-* **高質感與舒適感**: 整體風格追求「柔和的美食冒險手冊」，避免廉價感。介面有大量留白，採用溫暖、協調的配色與優雅的字體。
-* **流暢的動畫與微交互**: 精心設計的過場動畫、物理慣性旋轉羅盤、地圖隨機選動畫，提供如原生 App 般順滑的沉浸式體驗。
-* **直觀的圖示系統**: 地圖上的餐廳標記從單色圓點升級為更具辨識度的 SVG 圖示，讓美食分類一目了然。
-
----
-
-### **v2.0 主要更新 (Recent Updates)**
-
-此版本已從一個使用模擬數據 (Mock Data) 的原型，進化為一個**完整串接真實世界 API 的 Web App**。
-
-* **真實數據串接**:
-    * 後端已全面改寫，串接 **Google Maps Platform API**，可即時獲取使用者周邊的真實餐廳、店家詳情、照片與評論。
-    * 餐廳分類由 **Google Gemini API (`gemini-1.5-flash`)** 驅動，能根據餐廳類型智慧生成簡潔、直觀的分類。
-* **全新功能「地圖隨機選」**:
-    * 在美食地圖頁面新增「隨機選一家！」按鈕。
-    * 點擊後，地圖上所有店家圖示會開始隨機閃爍跳動，動畫效果充滿趣味，最終會選出一家餐廳作為結果。
-* **UI/UX 全面優化**:
-    * **地圖圖示升級**: 將原有的多色圓點標記，替換為一套專門設計的 SVG 線條圖示，讓地圖資訊更清晰、更具質感。
-    * **探索圈體驗改善**: 在「畫出你的探索圈」頁面，明確標示出使用者的所在位置，並優化了 UI 圖層，解決了先前拖曳點與按鈕不靈敏的問題。
-* **開發流程優化**:
-    * **API 金鑰管理**: 引入 `.env` 檔案來管理 Google Maps 與 Gemini 的 API 金鑰，將敏感資訊與程式碼分離，提升安全性。
-    * **程式碼健壯性**: 增強了前後端的錯誤處理機制，並針對 API 沒有回傳資料的邊界情況做了 UI 適配。
-
----
-
-🚀 **技術棧 (Tech Stack)**
-* **前端 (Frontend)**:
-    * HTML5 / CSS3 (包含 Flexbox, Keyframe Animations)
-    * JavaScript (ES6+) (Vanilla JS, 無框架)
-    * Leaflet.js (開源地圖函式庫)
-* **後端 (Backend)**:
-    * Python 3 / Flask
-    * **Google Maps Platform API**: 用於地理定位與餐廳資料搜尋。
-    * **Google Gemini API**: 用於餐廳智慧分類。
-    * `python-dotenv`: 用於管理環境變數。
-
-🔧 **如何運行 (Getting Started)**
-
-1.  **Clone Repo**
-    ```bash
-    git clone [https://github.com/YOUR_USERNAME/what-to-eat.git](https://github.com/YOUR_USERNAME/what-to-eat.git)
-    cd what-to-eat
-    ```
-
-2.  **取得 API 金鑰**
-    * 前往 [Google Cloud Console](https://console.cloud.google.com/) 申請 API 金鑰，並啟用 `Places API`。
-    * 前往 [Google AI Studio](https://aistudio.google.com/) 取得 Gemini API 金鑰。
-
-3.  **設定環境變數**
-    * 在專案根目錄下，建立一個名為 `.gitignore` 的檔案，並加入一行 `.env` 以確保安全。
-    * 在專案根目錄下，建立一個名為 `.env` 的檔案，並填入您的金鑰：
-        ```
-        GOOGLE_MAPS_API_KEY="你的Google地圖API金鑰"
-        GEMINI_API_KEY="你的Gemini API金鑰"
-        ```
-
-4.  **設定並啟動後端伺服器**
-    ```bash
-    # 安裝所需的 Python 套件
-    pip install -r requirements.txt
-
-    # 啟動 Flask 伺服器
-    python app.py
-    ```
-    伺服器將會運行在 `http://127.0.0.1:5000`。請保持此終端機視窗開啟。
-
-5.  **開啟前端頁面**
-    * 直接在您的網頁瀏覽器 (建議使用 Chrome) 中，打開專案根目錄下的 `index.html` 檔案。
-
-📂 **專案結構 (Project Structure)**
-what-to-eat/
-├── 📂 css/
-│   └── 📜 style.css
-├── 📂 js/
-│   └── 📜 app.js
-├── 📜 app.py
-├── 📜 index.html
-├── 📜 requirements.txt
-├── 📜 .gitignore      # 新增
-├── 📜 .env            # (本地端，不應上傳)
-└── 📜 README.md
-
 # 今天吃什麼？ What To Eat Today?
 
 一款旨在解決日常「用餐選擇困難症」的 Web App。透過互動式地圖探索、AI 智慧分類與充滿儀式感的決策工具，提供充滿質感與樂趣的美食探索體驗。
@@ -196,27 +11,40 @@ what-to-eat/
 
 ---
 
-### **v3.0 主要更新 (Recent Updates)**
+### **版本演進**
 
-此版本專注於**程式碼架構的現代化重構**與**開發流程的簡化**，大幅提升了專案的健壯性與可維護性。
+===v1===
+* 奠定了專案核心 UI/UX 風格，包含配色、字體與基本版面配置。
+* 使用 Mock Data 建立了一個可互動的 App 原型。
+* 實現了基本的頁面切換與命運羅盤動畫。
 
-* **前端架構現代化**:
-    * 將原先龐大的 `js/app.js` 檔案，**全面重構為 ES6 模組化架構**。程式碼被拆分為 `api.js`, `map.js`, `ui.js` 等多個職責單一的模組，使邏輯更清晰、未來擴充更容易。
+===v2===
+* **真實數據串接**: 後端全面改寫，串接 **Google Maps Platform API** 與 **Google Gemini API**，可即時獲取並智慧分類真實世界的餐廳數據。
+* **API 金鑰管理**: 引入 `.env` 檔案來管理 API 金鑰，提升安全性。
+* **UI/UX 優化**: 升級地圖圖示，並改善探索圈頁面的操作體驗。
 
-* **更智慧的 AI 分類**:
-    * 後端 AI Prompt 經過優化，現在 Gemini API 在回傳美食分類時，會**自動附上最適合的 Emoji 圖示** (例如 `牛肉麵 🍜`)。這使得前端的圖示系統完全由 AI 驅動，更具彈性與趣味性。
+===v3===
+* **前端架構現代化**: 將原先龐大的 `js/app.js` 檔案，**全面重構為 ES6 模組化架構**，大幅提升程式碼的可維護性與擴展性。
+* **更智慧的 AI 分類**: 優化後端 AI Prompt，讓 Gemini API 能自動為美食分類附上最適合的 Emoji。
+* **開發流程整合**: Flask 伺服器整合了前端靜態檔案託管，解決了 CORS 問題，實現 `python app.py` 一鍵啟動。
+* **API 穩定性修正**: 修正了 Google Maps Place API 的 `fields` 參數錯誤。
 
-* **開發流程整合與簡化**:
-    * 後端 Flask 伺服器現在**整合了前端靜態檔案的託管功能**。解決了先前因 `file:///` 協議導致的 CORS 模組載入錯誤，現在開發者只需運行一個指令即可啟動完整的應用程式。
-
-* **API 穩定性修正**:
-    * 修正了先前呼叫 Google Maps Place API 時，因 `fields` 參數命名錯誤 (`photos`應為`photo`) 而導致的後端伺服器錯誤，提升了 API 穩定性。
+===v4===
+* **強大的複合式搜尋**: 後端採用**寬泛類型** + **精準關鍵字**的複合式搜尋策略，並結合分頁處理，能最大化地搜尋到區域內所有相關的美食店家，大幅減少遺漏。
+* **整合式篩選功能**:
+    * 在美食地圖頁新增了設計精美的**篩選面板**，可依「目前營業中」、「價位」、「評分」進行多重條件篩選。
+    * 篩選面板具有流暢的滑出動畫，並可透過關閉按鈕或點擊面板外區域來關閉，提供卓越的使用者體驗。
+* **多行類別佈局**:
+    * 優化了美食分類區的顯示方式，改為**兩行或三行的橫向滾動佈局**，既解決了分類過多時的瀏覽問題，也避免了遮擋地圖視野。
+* **使用者體驗優化**:
+    * 大幅提升了「探索圈」頁面拖曳手把的靈敏度。
+    * 美化了「回到中心」按鈕的 UI 設計，使其更符合整體風格。
 
 ---
 
 🚀 **技術棧 (Tech Stack)**
 * **前端 (Frontend)**:
-    * HTML5 / CSS3 (Flexbox, Keyframe Animations)
+    * HTML5 / CSS3 (Flexbox, Grid, Keyframe Animations)
     * JavaScript (ES6+, **模組化 (Modules)**, 無框架)
     * Leaflet.js (開源地圖函式庫)
 * **後端 (Backend)**:
@@ -257,22 +85,3 @@ what-to-eat/
     * 伺服器將會運行在 `http://127.0.0.1:5000`。
     * 請打開您的網頁瀏覽器 (建議使用 Chrome)，並直接訪問 **`http://127.0.0.1:5000`**。
     * **注意**：由於已改為模組化架構，請**不要**再直接點開 `index.html` 檔案，否則會因 CORS 策略而無法運行。
-
-📂 **專案結構 (Project Structure)**
-what-to-eat/
-├── 📂 css/
-│   └── 📜 style.css
-├── 📂 js/
-│   ├── 📜 api.js
-│   ├── 📜 handlers.js
-│   ├── 📜 main.js         # (主入口)
-│   ├── 📜 map.js
-│   ├── 📜 navigation.js
-│   ├── 📜 state.js
-│   └── 📜 ui.js
-├── 📜 app.py                # (整合後端 API 與前端服務)
-├── 📜 index.html
-├── 📜 requirements.txt
-├── 📜 .gitignore
-├── 📜 .env                # (本地端，不應上傳)
-└── 📜 README.md
