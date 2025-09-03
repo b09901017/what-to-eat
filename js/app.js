@@ -6,13 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPage: 'splash-page',
         navigationStack: [],
         wheelItems: new Set(),
-        currentRestaurantDetails: null, // 新增：儲存當前查看的店家詳情
+        currentRestaurantDetails: null,
         isSpinning: false,
         userLocation: null,
         searchRadiusMeters: 500,
         restaurantData: {},
         activeCategory: null,
-        categoryColors: { "中式麵館 🍜": "#E57373", "美味便當 🍱": "#81C784", "義式風情 🍝": "#64B5F6", "健康早午餐 🥪": "#FFD54F", "手搖飲料 🍹": "#BA68C8" },
+        // 優化第三點：將顏色映射改為圖示映射
+        categoryIcons: { 
+            "火鍋": "🍲", "日式料理": "🍣", "義式料理": "🍝", "中式麵食": "🍜", 
+            "美式速食": "🍔", "咖啡廳": "☕", "早午餐": "🥪", "便當": "🍱", 
+            "手搖飲料": "🍹", "酒吧": "🍺", "燒肉": "🍖", "炸物": "🍗",
+            "吃到飽": "🍽️", "小吃": "🥡", "麵包店": "🥐", "自助餐": "🥗"
+        },
         mapInstance: null,
         mapMarkers: {},
         restaurantMarkers: {},
@@ -46,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resultOverlay: document.getElementById('result-overlay'),
         resultText: document.getElementById('result-text'),
         closeResultBtn: document.getElementById('close-result-btn'),
-        // 新增：店家詳情頁面元素
         detailsPage: document.getElementById('details-page'),
         detailsHeaderImage: document.querySelector('.details-header-image'),
         detailsTitle: document.querySelector('.details-title'),
@@ -72,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.pages.forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
 
-            // 根據不同頁面執行初始化
             if (pageId === 'map-page') handlers.getUserLocation();
             if (pageId === 'categories-page') handlers.initCategoriesMapAndRender();
             if (pageId === 'wheel-page') render.wheel();
@@ -91,10 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const render = {
         categories: () => {
             DOMElements.categoryList.innerHTML = '';
-            Object.keys(state.restaurantData).forEach(category => {
+            const categoryKeys = Object.keys(state.restaurantData);
+            
+            categoryKeys.forEach(category => {
+                const icon = state.categoryIcons[category] || '📍'; // 如果找不到對應圖示，給一個預設的
                 const item = document.createElement('div');
                 item.className = 'category-list-item';
-                item.textContent = `${category.split(' ')[1]} ${category.split(' ')[0]}`;
+                // 將圖示和類別名稱組合顯示
+                item.textContent = `${icon} ${category}`;
                 item.dataset.category = category;
                 DOMElements.categoryList.appendChild(item);
             });
@@ -103,20 +111,36 @@ document.addEventListener('DOMContentLoaded', () => {
             Object.values(state.restaurantMarkers).forEach(marker => marker.remove());
             state.mapMarkers = {}; state.restaurantMarkers = {};
             if(state.userMarker) state.userMarker.remove();
+
             if (state.userLocation && state.mapInstance) {
                  state.userMarker = L.marker([state.userLocation.lat, state.userLocation.lon], { 
-                    icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [20, 20]}),
+                    icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [24, 24]}),
                     zIndexOffset: 2000
                 }).addTo(state.mapInstance);
             }
+            
+            // 優化第三點：主要修改邏輯
             for (const category in state.restaurantData) {
                 state.mapMarkers[category] = [];
-                const color = state.categoryColors[category] || '#BDBDBD';
+                // 從 state.categoryIcons 獲取圖示
+                const iconEmoji = state.categoryIcons[category] || '📍';
+                
                 state.restaurantData[category].forEach(restaurant => {
-                    const iconHtml = `<div style="background-color: ${color}; width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`;
-                    const customIcon = L.divIcon({ html: iconHtml, className: 'custom-map-icon', iconSize: [16, 16], iconAnchor: [8, 8] });
+                    // 使用 包含 Emoji 的 div 作為圖示
+                    const iconHtml = `<div class="map-category-icon">${iconEmoji}</div>`;
+                    const customIcon = L.divIcon({ 
+                        html: iconHtml, 
+                        className: 'map-category-icon-container', 
+                        iconSize: [36, 36], 
+                        iconAnchor: [18, 18] 
+                    });
+                    
                     const isHighlighted = highlightedCategory === null || category === highlightedCategory;
-                    const marker = L.marker([restaurant.lat, restaurant.lon], { icon: customIcon, opacity: isHighlighted ? 1 : 0.3 }).addTo(state.mapInstance);
+                    const marker = L.marker([restaurant.lat, restaurant.lon], { 
+                        icon: customIcon, 
+                        opacity: isHighlighted ? 1 : 0.4 
+                    }).addTo(state.mapInstance);
+                    
                     marker.bindPopup(render.popupContent(restaurant), { className: 'custom-popup' });
                     state.mapMarkers[category].push(marker);
                     state.restaurantMarkers[restaurant.name] = marker;
@@ -165,25 +189,29 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.detailsPrice.textContent = '$'.repeat(data.price_level);
             DOMElements.detailsStatus.textContent = data.hours;
 
-            // 更新詳情頁的加入候選按鈕狀態
             const isAdded = state.wheelItems.has(data.name);
             DOMElements.addToWheelDetailsBtn.classList.toggle('added', isAdded);
             DOMElements.addToWheelDetailsBtn.querySelector('span').textContent = isAdded ? '已加入' : '加入候選';
 
-            DOMElements.detailsHoursList.innerHTML = data.details.opening_hours.weekday_text.map(line => `<li>${line}</li>`).join('');
+            const hoursList = data.details.opening_hours.weekday_text;
+            DOMElements.detailsHoursList.innerHTML = hoursList && hoursList.length > 0
+                ? hoursList.map(line => `<li>${line}</li>`).join('')
+                : '<li>暫無提供營業時間</li>';
             
-            DOMElements.detailsReviewsList.innerHTML = data.details.reviews.map(review => `
+            const reviewsList = data.details.reviews;
+            DOMElements.detailsReviewsList.innerHTML = reviewsList && reviewsList.length > 0
+                ? reviewsList.map(review => `
                 <div class="review-card">
                     <div class="review-card-header">
                         <span class="review-author">${review.author_name}</span>
                         <span class="review-rating">${'⭐'.repeat(review.rating)}</span>
                         <span class="review-time">${review.relative_time_description}</span>
                     </div>
-                    <p class="review-text">${review.text}</p>
+                    <p class="review-text">${review.text || '(無評論內容)'}</p>
                 </div>
-            `).join('');
+            `).join('')
+            : '<p>暫無評論</p>';
             
-            // 綁定電話和網站按鈕事件
             DOMElements.callBtn.onclick = () => { if (data.details.formatted_phone_number) window.location.href = `tel:${data.details.formatted_phone_number}`; };
             DOMElements.websiteBtn.onclick = () => { if (data.details.website && data.details.website !== '#') window.open(data.details.website, '_blank'); };
         },
@@ -237,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!state.mapInstance) {
                 state.mapInstance = L.map(DOMElements.leafletMap).setView([24.97, 121.54], 15);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(state.mapInstance);
-                // 使用事件代理來處理動態生成的 popup 內的點擊事件
                 state.mapInstance.on('popupopen', (e) => {
                     e.popup.getElement().addEventListener('click', handlers.popupInteraction);
                 });
@@ -245,9 +272,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const allCoords = Object.values(state.restaurantData).flat().map(r => [r.lat, r.lon]);
             if (state.userLocation) allCoords.push([state.userLocation.lat, state.userLocation.lon]);
             if (allCoords.length > 0) state.mapInstance.fitBounds(allCoords, { paddingTopLeft: [20, 20], paddingBottomRight: [20, 300]});
-            render.categories();
-            render.mapMarkers();
-            render.restaurantPreviewList(null);
+            
+            if (Object.keys(state.restaurantData).length === 0) {
+                DOMElements.categoryList.innerHTML = `<p class="empty-state-message">這個範圍內好像沒有餐廳耶，試著擴大搜尋範圍看看？</p>`;
+                DOMElements.restaurantPreviewList.classList.remove('visible');
+            } else {
+                render.categories();
+                render.mapMarkers();
+                render.restaurantPreviewList(null);
+            }
         },
         initRadiusMap: (location) => {
             const centerLatLng = L.latLng(location.lat, location.lon);
@@ -255,9 +288,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.radiusMapInstance = L.map(DOMElements.radiusMap, { zoomControl: false }).setView(centerLatLng, 15);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(state.radiusMapInstance);
             }
+
+            // 優化第一點：新增使用者位置標記
+            L.marker(centerLatLng, { 
+                icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [24, 24]}),
+                zIndexOffset: 1000 // 確保在圈圈之上
+            }).addTo(state.radiusMapInstance);
+
             state.radiusCircle = L.circle(centerLatLng, { radius: state.searchRadiusMeters, color: 'var(--primary-color)', weight: 2, fillOpacity: 0.1, }).addTo(state.radiusMapInstance);
             const edgeLatLng = L.latLng(destinationPoint(location.lat, location.lon, state.searchRadiusMeters, 90));
             state.radiusDragMarker = L.marker(edgeLatLng, { draggable: true, icon: L.divIcon({ html: '<div class="radius-drag-handle"></div>', className: 'radius-drag-handle-icon', iconSize: [20, 20] }) }).addTo(state.radiusMapInstance);
+            
             state.radiusDragMarker.on('drag', (e) => {
                 const newRadius = Math.max(50, Math.round(centerLatLng.distanceTo(e.target.getLatLng())));
                 state.searchRadiusMeters = newRadius;
@@ -272,14 +313,38 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         },
         searchRestaurants: async () => {
-            DOMElements.loadingOverlay.classList.add('visible'); DOMElements.loadingText.textContent = "正在尋找附近美食...";
+            DOMElements.loadingOverlay.classList.add('visible'); 
+            DOMElements.loadingText.textContent = "正在搜尋附近美食...";
+            
             try {
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lat: state.userLocation.lat, lon: state.userLocation.lon, radius: state.searchRadiusMeters }) });
-                if (!response.ok) throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
+                const response = await fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        lat: state.userLocation.lat, 
+                        lon: state.userLocation.lon, 
+                        radius: state.searchRadiusMeters 
+                    }) 
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP 錯誤! 狀態: ${response.status}`);
+                }
+                
                 state.restaurantData = await response.json();
-                navigate.to('categories-page');
-            } catch (error) { console.error("搜尋失敗:", error); DOMElements.loadingText.textContent = "搜尋失敗，請稍後再試"; setTimeout(() => DOMElements.loadingOverlay.classList.remove('visible'), 2000); return; }
-            DOMElements.loadingOverlay.classList.remove('visible');
+                DOMElements.loadingText.textContent = "AI 正在為您分類美食...";
+                
+                setTimeout(() => {
+                    DOMElements.loadingOverlay.classList.remove('visible');
+                    navigate.to('categories-page');
+                }, 800);
+
+            } catch (error) { 
+                console.error("搜尋失敗:", error); 
+                DOMElements.loadingText.textContent = `搜尋失敗: ${error.message}，請稍後再試`; 
+                setTimeout(() => DOMElements.loadingOverlay.classList.remove('visible'), 3000); 
+            }
         },
         popupInteraction: (e) => {
             const btn = e.target.closest('.add-to-wheel-btn, .details-btn');
@@ -287,7 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = btn.dataset.name;
             if (btn.classList.contains('add-to-wheel-btn')) {
                 handlers.toggleWheelItem(name);
-                // 更新 popup 內的按鈕狀態
                 const isAdded = state.wheelItems.has(name);
                 btn.classList.toggle('added', isAdded);
                 btn.textContent = isAdded ? '✓' : '+';
@@ -406,4 +470,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
-

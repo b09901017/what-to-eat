@@ -1,0 +1,59 @@
+# --- 絕對需要忽略的檔案 ---
+
+# 儲存 API 金鑰和機密資訊的環境變數檔案
+.env
+
+
+# --- Python 相關 ---
+
+# 虛擬環境
+# 根據你建立的虛擬環境名稱，可能需要取消註解或新增
+# env/
+# venv/
+# .venv/
+# ENV/
+# VENV/
+# *.venv
+
+# Python 的快取檔案和資料夾
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python 的 egg 資訊
+*.egg-info/
+*.egg
+
+
+# --- Flask 相關 ---
+
+# Flask 的實例資料夾
+/instance
+
+
+# --- 作業系統和編輯器產生的檔案 ---
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode 編輯器
+.vscode/
+
+# PyCharm 編輯器
+.idea/
+
+
+# --- 其他 ---
+
+# Log 檔案
+*.log
+
+# 暫存檔
+*.tmp

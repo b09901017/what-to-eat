@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>今天吃什麼？ - 心流版</title>
-    <!-- Leaflet Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
      crossorigin=""/>
@@ -21,7 +20,6 @@
 
     <main class="app-container">
         
-        <!-- 頁面 1: 歡迎頁面 -->
         <section id="splash-page" class="page active">
             <div class="splash-content">
                 <h1 class="font-serif">今天，想來點什麼樣的滋味？</h1>
@@ -30,27 +28,27 @@
             </div>
         </section>
 
-        <!-- 頁面 2: 地圖範圍選擇 -->
         <section id="map-page" class="page">
-            <div class="page-content">
-                <header class="page-header page-header-overlay">
+            <div id="radius-map" class="radius-map"></div>
+
+            <div class="map-ui-overlay">
+                <header class="page-header">
                     <h2 class="font-serif">畫出你的探索圈</h2>
                     <p id="location-status">正在取得您的位置...</p>
                 </header>
                 
-                <div id="radius-map" class="radius-map"></div>
-                <button id="recenter-btn" class="recenter-btn" title="回到中心">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V2l4 4-4 4"/><path d="M22 12A10 10 0 1 1 2.48 8"/></svg>
-                </button>
-                <div id="radius-label" class="radius-label">500 公尺</div>
-                
-                <footer class="page-footer page-footer-overlay">
+                <footer class="page-footer">
                     <button id="confirm-radius-btn" class="btn-primary" disabled>在此範圍中搜尋</button>
                 </footer>
             </div>
+
+            <div id="radius-label" class="radius-label">500 公尺</div>
+            <button id="recenter-btn" class="recenter-btn" title="回到中心">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V2l4 4-4 4"/><path d="M22 12A10 10 0 1 1 2.48 8"/></svg>
+            </button>
         </section>
 
-        <!-- 頁面 3: 美食地圖與分類 -->
+
         <section id="categories-page" class="page">
             <div id="leaflet-map" class="leaflet-map"></div>
             
@@ -72,7 +70,6 @@
             </div>
         </section>
         
-        <!-- 頁面 4: 命運羅盤 -->
         <section id="wheel-page" class="page">
             <div class="page-content">
                 <header class="page-header with-back-btn">
@@ -94,7 +91,6 @@
             </div>
         </section>
 
-        <!-- 全新：頁面 5: 店家詳情頁面 -->
         <section id="details-page" class="page details-page">
             <div class="details-header-image"></div>
             <header class="page-header with-back-btn details-header">
@@ -147,4 +143,3 @@
     <script src="./js/app.js"></script>
 </body>
 </html>
-

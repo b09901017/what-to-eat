@@ -52,30 +52,102 @@ body { font-family: var(--font-sans); background-color: #333; color: var(--text-
 .splash-content p { margin: 1rem 0 2rem; }
 @keyframes content-fade-in { to { opacity: 1; } }
 
-/* --- 範圍選擇頁面 --- */
-.page-header-overlay, .page-footer-overlay { position: relative; z-index: 1000; width: 100%; padding: 0 1.5rem; pointer-events: none; }
-.page-header-overlay { padding-top: 2rem; background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 50%, transparent); }
-.page-footer-overlay { padding-bottom: 2rem; background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 50%, transparent); }
-.page-header-overlay > *, .page-footer-overlay > * { pointer-events: auto; }
-.radius-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-.recenter-btn { position: absolute; bottom: 120px; right: 20px; z-index: 1000; width: 50px; height: 50px; border-radius: 50%; border: none; background-color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; color: var(--text-dark); }
-.radius-label { position: absolute; bottom: 135px; left: 50%; transform: translateX(-50%); background-color: rgba(255, 255, 255, 0.8); padding: 0.5rem 1rem; border-radius: 20px; font-family: var(--font-serif); font-size: 1.2rem; color: var(--text-dark); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-.radius-drag-handle { width: 20px; height: 20px; background-color: white; border: 3px solid var(--primary-color); border-radius: 50%; cursor: grab; }
-.leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-drag-handle { cursor: grabbing; }
+/* --- 範圍選擇頁面 (樣式已優化) --- */
+.radius-map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* 確保地圖在最底層 */
+}
+/* 新增：UI 懸浮層容器 */
+.map-ui-overlay {
+    position: relative; /* 使用 relative 即可，因為父層 page 已經是 absolute */
+    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 將頁首推到頂部，頁尾推到底部 */
+    pointer-events: none; /* 容器本身不攔截點擊事件 */
+}
+/* 讓懸浮層內的元素可以被點擊 */
+.map-ui-overlay > * {
+    pointer-events: auto;
+}
+/* 調整原有的 page-header 和 page-footer */
+.page#map-page .page-header {
+    background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 50%, transparent);
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+.page#map-page .page-footer {
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 50%, transparent);
+    padding: 0;
+    margin: 0;
+}
+.recenter-btn {
+    position: absolute;
+    bottom: 120px;
+    right: 20px;
+    z-index: 1001; /* 確保在懸浮層之上 */
+}
+.radius-label {
+    position: absolute;
+    bottom: 135px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001; /* 確保在懸浮層之上 */
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    color: var(--text-dark);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.radius-drag-handle {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border: 3px solid var(--primary-color);
+    border-radius: 50%;
+    cursor: grab;
+}
+.leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-drag-handle {
+    cursor: grabbing;
+}
 
 /* --- 美食地圖頁面 --- */
 .leaflet-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
-.user-location-marker { background-color: #4A90E2; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(74, 144, 226, 0.8); animation: pulse 2s infinite; }
+.user-location-marker { background-color: #4A90E2; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(74, 144, 226, 0.8); animation: pulse 2s infinite; }
 @keyframes pulse { 0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(74, 144, 226, 0); } 100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); } }
 .leaflet-marker-icon.marker-active { animation: bounce 0.6s; }
 @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-15px);} 60% {transform: translateY(-7px);} }
+.map-category-icon-container { margin: 0; padding: 0; }
+.map-category-icon {
+    font-size: 24px;
+    background-color: white;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border: 2px solid white;
+}
 .category-list-container { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 0; background: linear-gradient(to top, var(--bg-color) 70%, transparent); transition: transform var(--transition-slow); }
 .page-header-condensed { text-align: center; margin-bottom: 1rem; padding: 0 1.5rem; }
 .page-header-condensed h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed p { font-size: 0.9rem; color: var(--text-light); }
 .category-list, .restaurant-preview-list { display: flex; gap: 0.75rem; overflow-x: auto; padding: 0.5rem 1.5rem 1.5rem 1.5rem; -ms-overflow-style: none; scrollbar-width: none; }
 .category-list::-webkit-scrollbar, .restaurant-preview-list::-webkit-scrollbar { display: none; }
+.empty-state-message { width: 100%; text-align: center; color: var(--text-light); padding: 1rem; }
 .category-list-item { flex: 0 0 auto; padding: 0.75rem 1.5rem; border-radius: 30px; background: white; border: 1px solid var(--border-color); cursor: pointer; text-align: center; transition: all var(--transition-fast); }
 .category-list-item:hover, .category-list-item.active { background-color: var(--primary-color); color: white; transform: translateY(-4px); border-color: var(--primary-color); }
 .wheel-count-badge { background-color: var(--primary-color); color: white; border: 2px solid var(--bg-color); border-radius: 50%; width: 1.75rem; height: 1.75rem; font-size: 0.8rem; display: inline-flex; justify-content: center; align-items: center; position: absolute; top: -0.5rem; right: -0.5rem;}
@@ -110,7 +182,7 @@ body { font-family: var(--font-sans); background-color: #333; color: var(--text-
 .spin-button { margin-top: 2rem; width: 80%; }
 .wheel-placeholder { text-align: center; color: var(--text-light); font-size: 1.2rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
 
-/* --- 全新：店家詳情頁面 --- */
+/* --- 店家詳情頁面 --- */
 .details-page { display: block; padding: 0; overflow-y: auto; background-color: var(--bg-color); }
 .details-header { position: absolute; top: 0; left: 0; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent); padding-top: 1.5rem; }
 .details-header .back-btn { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
@@ -148,4 +220,3 @@ body { font-family: var(--font-sans); background-color: #333; color: var(--text-
 .result-actions { margin-top: 3rem; width: 250px; }
 @keyframes typing { from { width: 0 } to { width: 100% } }
 @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--text-dark); } }
-

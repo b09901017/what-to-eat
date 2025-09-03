@@ -1,75 +1,149 @@
-import time
+import os
+import googlemaps
+import google.generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import random
+import json
+from dotenv import load_dotenv
+
+# --- 初始化 ---
+
+# 載入 .env 檔案中的環境變數
+load_dotenv()
+
+# 從環境變數讀取 API 金鑰
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# 檢查 API 金鑰是否存在
+if not GOOGLE_MAPS_API_KEY or not GEMINI_API_KEY:
+    raise ValueError("請在 .env 檔案中設定 GOOGLE_MAPS_API_KEY 和 GEMINI_API_KEY")
+
+# 初始化 Google Maps 和 Gemini 客戶端
+gmaps = googlemaps.Client(key=GOOGLE_MAPS_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 
 app = Flask(__name__)
 CORS(app)
 
-# --- 全新的、更豐富的模擬數據 ---
-mock_data = {
-    "中式麵館 🍜": [
-        {"name": "鼎泰豐", "lat": 24.978, "lon": 121.540, "rating": 4.8, "price_level": 4, "hours": "營業中", "details": {
-            "photos": ["https://placehold.co/600x400/F5EBE0/424242?text=小籠包", "https://placehold.co/600x400/D5B4B4/424242?text=店內環境"],
-            "reviews": [
-                {"author_name": "陳先生", "rating": 5, "text": "服務一流，小籠包皮薄多汁，不愧是米其林推薦！", "relative_time_description": "2 週前"},
-                {"author_name": "美食家Emily", "rating": 4, "text": "排隊時間有點長，但食物品質穩定，炒飯也很好吃。", "relative_time_description": "1 個月前"}
-            ],
-            "opening_hours": { "weekday_text": ["星期一: 11:00 AM – 9:30 PM", "星期二: 11:00 AM – 9:30 PM", "...", "星期日: 10:30 AM – 9:30 PM"] },
-            "formatted_phone_number": "(02) 2321-8928", "website": "https://www.dintaifung.com.tw/"
-        }},
-        {"name": "永康牛肉麵", "lat": 24.976, "lon": 121.542, "rating": 4.5, "price_level": 3, "hours": "休息中", "details": {
-             "photos": ["https://placehold.co/600x400/E3D5CA/424242?text=紅燒牛肉麵"],
-             "reviews": [{"author_name": "老饕王", "rating": 5, "text": "湯頭濃郁，牛肉燉得軟爛入味，絕對是台北必吃！", "relative_time_description": "3 天前"}],
-             "opening_hours": { "weekday_text": ["星期一至日: 11:00 AM – 3:30 PM, 4:30 PM – 9:00 PM"] }, "formatted_phone_number": "(02) 2351-1051", "website": "#"
-        }}
-    ],
-    "美味便當 🍱": [
-        {"name": "池上飯包", "lat": 24.973, "lon": 121.539, "rating": 4.3, "price_level": 2, "hours": "營業中", "details": {
-            "photos": ["https://placehold.co/600x400/D5E8D4/424242?text=招牌飯包"],
-            "reviews": [{"author_name": "上班族李", "rating": 4, "text": "快速、好吃、CP值高，午餐的好選擇。", "relative_time_description": "昨天"}],
-            "opening_hours": { "weekday_text": ["星期一至五: 10:30 AM – 8:00 PM"] }, "formatted_phone_number": "(02) 2911-5588", "website": "#"
-        }}
-    ],
-    "義式風情 🍝": [
-        {"name": "薄多義 Bite 2 Eat", "lat": 24.975, "lon": 121.536, "rating": 4.6, "price_level": 3, "hours": "營業中", "details": {
-            "photos": ["https://placehold.co/600x400/FADCD9/424242?text=瑪格麗特披薩", "https://placehold.co/600x400/F9F1F0/424242?text=用餐氛圍"],
-            "reviews": [{"author_name": "情侶約會", "rating": 5, "text": "氣氛很好，披薩是窯烤的，餅皮很Q，適合聚餐。", "relative_time_description": "5 天前"}],
-            "opening_hours": { "weekday_text": ["星期一至日: 11:30 AM – 9:30 PM"] }, "formatted_phone_number": "(02) 2776-3288", "website": "https://www.bite2eatpizza.com/"
-        }}
-    ],
-    "健康早午餐 🥪": [
-         {"name": "樂子 the Diner", "lat": 24.972, "lon": 121.543, "rating": 4.7, "price_level": 3, "hours": "營業中", "details": {
-            "photos": ["https://placehold.co/600x400/FFF2CC/424242?text=班尼迪克蛋"],
-            "reviews": [{"author_name": "週末放鬆", "rating": 5, "text": "份量十足的美式早午餐，每次來都點不一樣的，從沒失望過。", "relative_time_description": "上週末"}],
-            "opening_hours": { "weekday_text": ["星期一至五: 9:00 AM – 9:00 PM", "週末: 8:00 AM – 9:30 PM"] }, "formatted_phone_number": "(02) 2754-1680", "website": "https://www.thediner.com.tw/"
-        }}
-    ],
-     "手搖飲料 🍹": [
-        {"name": "春水堂", "lat": 24.979, "lon": 121.537, "rating": 4.4, "price_level": 3, "hours": "營業中", "details": {
-            "photos": ["https://placehold.co/600x400/D4E2D4/424242?text=珍珠奶茶"],
-            "reviews": [{"author_name": "觀光客", "rating": 4, "text": "珍珠奶茶的創始店，雖然貴了點，但茶香濃郁，珍珠Q彈，值得一試。", "relative_time_description": "2 週前"}],
-            "opening_hours": { "weekday_text": ["星期一至日: 11:00 AM – 10:00 PM"] }, "formatted_phone_number": "(02) 2321-9356", "website": "https://www.chunshuitang.com.tw/"
-        }}
-    ]
-}
+# --- Gemini AI 輔助函式 ---
+
+def get_categories_from_gemini(restaurants_for_ai):
+    """
+    使用 Gemini API 將餐廳列表進行分類。
+    """
+    if not restaurants_for_ai:
+        return {}
+        
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # 優化第二點：修改 Prompt
+    prompt = f"""
+    您是一位餐廳分類專家。請根據以下餐廳列表，將它們分類到最適合的類別中。
+
+    規則：
+    1. 使用簡潔、通用的「繁體中文」類別名稱。
+    2. **不要**在類別名稱後加上任何 Emoji 或符號。
+    3. 請優先從這個推薦列表中選擇分類： [火鍋, 壽司, 義大利麵, 麵食, 飯糰, 咖啡廳, 早午餐, 便當, 手搖飲料, 酒吧, 燒肉, 炸物, 吃到飽, 小吃, 麵包, 自助餐, 咖哩, 餡餅]。如果都不符合，可以自行建立相似的通用分類。
+    4. 最終只需回傳一個 JSON 物件，其餘任何文字都不要。
+
+    餐廳列表如下：
+    {json.dumps(restaurants_for_ai, ensure_ascii=False)}
+
+    請嚴格按照以下 JSON 格式回傳，key 是類別名稱，value 是該類別包含的餐廳名稱陣列：
+    {{
+      "火鍋": ["餐廳A", "餐廳B"],
+      "日式料理": ["餐廳C"]
+    }}
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        cleaned_response = response.text.strip().replace('```json', '').replace('```', '')
+        categories = json.loads(cleaned_response)
+        return categories
+    except Exception as e:
+        print(f"Gemini API 呼叫失敗: {e}")
+        all_restaurant_names = [r['name'] for r in restaurants_for_ai]
+        return {"附近美食": all_restaurant_names}
+
+# --- API 路由 ---
 
 @app.route('/api/search', methods=['POST'])
 def search_restaurants():
-    # 模擬網路延遲和處理時間
-    time.sleep(random.uniform(0.5, 1.5))
-    
-    # 這裡的程式碼是為了讓模擬數據看起來更真實
-    # 在真實世界中，你會在這裡呼叫 Google Maps API
     data = request.get_json()
     if not data or 'lat' not in data or 'lon' not in data:
         return jsonify({"error": "缺少經緯度資訊"}), 400
-    
-    # 在真實情境中，你會使用 data['lat'], data['lon'], data['radius'] 去搜尋
-    # 但因為我們用的是 mock data，所以直接回傳
-    
-    return jsonify(mock_data)
+
+    location = (data['lat'], data['lon'])
+    radius = data.get('radius', 500)
+
+    try:
+        places_result = gmaps.places_nearby(
+            location=location,
+            radius=radius,
+            language='zh-TW',
+            type='restaurant'
+        )
+
+        all_restaurants = {}
+        restaurants_for_ai = []
+
+        for place in places_result.get('results', []):
+            place_id = place['place_id']
+            details = gmaps.place(place_id=place_id, language='zh-TW', fields=[
+                'name', 'geometry', 'rating', 'user_ratings_total', 'price_level', 
+                'opening_hours', 'formatted_phone_number', 'website', 'photo', 'review', 'type'
+            ])['result']
+            
+            hours_text = "資訊不足"
+            if 'opening_hours' in details:
+                hours_text = "營業中" if details['opening_hours'].get('open_now', False) else "休息中"
+
+            photo_urls = []
+            if 'photos' in details:
+                for photo in details['photos'][:2]:
+                    photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo['photo_reference']}&key={GOOGLE_MAPS_API_KEY}"
+                    photo_urls.append(photo_url)
+            if not photo_urls:
+                 photo_urls.append(f"https://placehold.co/600x400/F5EBE0/424242?text={details.get('name', '店家')}")
+
+            restaurant_info = {
+                "name": details.get('name'),
+                "lat": details['geometry']['location']['lat'],
+                "lon": details['geometry']['location']['lng'],
+                "rating": details.get('rating', 0),
+                "price_level": details.get('price_level', 0),
+                "hours": hours_text,
+                "details": {
+                    "photos": photo_urls,
+                    "reviews": details.get('reviews', []),
+                    "opening_hours": {"weekday_text": details.get('opening_hours', {}).get('weekday_text', [])},
+                    "formatted_phone_number": details.get('formatted_phone_number', ''),
+                    "website": details.get('website', '#')
+                }
+            }
+            all_restaurants[restaurant_info['name']] = restaurant_info
+            
+            restaurants_for_ai.append({
+                "name": details.get('name'),
+                "types": details.get('types', [])
+            })
+
+        categorized_names = get_categories_from_gemini(restaurants_for_ai)
+
+        final_result = {}
+        for category, names in categorized_names.items():
+            final_result[category] = []
+            for name in names:
+                if name in all_restaurants:
+                    final_result[category].append(all_restaurants[name])
+        
+        return jsonify(final_result)
+
+    except Exception as e:
+        print(f"發生錯誤: {e}")
+        return jsonify({"error": "搜尋時發生未預期的錯誤"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
