@@ -2,14 +2,23 @@
 
 import { state, DOMElements } from './state.js';
 import { getUserLocation } from './handlers.js';
-import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap } from './map.js';
+import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter } from './map.js';
 
+/**
+ * 根據頁面 ID 渲染對應內容或執行初始化
+ * @param {string} pageId - 目標頁面 ID
+ */
 export function renderPageContent(pageId) {
     switch (pageId) {
         case 'map-page':
             getUserLocation();
             break;
         case 'categories-page':
+            // 確保每次進入此頁時，半徑編輯模式都是關閉的
+            if (state.isEditingRadius) {
+                state.isEditingRadius = false;
+                toggleRadiusEditMode(false);
+            }
             break;
         case 'wheel-page':
             renderWheel();
@@ -17,12 +26,12 @@ export function renderPageContent(pageId) {
         case 'details-page':
             renderDetailsPage();
             break;
-        case 'splash-page':
-            break;
     }
+    // 離開 map-page 時銷毀半徑地圖實例
     if (pageId !== 'map-page') {
         destroyRadiusMap();
     }
+    // 離開 categories-page 時隱藏篩選面板
     if (pageId !== 'categories-page') {
         DOMElements.filterPanel.classList.remove('visible');
     }
@@ -38,15 +47,48 @@ export function hideLoading() {
 }
 
 export function updateRadiusLabel(radius) {
-    DOMElements.radiusLabel.textContent = `${radius} 公尺`;
+    DOMElements.radiusLabel.textContent = `${Math.round(radius)} 公尺`;
+    DOMElements.radiusLabel.classList.add('visible');
 }
 
-export function initCategoriesMapAndRender(filteredData) {
-    const map = initCategoriesMap();
+/**
+ * 切換美食地圖頁的「半徑編輯模式」
+ * @param {boolean} isEditing - 是否進入編輯模式
+ * @param {Function} onRadiusChange - 半徑變化時的回呼函式
+ */
+export function toggleRadiusEditMode(isEditing, onRadiusChange) {
+    const { categoryList, restaurantPreviewList, categoriesPageFooter } = DOMElements;
     
-    // *** 傳入 activeCategory 用於高亮 ***
+    // 切換 UI 元素的顯示/隱藏
+    categoryList.classList.toggle('hidden', isEditing);
+    restaurantPreviewList.classList.toggle('hidden', isEditing);
+    categoriesPageFooter.classList.toggle('edit-mode', isEditing);
+    
+    if (isEditing) {
+        // 進入編輯模式：在地圖上繪製編輯工具
+        const center = state.searchCenter || state.userLocation;
+        initCategoriesMap(); // 確保地圖已初始化
+        setRadiusMapCenter('categories', center); // *** 修正後的呼叫 ***
+        drawRadiusEditor('categories', center, state.searchRadiusMeters, onRadiusChange);
+        updateRadiusLabel(state.searchRadiusMeters);
+    } else {
+        // 退出編輯模式：移除地圖上的編輯工具
+        removeRadiusEditor('categories');
+        DOMElements.radiusLabel.classList.remove('visible');
+    }
+}
+
+
+/**
+ * 初始化美食地圖並渲染所有相關元件
+ * @param {Object} filteredData - 經過篩選後的餐廳資料
+ */
+export function initCategoriesMapAndRender(filteredData) {
+    initCategoriesMap();
+    
     updateMapMarkers(filteredData, state.userLocation, state.focusedCategories, state.activeCategory);
     
+    // 決定地圖要縮放到的範圍
     const coordsToFit = [];
     const isFocusMode = state.focusedCategories.size > 0;
 
@@ -69,9 +111,9 @@ export function initCategoriesMapAndRender(filteredData) {
 
     renderCategories(filteredData);
     
-    // *** 顯示/隱藏重設按鈕 ***
     DOMElements.resetViewBtn.classList.toggle('visible', isFocusMode);
     
+    // 處理無結果時的提示訊息
     if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {
          DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
     } else if (Object.keys(state.restaurantData).length === 0) {
@@ -84,6 +126,7 @@ function renderCategories(filteredData) {
     const categoryKeys = Object.keys(filteredData);
     DOMElements.categoryList.innerHTML = '';
 
+    // 動態調整分類列的行數
     if (categoryKeys.length > 8) {
         DOMElements.categoryList.classList.add('three-rows');
     } else {
@@ -99,7 +142,6 @@ function renderCategories(filteredData) {
 
         const isFocused = state.focusedCategories.has(category);
         
-        // .active class 現在同時代表聚焦和高亮
         if (isFocused) {
             item.classList.add('active');
         } else if (isFocusMode) {
@@ -111,7 +153,6 @@ function renderCategories(filteredData) {
     });
 }
 
-// *** 恢復：預覽列表渲染函式 ***
 export function renderRestaurantPreviewList(category, filteredData) {
     const listEl = DOMElements.restaurantPreviewList;
     listEl.innerHTML = '';

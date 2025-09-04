@@ -31,8 +31,9 @@
     margin: 0;
 }
 
-.page#map-page .page-footer {
-    background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 50%, transparent);
+.page#map-page .page-footer,
+.page#categories-page .page-footer {
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 70%, transparent);
     padding: 0;
     margin: 0;
 }
@@ -72,14 +73,37 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 1001;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(66, 66, 66, 0.8);
     padding: 0.5rem 1rem;
     border-radius: 20px;
     font-family: var(--font-serif);
     font-size: 1.2rem;
-    color: var(--text-dark);
+    color: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast);
 }
+
+.radius-label.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- 新增：可拖曳的中心點樣式 --- */
+.radius-center-marker {
+    width: 24px;
+    height: 24px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    cursor: grab;
+}
+.leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-center-marker {
+    cursor: grabbing;
+}
+
 
 .radius-drag-handle-container {
     width: 40px;

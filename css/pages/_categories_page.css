@@ -22,7 +22,6 @@
     flex-shrink: 0;
 }
 
-/* *** 新增：按鈕群組容器樣式 *** */
 .header-actions {
     display: flex;
     align-items: center;
@@ -35,7 +34,7 @@
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
-    transform: scale(0.8) translateY(2px); /* 初始位置微調 */
+    transform: scale(0.8) translateY(2px);
     transition: all var(--transition-fast);
     padding: 0.5rem;
     border-radius: 50%;
@@ -71,6 +70,12 @@
     height: 100px;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.category-list.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 
 .category-list::-webkit-scrollbar { 
@@ -136,10 +141,42 @@
     right: -0.5rem;
 }
 
-.category-list-container .page-footer { 
+/* --- Footer and Button Switching --- */
+#categories-page .page-footer { 
     padding: 0 1.5rem 1rem 1.5rem; 
     flex-shrink: 0; 
+    position: relative;
+    height: 54px; /* Set a fixed height for smooth transition */
 }
+#categories-page .page-footer button {
+    position: absolute;
+    bottom: 1rem;
+    left: 1.5rem;
+    right: 1.5rem;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+#view-wheel-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+#re-search-btn {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
+#categories-page .page-footer.edit-mode #view-wheel-btn {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+#categories-page .page-footer.edit-mode #re-search-btn {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
 
 .restaurant-preview-list { 
     display: flex; 
@@ -151,6 +188,10 @@
     transition: all var(--transition-fast); 
     -ms-overflow-style: none; 
     scrollbar-width: none;
+}
+
+.restaurant-preview-list.hidden {
+    display: none;
 }
 
 .restaurant-preview-list::-webkit-scrollbar { 

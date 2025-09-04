@@ -8,9 +8,10 @@ export const state = {
     isSpinning: false,
     userLocation: null,
     searchRadiusMeters: 500,
+    searchCenter: null, // *** 新增：記錄實際的搜尋中心點
     restaurantData: {},
-    activeCategory: null, // *** 恢復：用於預覽列表和地圖高亮 ***
-    focusedCategories: new Set(), // 用於聚焦篩選
+    activeCategory: null,
+    focusedCategories: new Set(),
     currentWheelRotation: 0,
     animationFrameId: null,
     filters: {
@@ -18,6 +19,7 @@ export const state = {
         priceLevel: 0,
         rating: 0,
     },
+    isEditingRadius: false, // *** 新增：是否正在編輯半徑
 };
 
 export const DOMElements = {
@@ -30,13 +32,14 @@ export const DOMElements = {
     confirmRadiusBtn: document.getElementById('confirm-radius-btn'),
     leafletMap: document.getElementById('leaflet-map'),
     categoryList: document.getElementById('category-list'),
-    restaurantPreviewList: document.getElementById('restaurant-preview-list'), // *** 恢復 ***
+    restaurantPreviewList: document.getElementById('restaurant-preview-list'),
     wheelContainer: document.getElementById('wheel-container'),
     spinBtn: document.getElementById('spin-btn'),
     wheelPlaceholder: document.getElementById('wheel-placeholder'),
     backBtns: document.querySelectorAll('.back-btn'),
     wheelCountBadges: document.querySelectorAll('.wheel-count-badge'),
     viewWheelBtn: document.getElementById('view-wheel-btn'),
+    reSearchBtn: document.getElementById('re-search-btn'), // *** 新增 ***
     loadingOverlay: document.getElementById('loading-overlay'),
     loadingText: document.getElementById('loading-text'),
     resultOverlay: document.getElementById('result-overlay'),
@@ -56,10 +59,12 @@ export const DOMElements = {
     
     categoriesPage: document.getElementById('categories-page'),
     filterBtn: document.getElementById('filter-btn'),
-    resetViewBtn: document.getElementById('reset-view-btn'), // *** 新增 ***
+    resetViewBtn: document.getElementById('reset-view-btn'),
+    resizeRadiusBtn: document.getElementById('resize-radius-btn'), // *** 新增 ***
     filterPanel: document.getElementById('filter-panel'),
     closeFilterBtn: document.getElementById('close-filter-btn'),
     openNowToggle: document.getElementById('open-now-toggle'),
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
+    categoriesPageFooter: document.querySelector('#categories-page .page-footer'), // *** 新增 ***
 };

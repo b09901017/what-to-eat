@@ -11,6 +11,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from requests.adapters import HTTPAdapter
+from geopy.distance import geodesic
 
 # --- 1. 初始化與設定 (Setup & Initialization) ---
 
@@ -38,6 +39,9 @@ except Exception as e:
 # --- 2. 後端核心輔助函式 (Core Helper Functions) ---
 
 def search_unique_places(location, radius):
+    """
+    使用複合式策略搜尋地點，並回傳唯一的 Place ID 列表。
+    """
     broad_search_types = ['restaurant', 'bar', 'cafe']
     specific_keywords = ['內用', '好吃', '消夜', '飲料', '甜點', '素食']
     unique_places = {}
@@ -49,8 +53,9 @@ def search_unique_places(location, radius):
             for place in places_result.get('results', []):
                 unique_places[place['place_id']] = place
             
+            # 處理分頁
             if 'next_page_token' in places_result:
-                time.sleep(2)
+                time.sleep(2) # Google API 要求
                 next_page_result = gmaps.places_nearby(page_token=places_result['next_page_token'])
                 for place in next_page_result.get('results', []):
                     unique_places[place['place_id']] = place
@@ -70,6 +75,9 @@ def search_unique_places(location, radius):
     return list(unique_places.keys())
 
 def get_place_details(place_id):
+    """
+    獲取單一地點的詳細資訊。
+    """
     try:
         fields = ['place_id', 'name', 'geometry', 'rating', 'user_ratings_total', 'price_level', 
                   'opening_hours', 'formatted_phone_number', 'website', 'photo', 'reviews', 'type']
@@ -79,9 +87,10 @@ def get_place_details(place_id):
         
         details = details_response['result']
         
+        # 處理照片
         photo_urls = []
         if 'photos' in details:
-            for photo_ref in details.get('photos', [])[:2]:
+            for photo_ref in details.get('photos', [])[:2]: # 最多取兩張
                 photo_urls.append(f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_ref['photo_reference']}&key={GOOGLE_MAPS_API_KEY}")
         if not photo_urls:
             photo_urls.append(f"https://placehold.co/600x400/F5EBE0/424242?text={details.get('name', '店家')}")
@@ -96,7 +105,7 @@ def get_place_details(place_id):
             "types": details.get('types', []),
             "details": {
                 "photos": photo_urls,
-                "reviews": [r for r in details.get('reviews', []) if r.get('text')],
+                "reviews": [r for r in details.get('reviews', []) if r.get('text')], # 過濾空評論
                 "opening_hours": {"weekday_text": details.get('opening_hours', {}).get('weekday_text', [])},
                 "formatted_phone_number": details.get('formatted_phone_number', ''),
                 "website": details.get('website', '#')
@@ -107,19 +116,43 @@ def get_place_details(place_id):
         return None
 
 def get_all_restaurants_details_concurrently(place_ids):
+    """
+    並行獲取多個地點的詳細資訊。
+    """
     all_restaurants = {}
     with ThreadPoolExecutor(max_workers=15) as executor:
         future_to_place_id = {executor.submit(get_place_details, pid): pid for pid in place_ids}
         for future in as_completed(future_to_place_id):
             restaurant_info = future.result()
+            # 確保餐廳資訊有效且名稱不重複
             if restaurant_info and restaurant_info.get('name') and restaurant_info.get('name') not in all_restaurants:
                 all_restaurants[restaurant_info['name']] = restaurant_info
     logging.info(f"成功獲取 {len(all_restaurants)} 家店家的詳細資訊。")
     return all_restaurants
 
+def filter_places_by_distance(places, center_lat, center_lon, radius_meters):
+    """
+    使用 geopy 精準過濾掉超出半徑範圍的地點。
+    """
+    filtered_places = {}
+    center_point = (center_lat, center_lon)
+    
+    for name, place_data in places.items():
+        place_point = (place_data['lat'], place_data['lon'])
+        distance = geodesic(center_point, place_point).meters
+        if distance <= radius_meters:
+            filtered_places[name] = place_data
+            
+    logging.info(f"距離過濾完成：從 {len(places)} 家過濾到 {len(filtered_places)} 家。")
+    return filtered_places
+
 def get_categories_from_gemini_chunk(restaurant_chunk):
+    """
+    將一小批餐廳資料送交給 Gemini API 進行分類。
+    """
     if not restaurant_chunk: return {}
     
+    # 確認使用指定的模型
     model = genai.GenerativeModel('gemini-2.5-flash')
     prompt = f"""
 你是美食分類專家，請將餐廳列表按照「具體食物類型」進行分類。
@@ -146,17 +179,21 @@ def get_categories_from_gemini_chunk(restaurant_chunk):
     try:
         response = model.generate_content(prompt)
         text_to_parse = response.text
+        # 清理潛在的 markdown 格式
         if '```json' in text_to_parse:
             text_to_parse = text_to_parse.split('```json')[1].split('```')[0]
         
         return json.loads(text_to_parse)
     except Exception as e:
-        logging.error(f"Gemini API 呼叫或解析失敗: {e}")
+        logging.error(f"Gemini API 呼叫或解析失敗: {e}\nResponse Text: {response.text if 'response' in locals() else 'N/A'}")
         return {"error": "AI classification failed"}
 
 def categorize_restaurants_concurrently(restaurants_for_ai):
+    """
+    並行處理所有餐廳的 AI 分類請求。
+    """
     logging.info("--- 開始並行請求 AI 進行美食分類 ---")
-    CHUNK_SIZE = 30 
+    CHUNK_SIZE = 30 # 每批處理30家餐廳
     final_categories = {}
     
     restaurant_chunks = [restaurants_for_ai[i:i + CHUNK_SIZE] for i in range(0, len(restaurants_for_ai), CHUNK_SIZE)]
@@ -179,28 +216,31 @@ def categorize_restaurants_concurrently(restaurants_for_ai):
     return final_categories
 
 # --- 3. API 藍圖 (API Blueprint) ---
-# 使用 Blueprint 來組織 API 路由，避免與靜態文件服務衝突
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 @api_bp.route('/find_places', methods=['POST'])
 def find_places_api():
     """
-    接收經緯度和半徑，使用 Google Maps API 搜尋店家並回傳詳細資訊。
+    接收經緯度和半徑，搜尋店家，進行精準距離過濾，然後回傳詳細資訊。
     """
     try:
         data = request.get_json()
         if not data or 'lat' not in data or 'lon' not in data:
             return jsonify({"error": "缺少經緯度資訊"}), 400
         
-        location = (data['lat'], data['lon'])
+        lat, lon = data['lat'], data['lon']
         radius = data.get('radius', 500)
         
-        place_ids = search_unique_places(location, radius)
+        place_ids = search_unique_places((lat, lon), radius)
         if not place_ids:
             return jsonify({})
 
         all_restaurants = get_all_restaurants_details_concurrently(place_ids)
-        return jsonify(all_restaurants)
+        
+        # *** 新增：嚴格距離過濾 ***
+        strictly_filtered_restaurants = filter_places_by_distance(all_restaurants, lat, lon, radius)
+        
+        return jsonify(strictly_filtered_restaurants)
 
     except Exception as e:
         logging.error("在 /api/find_places 路由發生未預期的錯誤:")
@@ -222,16 +262,13 @@ def categorize_places_api():
         categorized_names = categorize_restaurants_concurrently(restaurants_for_ai)
         logging.info("--- AI 分類流程完成 ---")
 
+        # 將分類好的名稱與原始詳細資料重新組合
         final_result = {}
-        for category, items in categorized_names.items():
-            if category not in final_result:
-                final_result[category] = []
-            
-            for item in items:
-                name_to_check = item if isinstance(item, str) else (item.get('name') if isinstance(item, dict) else None)
-                
-                if name_to_check and name_to_check in all_restaurants:
-                    final_result[category].append(all_restaurants[name_to_check])
+        for category, names in categorized_names.items():
+            final_result[category] = []
+            for name in names:
+                if name in all_restaurants:
+                    final_result[category].append(all_restaurants[name])
         
         return jsonify(final_result)
 
@@ -246,10 +283,8 @@ def categorize_places_api():
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# 註冊 API 藍圖
 app.register_blueprint(api_bp)
 
-# 前端頁面路由
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')

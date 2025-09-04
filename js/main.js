@@ -12,7 +12,9 @@ import {
     handleFilterChange,
     handleClickToCloseFilter,
     handleCategoryInteraction,
-    handleResetView // *** 新增 ***
+    handleResetView,
+    handleToggleRadiusEdit, // *** 新增 ***
+    handleConfirmRadiusReSearch // *** 新增 ***
 } from './handlers.js';
 import { hideResult, updateWheelCount } from './ui.js';
 
@@ -25,19 +27,20 @@ function init() {
     
     DOMElements.backBtns.forEach(btn => btn.addEventListener('click', navigateBack));
     DOMElements.viewWheelBtn.addEventListener('click', () => navigateTo('wheel-page'));
+    DOMElements.reSearchBtn.addEventListener('click', handleConfirmRadiusReSearch); // *** 新增 ***
     
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
     DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
-    // *** 恢復預覽列表的事件監聽 ***
     DOMElements.restaurantPreviewList.addEventListener('mouseover', handlePreviewCardInteraction);
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.resetViewBtn.addEventListener('click', handleResetView); // *** 新增 ***
+    DOMElements.resetViewBtn.addEventListener('click', handleResetView);
+    DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit); // *** 新增 ***
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
     DOMElements.openNowToggle.addEventListener('change', handleFilterChange);
     DOMElements.priceFilterButtons.addEventListener('click', handleFilterChange);
