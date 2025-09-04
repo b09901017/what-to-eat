@@ -1,0 +1,30 @@
+/* --- 基礎樣式 --- */
+body { 
+    font-family: var(--font-sans); 
+    background-color: #333; 
+    color: var(--text-dark); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    overflow: hidden; 
+    -webkit-font-smoothing: antialiased; 
+    -moz-osx-font-smoothing: grayscale; 
+}
+
+.font-serif { 
+    font-family: var(--font-serif); 
+    font-weight: 600; 
+}
+
+.app-container { 
+    width: 100%; 
+    max-width: 414px; 
+    height: 100vh; 
+    max-height: 896px; 
+    position: relative; 
+    background-color: var(--bg-color); 
+    border-radius: 40px; 
+    box-shadow: 0 0 40px rgba(0,0,0,0.3); 
+    overflow: hidden; 
+}

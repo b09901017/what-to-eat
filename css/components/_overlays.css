@@ -1,0 +1,77 @@
+/* --- 全局覆蓋層 (載入中、結果) --- */
+.global-overlay { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(248, 245, 242, 0.8); 
+    backdrop-filter: blur(5px); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 2000; 
+    opacity: 0; 
+    visibility: hidden; 
+    transition: opacity var(--transition-fast); 
+}
+
+.global-overlay.visible { 
+    opacity: 1; 
+    visibility: visible; 
+}
+
+.spinner { 
+    width: 40px; 
+    height: 40px; 
+    border: 4px solid var(--secondary-color); 
+    border-top-color: var(--primary-color); 
+    border-radius: 50%; 
+    animation: loading-spin 1s linear infinite; 
+}
+
+.global-overlay p { 
+    margin-top: 1rem; 
+    color: var(--text-dark); 
+}
+
+@keyframes loading-spin { 
+    to { transform: rotate(360deg); } 
+}
+
+.result-overlay .result-content { 
+    text-align: center; 
+}
+
+.result-overlay h3 { 
+    font-size: 1.5rem; 
+    color: var(--text-light); 
+    margin-bottom: 1rem; 
+}
+
+.result-text-typing { 
+    font-family: var(--font-serif); 
+    font-size: 3rem; 
+    color: var(--text-dark); 
+    min-height: 4rem; 
+    display: inline-block; 
+    border-right: 3px solid var(--text-dark); 
+    white-space: nowrap; 
+    overflow: hidden; 
+    animation: typing 2s steps(40, end), blink-caret .75s step-end infinite; 
+}
+
+.result-actions { 
+    margin-top: 3rem; 
+    width: 250px; 
+}
+
+@keyframes typing { 
+    from { width: 0 } to { width: 100% } 
+}
+
+@keyframes blink-caret { 
+    from, to { border-color: transparent } 
+    50% { border-color: var(--text-dark); } 
+}

@@ -1,0 +1,18 @@
+/* --- 歡迎頁面 --- */
+.splash-content { 
+    text-align: center; 
+    animation: content-fade-in 1s var(--transition-slow) forwards; 
+    opacity: 0;
+}
+
+.splash-content h1 { 
+    font-size: 2.5rem; 
+}
+
+.splash-content p { 
+    margin: 1rem 0 2rem; 
+}
+
+@keyframes content-fade-in { 
+    to { opacity: 1; } 
+}

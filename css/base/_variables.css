@@ -1,0 +1,18 @@
+/* --- 全局變數 --- */
+:root {
+    --bg-color: #F8F5F2;
+    --primary-color: #E57373;
+    --primary-hover: #EF9A9A;
+    --secondary-color: #E0E0E0;
+    --secondary-hover: #F5F5F5;
+    --text-dark: #424242;
+    --text-light: #9E9E9E;
+    --border-color: #E0E0E0;
+    --winner-color: #FFD54F;
+    
+    --font-serif: 'Noto Serif TC', serif;
+    --font-sans: 'Noto Sans TC', sans-serif;
+
+    --transition-fast: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}

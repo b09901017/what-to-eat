@@ -1,0 +1,95 @@
+/* --- 命運羅盤頁面 --- */
+.wheel-main-content { 
+    flex-grow: 1; 
+    width: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+.wheel-assembly { 
+    position: relative; 
+    width: 320px; 
+    height: 320px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    margin: 2rem 0; 
+}
+
+.wheel-pointer { 
+    position: absolute; 
+    top: -10px; 
+    z-index: 2; 
+    width: 0; 
+    height: 0; 
+    border-left: 15px solid transparent; 
+    border-right: 15px solid transparent; 
+    border-top: 30px solid var(--primary-color); 
+    filter: drop-shadow(0 -2px 2px rgba(0,0,0,0.15)); 
+}
+
+.wheel-container { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 50%; 
+    border: 10px solid #fff; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.15), inset 0 0 15px rgba(0,0,0,0.1); 
+    position: relative; 
+    overflow: hidden; 
+}
+
+.wheel-slice { 
+    position: absolute; 
+    width: 50%; 
+    height: 100%; 
+    left: 50%; 
+    transform-origin: 0 50%; 
+    transition: filter 0.5s ease; 
+}
+
+.wheel-slice.winner-glow { 
+    filter: drop-shadow(0 0 20px var(--winner-color)) brightness(1.1); 
+}
+
+.wheel-slice-content { 
+    position: absolute; 
+    left: -100%; 
+    width: 200%; 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transform: rotate(calc(var(--slice-angle) / 2)); 
+    padding-left: 20px; 
+    text-align: center; 
+}
+
+.wheel-slice-text { 
+    font-family: var(--font-serif); 
+    color: var(--text-dark); 
+    font-weight: 600; 
+    font-size: 1rem; 
+    display: block; 
+    max-width: 110px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    transform: translateX(-10px); 
+}
+
+.spin-button { 
+    margin-top: 2rem; 
+    width: 80%; 
+}
+
+.wheel-placeholder { 
+    text-align: center; 
+    color: var(--text-light); 
+    font-size: 1.2rem; 
+    flex-grow: 1; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+}

@@ -1,0 +1,143 @@
+/* --- 美食地圖頁面 --- */
+.category-list-container { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    z-index: 1000; 
+    padding-top: 1rem; 
+    background: linear-gradient(to top, var(--bg-color) 70%, transparent); 
+    transition: all var(--transition-slow); 
+    display: flex;
+    flex-direction: column;
+}
+
+.page-header-condensed { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    margin-bottom: 1rem;
+    padding: 0 1.5rem; 
+    flex-shrink: 0;
+}
+
+.page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+.page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
+
+.category-list { 
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.5rem 1.5rem 1.5rem 1.5rem; 
+    height: 100px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.category-list::-webkit-scrollbar { 
+    display: none;
+}
+
+.category-list.three-rows {
+    grid-template-rows: repeat(3, auto);
+    height: 150px;
+}
+
+.category-list-item { 
+    padding: 0.75rem 1.5rem; 
+    border-radius: 30px; 
+    background: white; 
+    border: 1px solid var(--border-color); 
+    cursor: pointer; 
+    text-align: center; 
+    transition: all var(--transition-fast); 
+    white-space: nowrap;
+}
+
+.category-list-item:hover, .category-list-item.active { 
+    background-color: var(--primary-color); 
+    color: white; 
+    transform: translateY(-4px); 
+    border-color: var(--primary-color); 
+}
+
+.empty-state-message { 
+    width: 100%; 
+    text-align: center; 
+    color: var(--text-light); 
+    padding: 1rem; 
+}
+
+.wheel-count-badge { 
+    background-color: var(--primary-color); 
+    color: white; 
+    border: 2px solid var(--bg-color); 
+    border-radius: 50%; 
+    width: 1.75rem; 
+    height: 1.75rem; 
+    font-size: 0.8rem; 
+    display: inline-flex; 
+    justify-content: center; 
+    align-items: center; 
+    position: absolute; 
+    top: -0.5rem; 
+    right: -0.5rem;
+}
+
+.category-list-container .page-footer { 
+    padding: 0 1.5rem 1rem 1.5rem; 
+    flex-shrink: 0; 
+}
+
+.restaurant-preview-list { 
+    display: flex; 
+    gap: 0.75rem; 
+    overflow-x: auto; 
+    height: 0; 
+    opacity: 0; 
+    padding: 0 1.5rem; 
+    transition: all var(--transition-fast); 
+    -ms-overflow-style: none; 
+    scrollbar-width: none;
+}
+
+.restaurant-preview-list::-webkit-scrollbar { 
+    display: none; 
+}
+
+.restaurant-preview-list.visible { 
+    height: 90px; 
+    opacity: 1; 
+    padding: 0 1.5rem 1rem 1.5rem; 
+}
+
+.restaurant-preview-card { 
+    flex: 0 0 200px; 
+    background-color: white; 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px; 
+    padding: 0.75rem; 
+    cursor: pointer; 
+    transition: all var(--transition-fast); 
+}
+
+.restaurant-preview-card:hover { 
+    transform: translateY(-4px); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+}
+
+.restaurant-preview-card h5 { 
+    font-family: var(--font-serif); 
+    font-size: 1.1rem; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+.restaurant-preview-card p { 
+    font-size: 0.9rem; 
+    color: var(--text-light); 
+}
