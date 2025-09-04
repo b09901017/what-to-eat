@@ -59,69 +59,80 @@
         <section id="categories-page" class="page">
             <div id="leaflet-map" class="leaflet-map"></div>
             
+            <div id="filter-panel" class="filter-panel">
+                <button id="close-filter-btn" class="close-btn">&times;</button>
+                <div class="filter-option">
+                    <label for="open-now-toggle">目前營業中</label>
+                    <div class="switch-toggle">
+                        <input type="checkbox" id="open-now-toggle" data-filter="openNow" checked>
+                        <label for="open-now-toggle"></label>
+                    </div>
+                </div>
+                <div class="filter-option">
+                    <label>價位選擇</label>
+                    <div class="filter-buttons" data-filter="priceLevel">
+                        <button data-value="0" class="active">不拘</button>
+                        <button data-value="1">$</button>
+                        <button data-value="2">$$</button>
+                        <button data-value="3">$$$</button>
+                        <button data-value="4">$$$$</button>
+                    </div>
+                </div>
+                <div class="filter-option">
+                    <label>評分標準</label>
+                    <div class="filter-buttons" data-filter="rating">
+                        <button data-value="0" class="active">不拘</button>
+                        <button data-value="4">4.0+</button>
+                        <button data-value="4.5">4.5+</button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="category-list-container">
-                <header class="page-header-condensed">
-                    <div class="header-content">
-                        <h2 class="font-serif">附近的美食地圖</h2>
-                        <p>點選下方類別，或透過篩選器精準搜尋</p>
-                    </div>
-                    <div class="header-actions">
-                        <button id="resize-radius-btn" class="filter-btn" title="調整範圍">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.66"></path><path d="M22 4V2H20"></path><path d="M12 18V12L7 7"></path></svg>
-                            <span>範圍</span>
-                        </button>
-                        <button id="reset-view-btn" title="重設檢視">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg>
-                        </button>
-                        <button id="filter-btn" class="filter-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                            <span>篩選</span>
-                        </button>
-                    </div>
-                </header>
-
-                <div id="filter-panel" class="filter-panel">
-                    <button id="close-filter-btn" class="close-btn">&times;</button>
-                    <div class="filter-option">
-                        <label for="open-now-toggle">目前營業中</label>
-                        <div class="switch-toggle">
-                            <input type="checkbox" id="open-now-toggle" data-filter="openNow" checked>
-                            <label for="open-now-toggle"></label>
+                <div class="bottom-controls-header">
+                    <header class="page-header-condensed">
+                        <div class="header-content">
+                            <h2 class="font-serif">附近的美食地圖</h2>
+                            <p>點選下方類別以探索</p>
                         </div>
-                    </div>
-                    <div class="filter-option">
-                        <label>價位選擇</label>
-                        <div class="filter-buttons" data-filter="priceLevel">
-                            <button data-value="0" class="active">不拘</button>
-                            <button data-value="1">$</button>
-                            <button data-value="2">$$</button>
-                            <button data-value="3">$$$</button>
-                            <button data-value="4">$$$$</button>
+                    </header>
+                    <div id="floating-action-hub" class="floating-action-hub">
+                        <div id="hub-item-list">
+                            <div class="hub-item">
+                                <span class="hub-label">調整範圍</span>
+                                <button id="resize-radius-btn" class="hub-action-btn" title="調整範圍"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.66"></path><path d="M22 4V2H20"></path><path d="M12 18V12L7 7"></path></svg></button>
+                            </div>
+                            <div class="hub-item">
+                                <span class="hub-label">重設檢視</span>
+                                <button id="reset-view-btn" class="hub-action-btn" title="重設檢視"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg></button>
+                            </div>
+                            <div class="hub-item">
+                                <span class="hub-label">篩選</span>
+                                <button id="filter-btn" class="hub-action-btn" title="篩選"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
+                            </div>
+                            <div class="hub-item">
+                                <span class="hub-label">查看候選</span>
+                                <button id="show-candidates-btn" class="hub-action-btn" title="查看候選清單">
+                                    <span class="wheel-count-badge">0</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="filter-option">
-                        <label>評分標準</label>
-                        <div class="filter-buttons" data-filter="rating">
-                            <button data-value="0" class="active">不拘</button>
-                            <button data-value="4">4.0+</button>
-                            <button data-value="4.5">4.5+</button>
-                        </div>
+                        
+                        <button id="hub-toggle-btn" class="hub-toggle-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 5"/><path d="M12 19L12 22"/><path d="M5 12L2 12"/><path d="M22 12L19 12"/><path d="M19.07 4.93L17 7"/><path d="M7 17L4.93 19.07"/><path d="M19.07 19.07L17 17"/><path d="M7 7L4.93 4.93"/></svg>
+                        </button>
+                        <button id="re-search-hub-btn" class="btn-primary">重新搜尋</button>
                     </div>
                 </div>
                 
                 <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
-
                 <div id="category-list" class="category-list"></div>
-                <footer class="page-footer">
-                    <button id="view-wheel-btn" class="btn-secondary">
-                        查看我的候選清單
-                        <span class="wheel-count-badge">0</span>
-                    </button>
-                    <button id="re-search-btn" class="btn-primary">
-                        以此範圍重新搜尋
-                    </button>
-                </footer>
             </div>
+
+            <footer class="page-footer">
+                <button id="go-to-wheel-btn" class="btn-primary">隨便啦 !</button>
+            </footer>
         </section>
         
         <section id="wheel-page" class="page">
@@ -194,6 +205,15 @@
         </div>
     </div>
     
+    <div id="candidate-list-overlay" class="global-overlay candidate-overlay">
+        <div class="candidate-list-card">
+            <button id="close-candidate-list-btn" class="close-btn">&times;</button>
+            <h3 class="font-serif">我的候選清單</h3>
+            <div id="candidate-list-content" class="candidate-list-content">
+                </div>
+        </div>
+    </div>
+
     <script type="module" src="./js/main.js"></script>
 </body>
 </html>

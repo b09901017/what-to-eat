@@ -8,7 +8,7 @@ export const state = {
     isSpinning: false,
     userLocation: null,
     searchRadiusMeters: 500,
-    searchCenter: null, // *** 新增：記錄實際的搜尋中心點
+    searchCenter: null,
     restaurantData: {},
     activeCategory: null,
     focusedCategories: new Set(),
@@ -19,7 +19,8 @@ export const state = {
         priceLevel: 0,
         rating: 0,
     },
-    isEditingRadius: false, // *** 新增：是否正在編輯半徑
+    isEditingRadius: false,
+    isHubExpanded: false,
 };
 
 export const DOMElements = {
@@ -38,8 +39,7 @@ export const DOMElements = {
     wheelPlaceholder: document.getElementById('wheel-placeholder'),
     backBtns: document.querySelectorAll('.back-btn'),
     wheelCountBadges: document.querySelectorAll('.wheel-count-badge'),
-    viewWheelBtn: document.getElementById('view-wheel-btn'),
-    reSearchBtn: document.getElementById('re-search-btn'), // *** 新增 ***
+    goToWheelBtn: document.getElementById('go-to-wheel-btn'), // *** 修改 ***
     loadingOverlay: document.getElementById('loading-overlay'),
     loadingText: document.getElementById('loading-text'),
     resultOverlay: document.getElementById('result-overlay'),
@@ -60,11 +60,22 @@ export const DOMElements = {
     categoriesPage: document.getElementById('categories-page'),
     filterBtn: document.getElementById('filter-btn'),
     resetViewBtn: document.getElementById('reset-view-btn'),
-    resizeRadiusBtn: document.getElementById('resize-radius-btn'), // *** 新增 ***
+    resizeRadiusBtn: document.getElementById('resize-radius-btn'),
     filterPanel: document.getElementById('filter-panel'),
     closeFilterBtn: document.getElementById('close-filter-btn'),
     openNowToggle: document.getElementById('open-now-toggle'),
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
-    categoriesPageFooter: document.querySelector('#categories-page .page-footer'), // *** 新增 ***
+    
+    categoryListContainer: document.querySelector('.category-list-container'),
+    floatingActionHub: document.getElementById('floating-action-hub'),
+    hubToggleBtn: document.getElementById('hub-toggle-btn'),
+    hubItemList: document.getElementById('hub-item-list'),
+    reSearchBtn: document.getElementById('re-search-hub-btn'),
+
+    // *** 新增：候選清單視窗相關元素 ***
+    showCandidatesBtn: document.getElementById('show-candidates-btn'),
+    candidateListOverlay: document.getElementById('candidate-list-overlay'),
+    candidateListContent: document.getElementById('candidate-list-content'),
+    closeCandidateListBtn: document.getElementById('close-candidate-list-btn'),
 };

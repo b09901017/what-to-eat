@@ -1,0 +1,124 @@
+/* --- Floating Action Hub Component --- */
+.floating-action-hub {
+    position: relative;
+    bottom: 8px;
+    z-index: 1001;
+}
+
+/* 新增：包裹 Hub 按鈕的容器 */
+#hub-item-list {
+    position: absolute;
+    bottom: 100%; /* 從主按鈕頂部開始定位 */
+    right: 0;
+    display: flex;
+    flex-direction: column-reverse; /* *** 讓項目由下往上堆疊 *** */
+    gap: 1rem;
+    margin-bottom: 1rem; /* 與主按鈕的間距 */
+    pointer-events: none; /* 預設不可點擊 */
+}
+
+.hub-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    transition: all var(--transition-fast);
+    opacity: 0;
+    transform: translateY(10px); /* 預設向下偏移 */
+}
+
+.hub-item .hub-label {
+    background-color: rgba(66, 66, 66, 0.9);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 8px;
+    margin-right: 0.75rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.hub-item .hub-action-btn {
+    width: 48px;
+    height: 48px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition-fast);
+}
+
+.hub-item .hub-action-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.hub-item .hub-action-btn svg {
+    width: 24px;
+    height: 24px;
+    color: var(--text-dark);
+}
+
+.hub-toggle-btn {
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(229, 115, 115, 0.5);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.hub-toggle-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(229, 115, 115, 0.6);
+}
+
+.hub-toggle-btn svg {
+    width: 28px;
+    height: 28px;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+/* --- Active State --- */
+.floating-action-hub.is-active .hub-toggle-btn {
+    transform: rotate(45deg);
+}
+
+.floating-action-hub.is-active #hub-item-list {
+    pointer-events: auto; /* 啟用點擊 */
+}
+
+.floating-action-hub.is-active .hub-item {
+    opacity: 1;
+    transform: translateY(0); /* 恢復正常位置 */
+}
+
+/* Staggered animation */
+.floating-action-hub.is-active .hub-item:nth-child(1) { transition-delay: 0.15s; }
+.floating-action-hub.is-active .hub-item:nth-child(2) { transition-delay: 0.1s; }
+.floating-action-hub.is-active .hub-item:nth-child(3) { transition-delay: 0.05s; }
+.floating-action-hub.is-active .hub-item:nth-child(4) { transition-delay: 0s; }
+
+
+#re-search-hub-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+#re-search-hub-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}

@@ -1,8 +1,32 @@
 // 處理所有 Leaflet 地圖相關的邏輯
 
-import { DOMElements } from './state.js';
+import { state, DOMElements } from './state.js';
 import { handlePopupInteraction } from './handlers.js';
-import { renderPopupContent } from './ui.js';
+
+// --- Helper: Moved from ui.js to break circular dependency ---
+/**
+ * Renders the HTML content for a restaurant popup on the map.
+ * @param {object} restaurant - The restaurant data object.
+ * @returns {string} HTML string for the popup.
+ */
+function renderPopupContent(restaurant) {
+    const isAdded = state.wheelItems.has(restaurant.name);
+    return `
+        <div class="popup-content">
+            <h4>${restaurant.name}</h4>
+            <div class="popup-info">
+                <span>⭐ ${restaurant.rating}</span>
+                <span>${'$'.repeat(restaurant.price_level)}</span>
+                <span>${restaurant.hours}</span>
+            </div>
+            <div class="popup-actions">
+                <button data-name="${restaurant.name}" class="btn-secondary details-btn">更多</button>
+                <button data-name="${restaurant.name}" class="btn-primary add-to-wheel-btn ${isAdded ? 'added' : ''}">${isAdded ? '✓' : '+'}</button>
+            </div>
+        </div>
+    `;
+}
+
 
 // 分別管理不同頁面的地圖實例和圖層
 const mapInstances = {
@@ -29,13 +53,6 @@ function destinationPoint(lat, lon, distance, bearing) {
 
 // --- Radius Editor Logic (Reusable) ---
 
-/**
- * 在指定的地圖實例上繪製半徑編輯工具
- * @param {string} mapKey - 'radius' 或 'categories'
- * @param {object} location - 中心點 { lat, lon }
- * @param {number} radius - 初始半徑
- * @param {Function} onRadiusChange - 半徑變化時的回呼
- */
 export function drawRadiusEditor(mapKey, location, radius, onRadiusChange) {
     const map = mapInstances[mapKey];
     if (!map) return;
@@ -86,10 +103,6 @@ export function drawRadiusEditor(mapKey, location, radius, onRadiusChange) {
     editorLayers[mapKey] = L.layerGroup([circle, handleMarker, centerMarker]).addTo(map);
 }
 
-/**
- * 從指定的地圖實例上移除半徑編輯工具
- * @param {string} mapKey - 'radius' 或 'categories'
- */
 export function removeRadiusEditor(mapKey) {
     if (editorLayers[mapKey]) {
         editorLayers[mapKey].remove();
@@ -97,11 +110,6 @@ export function removeRadiusEditor(mapKey) {
     }
 }
 
-/**
- * 獲取指定編輯器的狀態（中心點和半徑）
- * @param {string} mapKey - 'radius' 或 'categories'
- * @returns {{center: L.LatLng, radius: number}|null}
- */
 export function getEditorState(mapKey) {
     const editor = editorLayers[mapKey];
     if (!editor) return null;
@@ -146,11 +154,6 @@ export function initCategoriesMap() {
 
 // --- Map Control ---
 
-/**
- * *** 新增回來 ***: 設定指定地圖的中心點和縮放等級
- * @param {string} mapKey - 'radius' 或 'categories'
- * @param {object} location - 中心點 { lat, lon }
- */
 export function setRadiusMapCenter(mapKey, location) {
     const map = mapInstances[mapKey];
     if (map && location) {
@@ -158,18 +161,14 @@ export function setRadiusMapCenter(mapKey, location) {
     }
 }
 
-
 export function recenterRadiusMap(location) {
     const mapKey = 'radius';
     const map = mapInstances[mapKey];
     if (map && location) {
         map.setView([location.lat, location.lon], 15);
-        // 也需要重繪編輯器
         const editorState = getEditorState(mapKey);
         if (editorState) {
-            drawRadiusEditor(mapKey, location, editorState.radius, (r) => {
-                // 在 handlers.js 中處理半徑更新
-            });
+            drawRadiusEditor(mapKey, location, editorState.radius, (r) => {});
         }
     }
 }
@@ -183,7 +182,6 @@ export function destroyRadiusMap() {
     }
 }
 
-// 存放美食地圖上的標記
 let restaurantMarkers = {};
 let userLocationMarker = null;
 
@@ -191,12 +189,10 @@ export function updateMapMarkers(restaurantData, userLocation, focusedCategories
     const map = mapInstances.categories;
     if (!map) return;
 
-    // 清除舊標記
     Object.values(restaurantMarkers).forEach(marker => marker.remove());
     restaurantMarkers = {};
     if (userLocationMarker) userLocationMarker.remove();
     
-    // 新增使用者位置標記
     if (userLocation) {
         userLocationMarker = L.marker([userLocation.lat, userLocation.lon], {
             icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [24, 24] }),
@@ -236,11 +232,11 @@ export function updateMapMarkers(restaurantData, userLocation, focusedCategories
     }
 }
 
-
-export function fitMapToBounds(coords) {
+export function fitMapToBounds(coords, paddingOptions) {
     const map = mapInstances.categories;
     if (map && coords.length > 0) {
-        map.fitBounds(coords, { paddingTopLeft: [20, 20], paddingBottomRight: [20, 350] });
+        const defaultPadding = { paddingTopLeft: [20, 20], paddingBottomRight: [20, 20] };
+        map.fitBounds(coords, { ...defaultPadding, ...paddingOptions });
     }
 }
 

@@ -1,64 +1,39 @@
 /* --- 美食地圖頁面 --- */
-.category-list-container { 
-    position: absolute; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    z-index: 1000; 
-    padding-top: 1rem; 
-    background: linear-gradient(to top, var(--bg-color) 70%, transparent); 
-    transition: all var(--transition-slow); 
-    display: flex;
-    flex-direction: column;
-}
 
-.page-header-condensed { 
+.bottom-controls-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-header-condensed { 
     text-align: left;
-    margin-bottom: 1rem;
-    padding: 0 1.5rem; 
-    flex-shrink: 0;
 }
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-#reset-view-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(0.8) translateY(2px);
-    transition: all var(--transition-fast);
-    padding: 0.5rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-#reset-view-btn.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1) translateY(0);
-}
-#reset-view-btn:hover {
-    background-color: var(--secondary-hover);
-}
-#reset-view-btn svg {
-    width: 24px;
-    height: 24px;
-    color: var(--text-dark);
-}
-
-
 .page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
+
+.category-list-container { 
+    position: absolute; 
+    bottom: 80px;
+    left: 0; 
+    right: 0; 
+    z-index: 999;
+    padding-top: 1rem;
+    padding-bottom: 0.5rem;
+    background: linear-gradient(to top, var(--bg-color) 85%, transparent); 
+    transition: all var(--transition-slow); 
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+.category-list-container > * {
+    pointer-events: auto;
+}
+.category-list-container.hidden {
+    transform: translateY(100%);
+}
 
 .category-list { 
     display: grid;
@@ -66,26 +41,12 @@
     grid-template-rows: repeat(2, auto);
     gap: 0.75rem;
     overflow-x: auto;
-    padding: 0.5rem 1.5rem 1.5rem 1.5rem; 
-    height: 100px;
+    padding: 0 1.5rem 1rem 1.5rem;
+    height: 120px; /* *** 增加高度 *** */
     -ms-overflow-style: none;
     scrollbar-width: none;
-    transition: opacity 0.3s, visibility 0.3s;
 }
-
-.category-list.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.category-list::-webkit-scrollbar { 
-    display: none;
-}
-
-.category-list.three-rows {
-    grid-template-rows: repeat(3, auto);
-    height: 150px;
-}
+.category-list::-webkit-scrollbar { display: none; }
 
 .category-list-item { 
     padding: 0.75rem 1.5rem; 
@@ -97,26 +58,15 @@
     transition: all var(--transition-fast); 
     white-space: nowrap;
 }
-
-.category-list-item:hover { 
-    transform: translateY(-4px); 
-}
-
+.category-list-item:hover { transform: translateY(-4px); }
 .category-list-item.active { 
     background-color: var(--primary-color); 
     color: white; 
     border-color: var(--primary-color); 
     transform: translateY(-4px); 
 }
-
-.category-list-item.unfocused {
-    opacity: 0.4;
-}
-.category-list-item.unfocused:hover {
-    opacity: 0.7;
-    transform: translateY(-4px); 
-}
-
+.category-list-item.unfocused { opacity: 0.4; }
+.category-list-item.unfocused:hover { opacity: 0.7; transform: translateY(-4px); }
 
 .empty-state-message { 
     width: 100%; 
@@ -125,59 +75,24 @@
     padding: 1rem; 
 }
 
+.hub-action-btn { position: relative; }
 .wheel-count-badge { 
     background-color: var(--primary-color); 
     color: white; 
-    border: 2px solid var(--bg-color); 
+    border: 2px solid white;
     border-radius: 50%; 
-    width: 1.75rem; 
-    height: 1.75rem; 
+    width: 1.5rem; 
+    height: 1.5rem; 
     font-size: 0.8rem; 
     display: inline-flex; 
     justify-content: center; 
     align-items: center; 
     position: absolute; 
-    top: -0.5rem; 
-    right: -0.5rem;
+    top: -4px; 
+    right: -4px;
 }
 
-/* --- Footer and Button Switching --- */
-#categories-page .page-footer { 
-    padding: 0 1.5rem 1rem 1.5rem; 
-    flex-shrink: 0; 
-    position: relative;
-    height: 54px; /* Set a fixed height for smooth transition */
-}
-#categories-page .page-footer button {
-    position: absolute;
-    bottom: 1rem;
-    left: 1.5rem;
-    right: 1.5rem;
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-}
-
-#view-wheel-btn {
-    opacity: 1;
-    transform: translateY(0);
-}
-#re-search-btn {
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-}
-
-#categories-page .page-footer.edit-mode #view-wheel-btn {
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-}
-#categories-page .page-footer.edit-mode #re-search-btn {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-
+/* *** 移除 order 屬性，依賴 HTML 結構順序 *** */
 .restaurant-preview-list { 
     display: flex; 
     gap: 0.75rem; 
@@ -189,19 +104,12 @@
     -ms-overflow-style: none; 
     scrollbar-width: none;
 }
-
-.restaurant-preview-list.hidden {
-    display: none;
-}
-
-.restaurant-preview-list::-webkit-scrollbar { 
-    display: none; 
-}
-
+.restaurant-preview-list.hidden { display: none; }
+.restaurant-preview-list::-webkit-scrollbar { display: none; }
 .restaurant-preview-list.visible { 
     height: 90px; 
     opacity: 1; 
-    padding: 0 1.5rem 1rem 1.5rem; 
+    padding: 0.5rem 1.5rem 1rem 1.5rem; 
 }
 
 .restaurant-preview-card { 
@@ -213,12 +121,10 @@
     cursor: pointer; 
     transition: all var(--transition-fast); 
 }
-
 .restaurant-preview-card:hover { 
     transform: translateY(-4px); 
     box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
 }
-
 .restaurant-preview-card h5 { 
     font-family: var(--font-serif); 
     font-size: 1.1rem; 
@@ -226,8 +132,15 @@
     overflow: hidden; 
     text-overflow: ellipsis; 
 }
+.restaurant-preview-card p { font-size: 0.9rem; color: var(--text-light); }
 
-.restaurant-preview-card p { 
-    font-size: 0.9rem; 
-    color: var(--text-light); 
+.page#categories-page .page-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-color);
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
 }

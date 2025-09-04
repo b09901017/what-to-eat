@@ -1,4 +1,4 @@
-/* --- 全局覆蓋層 (載入中、結果) --- */
+/* --- 全局覆蓋層 (載入中、結果、候選清單) --- */
 .global-overlay { 
     position: absolute; 
     top: 0; 
@@ -40,6 +40,7 @@
     to { transform: rotate(360deg); } 
 }
 
+/* --- 結果頁面 --- */
 .result-overlay .result-content { 
     text-align: center; 
 }
@@ -74,4 +75,62 @@
 @keyframes blink-caret { 
     from, to { border-color: transparent } 
     50% { border-color: var(--text-dark); } 
+}
+
+/* --- 新增：候選清單視窗 --- */
+.candidate-overlay .candidate-list-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 350px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+.candidate-list-card h3 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+.candidate-list-content {
+    overflow-y: auto;
+    padding-right: 0.5rem; /* for scrollbar */
+}
+.candidate-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.candidate-item:last-child {
+    border-bottom: none;
+}
+.candidate-item span {
+    font-size: 1.1rem;
+}
+.candidate-item .remove-candidate-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: all var(--transition-fast);
+}
+.candidate-item .remove-candidate-btn:hover {
+    background-color: var(--primary-hover);
+    color: white;
+    border-color: var(--primary-hover);
+}
+.candidate-list-placeholder {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-light);
 }

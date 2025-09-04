@@ -14,11 +14,15 @@ export function renderPageContent(pageId) {
             getUserLocation();
             break;
         case 'categories-page':
-            // 確保每次進入此頁時，半徑編輯模式都是關閉的
             if (state.isEditingRadius) {
                 state.isEditingRadius = false;
                 toggleRadiusEditMode(false);
             }
+            if (state.isHubExpanded) {
+                state.isHubExpanded = false;
+                toggleHub(false);
+            }
+            hideCandidateList(); // 確保離開時關閉
             break;
         case 'wheel-page':
             renderWheel();
@@ -27,14 +31,12 @@ export function renderPageContent(pageId) {
             renderDetailsPage();
             break;
     }
-    // 離開 map-page 時銷毀半徑地圖實例
-    if (pageId !== 'map-page') {
-        destroyRadiusMap();
-    }
-    // 離開 categories-page 時隱藏篩選面板
-    if (pageId !== 'categories-page') {
-        DOMElements.filterPanel.classList.remove('visible');
-    }
+    if (pageId !== 'map-page') { destroyRadiusMap(); }
+    if (pageId !== 'categories-page') { DOMElements.filterPanel.classList.remove('visible'); }
+}
+
+export function toggleHub(isExpanded) {
+    DOMElements.floatingActionHub.classList.toggle('is-active', isExpanded);
 }
 
 export function showLoading(text) {
@@ -51,44 +53,33 @@ export function updateRadiusLabel(radius) {
     DOMElements.radiusLabel.classList.add('visible');
 }
 
-/**
- * 切換美食地圖頁的「半徑編輯模式」
- * @param {boolean} isEditing - 是否進入編輯模式
- * @param {Function} onRadiusChange - 半徑變化時的回呼函式
- */
 export function toggleRadiusEditMode(isEditing, onRadiusChange) {
-    const { categoryList, restaurantPreviewList, categoriesPageFooter } = DOMElements;
+    const { categoryListContainer, floatingActionHub, reSearchBtn, hubItemList, goToWheelBtn } = DOMElements;
     
-    // 切換 UI 元素的顯示/隱藏
-    categoryList.classList.toggle('hidden', isEditing);
-    restaurantPreviewList.classList.toggle('hidden', isEditing);
-    categoriesPageFooter.classList.toggle('edit-mode', isEditing);
+    categoryListContainer.classList.toggle('hidden', isEditing);
+    floatingActionHub.classList.toggle('hidden', isEditing);
+    goToWheelBtn.style.display = isEditing ? 'none' : 'inline-flex';
     
+    reSearchBtn.classList.toggle('visible', isEditing);
+    hubItemList.style.display = isEditing ? 'none' : '';
+    DOMElements.hubToggleBtn.style.display = isEditing ? 'none' : 'flex';
+
     if (isEditing) {
-        // 進入編輯模式：在地圖上繪製編輯工具
         const center = state.searchCenter || state.userLocation;
-        initCategoriesMap(); // 確保地圖已初始化
-        setRadiusMapCenter('categories', center); // *** 修正後的呼叫 ***
+        initCategoriesMap(); 
+        setRadiusMapCenter('categories', center);
         drawRadiusEditor('categories', center, state.searchRadiusMeters, onRadiusChange);
         updateRadiusLabel(state.searchRadiusMeters);
     } else {
-        // 退出編輯模式：移除地圖上的編輯工具
         removeRadiusEditor('categories');
         DOMElements.radiusLabel.classList.remove('visible');
     }
 }
 
-
-/**
- * 初始化美食地圖並渲染所有相關元件
- * @param {Object} filteredData - 經過篩選後的餐廳資料
- */
 export function initCategoriesMapAndRender(filteredData) {
     initCategoriesMap();
-    
     updateMapMarkers(filteredData, state.userLocation, state.focusedCategories, state.activeCategory);
     
-    // 決定地圖要縮放到的範圍
     const coordsToFit = [];
     const isFocusMode = state.focusedCategories.size > 0;
 
@@ -102,18 +93,14 @@ export function initCategoriesMapAndRender(filteredData) {
         Object.values(filteredData).flat().forEach(r => coordsToFit.push([r.lat, r.lon]));
     }
     
-    if (state.userLocation) {
-        coordsToFit.push([state.userLocation.lat, state.userLocation.lon]);
-    }
-    if (coordsToFit.length > 0) {
-        fitMapToBounds(coordsToFit);
-    }
+    if (state.userLocation) { coordsToFit.push([state.userLocation.lat, state.userLocation.lon]); }
+    if (coordsToFit.length > 0) { fitMapToBounds(coordsToFit, { paddingTopLeft: [20, 100], paddingBottomRight: [20, 200] }); }
 
     renderCategories(filteredData);
     
-    DOMElements.resetViewBtn.classList.toggle('visible', isFocusMode);
+    const resetViewHubItem = DOMElements.resetViewBtn.closest('.hub-item');
+    if(resetViewHubItem) { resetViewHubItem.style.display = isFocusMode ? 'flex' : 'none'; }
     
-    // 處理無結果時的提示訊息
     if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {
          DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
     } else if (Object.keys(state.restaurantData).length === 0) {
@@ -121,33 +108,17 @@ export function initCategoriesMapAndRender(filteredData) {
     }
 }
 
-
 function renderCategories(filteredData) {
     const categoryKeys = Object.keys(filteredData);
     DOMElements.categoryList.innerHTML = '';
-
-    // 動態調整分類列的行數
-    if (categoryKeys.length > 8) {
-        DOMElements.categoryList.classList.add('three-rows');
-    } else {
-        DOMElements.categoryList.classList.remove('three-rows');
-    }
-    
     const isFocusMode = state.focusedCategories.size > 0;
 
     categoryKeys.forEach(category => {
         const item = document.createElement('div');
         item.className = 'category-list-item';
         item.dataset.category = category;
-
-        const isFocused = state.focusedCategories.has(category);
-        
-        if (isFocused) {
-            item.classList.add('active');
-        } else if (isFocusMode) {
-            item.classList.add('unfocused');
-        }
-
+        if (state.focusedCategories.has(category)) { item.classList.add('active'); } 
+        else if (isFocusMode) { item.classList.add('unfocused'); }
         item.textContent = category;
         DOMElements.categoryList.appendChild(item);
     });
@@ -172,25 +143,6 @@ export function renderRestaurantPreviewList(category, filteredData) {
     listEl.classList.add('visible');
 }
 
-
-export function renderPopupContent(restaurant) {
-    const isAdded = state.wheelItems.has(restaurant.name);
-    return `
-        <div class="popup-content">
-            <h4>${restaurant.name}</h4>
-            <div class="popup-info">
-                <span>⭐ ${restaurant.rating}</span>
-                <span>${'$'.repeat(restaurant.price_level)}</span>
-                <span>${restaurant.hours}</span>
-            </div>
-            <div class="popup-actions">
-                <button data-name="${restaurant.name}" class="btn-secondary details-btn">更多</button>
-                <button data-name="${restaurant.name}" class="btn-primary add-to-wheel-btn ${isAdded ? 'added' : ''}">${isAdded ? '✓' : '+'}</button>
-            </div>
-        </div>
-    `;
-}
-
 export function renderDetailsPage() {
     const data = state.currentRestaurantDetails;
     if (!data) return;
@@ -206,23 +158,10 @@ export function renderDetailsPage() {
     DOMElements.addToWheelDetailsBtn.querySelector('span').textContent = isAdded ? '已加入' : '加入候選';
 
     const hoursList = data.details.opening_hours.weekday_text;
-    DOMElements.detailsHoursList.innerHTML = hoursList && hoursList.length > 0
-        ? hoursList.map(line => `<li>${line}</li>`).join('')
-        : '<li>暫無提供營業時間</li>';
+    DOMElements.detailsHoursList.innerHTML = hoursList && hoursList.length > 0 ? hoursList.map(line => `<li>${line}</li>`).join('') : '<li>暫無提供營業時間</li>';
 
     const reviewsList = data.details.reviews;
-    DOMElements.detailsReviewsList.innerHTML = reviewsList && reviewsList.length > 0
-        ? reviewsList.map(review => `
-        <div class="review-card">
-            <div class="review-card-header">
-                <span class="review-author">${review.author_name}</span>
-                <span class="review-rating">${'⭐'.repeat(review.rating)}</span>
-                <span class="review-time">${review.relative_time_description}</span>
-            </div>
-            <p class="review-text">${review.text}</p>
-        </div>
-    `).join('')
-        : '<p>暫無評論</p>';
+    DOMElements.detailsReviewsList.innerHTML = reviewsList && reviewsList.length > 0 ? reviewsList.map(review => `<div class="review-card"><div class="review-card-header"><span class="review-author">${review.author_name}</span><span class="review-rating">${'⭐'.repeat(review.rating)}</span><span class="review-time">${review.relative_time_description}</span></div><p class="review-text">${review.text}</p></div>`).join('') : '<p>暫無評論</p>';
 
     DOMElements.callBtn.onclick = () => { if (data.details.formatted_phone_number) window.location.href = `tel:${data.details.formatted_phone_number}`; };
     DOMElements.websiteBtn.onclick = () => { if (data.details.website && data.details.website !== '#') window.open(data.details.website, '_blank'); };
@@ -278,11 +217,7 @@ export function showResult(winner) {
     
     let i = 0;
     function typeWriter() {
-        if (i < winner.length) {
-            DOMElements.resultText.innerHTML += winner.charAt(i);
-            i++;
-            setTimeout(typeWriter, 100);
-        }
+        if (i < winner.length) { DOMElements.resultText.innerHTML += winner.charAt(i); i++; setTimeout(typeWriter, 100); }
     }
     typeWriter();
 }
@@ -290,20 +225,37 @@ export function showResult(winner) {
 export function hideResult() {
     DOMElements.resultOverlay.classList.remove('visible');
     const winnerSlice = DOMElements.wheelContainer.querySelector('.winner-glow');
-    if (winnerSlice) {
-        winnerSlice.classList.remove('winner-glow');
-    }
+    if (winnerSlice) { winnerSlice.classList.remove('winner-glow'); }
     renderWheel();
 }
 
 export function updateFilterUI() {
     const { priceLevel, rating } = state.filters;
+    DOMElements.priceFilterButtons.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', Number(btn.dataset.value) === priceLevel); });
+    DOMElements.ratingFilterButtons.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', Number(btn.dataset.value) === rating); });
+}
 
-    DOMElements.priceFilterButtons.querySelectorAll('button').forEach(btn => {
-        btn.classList.toggle('active', Number(btn.dataset.value) === priceLevel);
+export function renderCandidateList() {
+    const contentEl = DOMElements.candidateListContent;
+    contentEl.innerHTML = '';
+    if (state.wheelItems.size === 0) {
+        contentEl.innerHTML = '<p class="candidate-list-placeholder">尚未加入任何候選店家</p>';
+        return;
+    }
+    [...state.wheelItems].forEach(name => {
+        const item = document.createElement('div');
+        item.className = 'candidate-item';
+        item.innerHTML = `
+            <span>${name}</span>
+            <button class="remove-candidate-btn" data-name="${name}">&times;</button>
+        `;
+        contentEl.appendChild(item);
     });
-
-    DOMElements.ratingFilterButtons.querySelectorAll('button').forEach(btn => {
-        btn.classList.toggle('active', Number(btn.dataset.value) === rating);
-    });
+}
+export function showCandidateList() {
+    renderCandidateList();
+    DOMElements.candidateListOverlay.classList.add('visible');
+}
+export function hideCandidateList() {
+    DOMElements.candidateListOverlay.classList.remove('visible');
 }
