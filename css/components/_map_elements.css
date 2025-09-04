@@ -38,9 +38,21 @@
     60% {transform: translateY(-7px);} 
 }
 
+/* *** 新增：地圖標記高亮動畫 *** */
+.leaflet-marker-icon.marker-highlight {
+    animation: highlight-bounce 0.8s ease-in-out;
+}
+
+@keyframes highlight-bounce {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.2) translateY(-5px); }
+}
+
+
 .map-category-icon-container { 
     margin: 0; 
     padding: 0; 
+    transition: opacity 0.3s ease-in-out; /* 讓透明度變化更平滑 */
 }
 
 .map-category-icon {

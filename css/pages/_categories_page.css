@@ -22,6 +22,42 @@
     flex-shrink: 0;
 }
 
+/* *** 新增：按鈕群組容器樣式 *** */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#reset-view-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8) translateY(2px); /* 初始位置微調 */
+    transition: all var(--transition-fast);
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#reset-view-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+#reset-view-btn:hover {
+    background-color: var(--secondary-hover);
+}
+#reset-view-btn svg {
+    width: 24px;
+    height: 24px;
+    color: var(--text-dark);
+}
+
+
 .page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
 
@@ -57,12 +93,25 @@
     white-space: nowrap;
 }
 
-.category-list-item:hover, .category-list-item.active { 
+.category-list-item:hover { 
+    transform: translateY(-4px); 
+}
+
+.category-list-item.active { 
     background-color: var(--primary-color); 
     color: white; 
-    transform: translateY(-4px); 
     border-color: var(--primary-color); 
+    transform: translateY(-4px); 
 }
+
+.category-list-item.unfocused {
+    opacity: 0.4;
+}
+.category-list-item.unfocused:hover {
+    opacity: 0.7;
+    transform: translateY(-4px); 
+}
+
 
 .empty-state-message { 
     width: 100%; 

@@ -6,13 +6,13 @@ import {
     handleConfirmRadius,
     handleRecenter,
     handleSpinWheel,
-    handleCategoryInteraction,
     handlePreviewCardInteraction,
     handleAddToWheelFromDetails,
     toggleFilterPanel,
     handleFilterChange,
-    // *** 優化第二點：引入新的事件處理器 ***
-    handleClickToCloseFilter
+    handleClickToCloseFilter,
+    handleCategoryInteraction,
+    handleResetView // *** 新增 ***
 } from './handlers.js';
 import { hideResult, updateWheelCount } from './ui.js';
 
@@ -30,21 +30,20 @@ function init() {
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
     DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
+    // *** 恢復預覽列表的事件監聽 ***
     DOMElements.restaurantPreviewList.addEventListener('mouseover', handlePreviewCardInteraction);
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
-    // *** 優化第二點：綁定篩選器相關事件 ***
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel); // 關閉按鈕也使用同一個函式
+    DOMElements.resetViewBtn.addEventListener('click', handleResetView); // *** 新增 ***
+    DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
     DOMElements.openNowToggle.addEventListener('change', handleFilterChange);
     DOMElements.priceFilterButtons.addEventListener('click', handleFilterChange);
     DOMElements.ratingFilterButtons.addEventListener('click', handleFilterChange);
     
-    // 初始渲染
     updateWheelCount();
 }
 
-// 當 DOM 載入完成後，啟動應用程式
 document.addEventListener('DOMContentLoaded', init);

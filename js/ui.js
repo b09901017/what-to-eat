@@ -4,7 +4,6 @@ import { state, DOMElements } from './state.js';
 import { getUserLocation } from './handlers.js';
 import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap } from './map.js';
 
-// 此函式在 navigate.js 中被呼叫，根據頁面 ID 執行特定的渲染邏輯
 export function renderPageContent(pageId) {
     switch (pageId) {
         case 'map-page':
@@ -43,59 +42,76 @@ export function updateRadiusLabel(radius) {
 }
 
 export function initCategoriesMapAndRender(filteredData) {
-    // 渲染前，先將 activeCategory 設為 null，避免篩選後舊的 active 狀態殘留
-    state.activeCategory = null; 
     const map = initCategoriesMap();
     
-    const allFilteredCoords = Object.values(filteredData).flat().map(r => [r.lat, r.lon]);
-    if (state.userLocation) {
-        allFilteredCoords.push([state.userLocation.lat, state.userLocation.lon]);
+    // *** 傳入 activeCategory 用於高亮 ***
+    updateMapMarkers(filteredData, state.userLocation, state.focusedCategories, state.activeCategory);
+    
+    const coordsToFit = [];
+    const isFocusMode = state.focusedCategories.size > 0;
+
+    if (isFocusMode) {
+        for (const category of state.focusedCategories) {
+            if (filteredData[category]) {
+                filteredData[category].forEach(r => coordsToFit.push([r.lat, r.lon]));
+            }
+        }
+    } else {
+        Object.values(filteredData).flat().forEach(r => coordsToFit.push([r.lat, r.lon]));
     }
     
-    fitMapToBounds(allFilteredCoords);
+    if (state.userLocation) {
+        coordsToFit.push([state.userLocation.lat, state.userLocation.lon]);
+    }
+    if (coordsToFit.length > 0) {
+        fitMapToBounds(coordsToFit);
+    }
 
-    if (Object.keys(filteredData).length === 0) {
-        DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
-        DOMElements.categoryList.classList.remove('three-rows'); // 清除樣式
-        DOMElements.categoryList.parentElement.classList.remove('three-rows');
-        renderRestaurantPreviewList(null, {});
-    } else {
-        renderCategories(filteredData);
-        updateMapMarkers(filteredData, state.userLocation, null);
-        renderRestaurantPreviewList(null, filteredData);
+    renderCategories(filteredData);
+    
+    // *** 顯示/隱藏重設按鈕 ***
+    DOMElements.resetViewBtn.classList.toggle('visible', isFocusMode);
+    
+    if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {
+         DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
+    } else if (Object.keys(state.restaurantData).length === 0) {
+         DOMElements.categoryList.innerHTML = `<p class="empty-state-message">此區域似乎沒有餐廳喔！</p>`;
     }
 }
 
-function renderCategories(filteredData) {
-    DOMElements.categoryList.innerHTML = '';
-    const categoryKeys = Object.keys(filteredData);
 
-    // *** 動態決定行數 ***
-    // 如果分類超過 8 個，就切換到三行佈局
+function renderCategories(filteredData) {
+    const categoryKeys = Object.keys(filteredData);
+    DOMElements.categoryList.innerHTML = '';
+
     if (categoryKeys.length > 8) {
         DOMElements.categoryList.classList.add('three-rows');
-        DOMElements.categoryList.parentElement.classList.add('three-rows');
     } else {
         DOMElements.categoryList.classList.remove('three-rows');
-        DOMElements.categoryList.parentElement.classList.remove('three-rows');
     }
-
-    // 更新分類按鈕的 active 狀態
-    const allItems = DOMElements.categoryList.querySelectorAll('.category-list-item');
-    allItems.forEach(item => item.classList.remove('active'));
     
+    const isFocusMode = state.focusedCategories.size > 0;
+
     categoryKeys.forEach(category => {
         const item = document.createElement('div');
         item.className = 'category-list-item';
-        item.textContent = category;
         item.dataset.category = category;
-        if (state.activeCategory === category) {
+
+        const isFocused = state.focusedCategories.has(category);
+        
+        // .active class 現在同時代表聚焦和高亮
+        if (isFocused) {
             item.classList.add('active');
+        } else if (isFocusMode) {
+            item.classList.add('unfocused');
         }
+
+        item.textContent = category;
         DOMElements.categoryList.appendChild(item);
     });
 }
 
+// *** 恢復：預覽列表渲染函式 ***
 export function renderRestaurantPreviewList(category, filteredData) {
     const listEl = DOMElements.restaurantPreviewList;
     listEl.innerHTML = '';
@@ -114,6 +130,7 @@ export function renderRestaurantPreviewList(category, filteredData) {
     });
     listEl.classList.add('visible');
 }
+
 
 export function renderPopupContent(restaurant) {
     const isAdded = state.wheelItems.has(restaurant.name);

@@ -9,7 +9,8 @@ export const state = {
     userLocation: null,
     searchRadiusMeters: 500,
     restaurantData: {},
-    activeCategory: null,
+    activeCategory: null, // *** 恢復：用於預覽列表和地圖高亮 ***
+    focusedCategories: new Set(), // 用於聚焦篩選
     currentWheelRotation: 0,
     animationFrameId: null,
     filters: {
@@ -29,7 +30,7 @@ export const DOMElements = {
     confirmRadiusBtn: document.getElementById('confirm-radius-btn'),
     leafletMap: document.getElementById('leaflet-map'),
     categoryList: document.getElementById('category-list'),
-    restaurantPreviewList: document.getElementById('restaurant-preview-list'),
+    restaurantPreviewList: document.getElementById('restaurant-preview-list'), // *** 恢復 ***
     wheelContainer: document.getElementById('wheel-container'),
     spinBtn: document.getElementById('spin-btn'),
     wheelPlaceholder: document.getElementById('wheel-placeholder'),
@@ -53,11 +54,11 @@ export const DOMElements = {
     detailsHoursList: document.querySelector('.details-hours-list'),
     detailsReviewsList: document.querySelector('.details-reviews-list'),
     
-    // *** 優化第二點：新增 DOM 元素參照 ***
-    categoriesPage: document.getElementById('categories-page'), // 整個頁面容器
+    categoriesPage: document.getElementById('categories-page'),
     filterBtn: document.getElementById('filter-btn'),
+    resetViewBtn: document.getElementById('reset-view-btn'), // *** 新增 ***
     filterPanel: document.getElementById('filter-panel'),
-    closeFilterBtn: document.getElementById('close-filter-btn'), // 關閉按鈕
+    closeFilterBtn: document.getElementById('close-filter-btn'),
     openNowToggle: document.getElementById('open-now-toggle'),
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),

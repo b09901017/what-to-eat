@@ -1,7 +1,7 @@
 import os
 import googlemaps
 import google.generativeai as genai
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Blueprint
 from flask_cors import CORS
 import json
 from dotenv import load_dotenv
@@ -34,14 +34,10 @@ except Exception as e:
     logging.error(f"初始化 Google 服務失敗: {e}")
     raise
 
-app = Flask(__name__, static_folder='.', static_url_path='')
-CORS(app)
-
 
 # --- 2. 後端核心輔助函式 (Core Helper Functions) ---
 
 def search_unique_places(location, radius):
-    # broad_search_types = ['restaurant', 'cafe', 'meal_takeaway', 'bar', 'food']
     broad_search_types = ['restaurant', 'bar', 'cafe']
     specific_keywords = ['內用', '好吃', '消夜', '飲料', '甜點', '素食']
     unique_places = {}
@@ -125,7 +121,6 @@ def get_categories_from_gemini_chunk(restaurant_chunk):
     if not restaurant_chunk: return {}
     
     model = genai.GenerativeModel('gemini-2.5-flash')
-    # ★★★ 恢復您原本帶有範例的 Prompt ★★★
     prompt = f"""
 你是美食分類專家，請將餐廳列表按照「具體食物類型」進行分類。
 
@@ -183,40 +178,57 @@ def categorize_restaurants_concurrently(restaurants_for_ai):
     
     return final_categories
 
-# --- 3. API 路由 (API Route) ---
+# --- 3. API 藍圖 (API Blueprint) ---
+# 使用 Blueprint 來組織 API 路由，避免與靜態文件服務衝突
+api_bp = Blueprint('api', __name__, url_prefix='/api')
 
-@app.route('/api/search', methods=['POST'])
-def search_restaurants_api():
-    data = request.get_json()
-    if not data or 'lat' not in data or 'lon' not in data:
-        return jsonify({"error": "缺少經緯度資訊"}), 400
-
+@api_bp.route('/find_places', methods=['POST'])
+def find_places_api():
+    """
+    接收經緯度和半徑，使用 Google Maps API 搜尋店家並回傳詳細資訊。
+    """
     try:
+        data = request.get_json()
+        if not data or 'lat' not in data or 'lon' not in data:
+            return jsonify({"error": "缺少經緯度資訊"}), 400
+        
         location = (data['lat'], data['lon'])
         radius = data.get('radius', 500)
         
         place_ids = search_unique_places(location, radius)
-        if not place_ids: return jsonify({})
+        if not place_ids:
+            return jsonify({})
 
         all_restaurants = get_all_restaurants_details_concurrently(place_ids)
-        
+        return jsonify(all_restaurants)
+
+    except Exception as e:
+        logging.error("在 /api/find_places 路由發生未預期的錯誤:")
+        traceback.print_exc()
+        return jsonify({"error": "搜尋店家時發生未預期的錯誤"}), 500
+
+@api_bp.route('/categorize_places', methods=['POST'])
+def categorize_places_api():
+    """
+    接收店家詳細資訊的 JSON，使用 Gemini API 進行分類並回傳結果。
+    """
+    try:
+        all_restaurants = request.get_json()
+        if not all_restaurants or not isinstance(all_restaurants, dict):
+            return jsonify({"error": "缺少或格式不正確的餐廳資料"}), 400
+
         restaurants_for_ai = [{"name": r.get('name'), "types": r.get('types', [])} for r in all_restaurants.values()]
 
         categorized_names = categorize_restaurants_concurrently(restaurants_for_ai)
         logging.info("--- AI 分類流程完成 ---")
 
         final_result = {}
-        # 保持強健的處理邏輯，以應對 AI 可能回傳字典或字串的情況
         for category, items in categorized_names.items():
             if category not in final_result:
                 final_result[category] = []
             
             for item in items:
-                name_to_check = None
-                if isinstance(item, dict) and 'name' in item:
-                    name_to_check = item['name']
-                elif isinstance(item, str):
-                    name_to_check = item
+                name_to_check = item if isinstance(item, str) else (item.get('name') if isinstance(item, dict) else None)
                 
                 if name_to_check and name_to_check in all_restaurants:
                     final_result[category].append(all_restaurants[name_to_check])
@@ -224,12 +236,20 @@ def search_restaurants_api():
         return jsonify(final_result)
 
     except Exception as e:
-        logging.error("在 /api/search 路由發生未預期的錯誤:")
+        logging.error("在 /api/categorize_places 路由發生未預期的錯誤:")
         traceback.print_exc()
-        return jsonify({"error": "搜尋時發生未預期的錯誤"}), 500
+        return jsonify({"error": "AI 分類時發生未預期的錯誤"}), 500
 
-# --- 4. 前端頁面路由 (Frontend Serving Route) ---
 
+# --- 4. 主應用程式設定 (Main App Setup) ---
+
+app = Flask(__name__, static_folder='.', static_url_path='')
+CORS(app)
+
+# 註冊 API 藍圖
+app.register_blueprint(api_bp)
+
+# 前端頁面路由
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')

@@ -2,38 +2,34 @@
 
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
-import { fetchRestaurants } from './api.js';
+import { findPlaces, categorizePlaces } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, showResult, initCategoriesMapAndRender, updateFilterUI } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, updateMapMarkers, fitMapToBounds, flyToMarker } from './map.js';
+import { initRadiusMap, recenterRadiusMap, fitMapToBounds, flyToMarker } from './map.js';
+
 
 export function applyFiltersAndRender() {
-    const { restaurantData, filters, activeCategory } = state;
+    const { restaurantData, filters, focusedCategories, activeCategory } = state;
     
     const allRestaurants = Object.values(restaurantData).flat();
-    
-    const filteredRestaurants = allRestaurants.filter(r => {
+    const globallyFilteredRestaurants = allRestaurants.filter(r => {
         const isOpen = !filters.openNow || r.hours === "營業中";
         const isPriceMatch = filters.priceLevel === 0 || r.price_level === filters.priceLevel;
         const isRatingMatch = filters.rating === 0 || r.rating >= filters.rating;
         return isOpen && isPriceMatch && isRatingMatch;
     });
+    const globallyFilteredNames = new Set(globallyFilteredRestaurants.map(r => r.name));
 
-    const filteredData = {};
-    filteredRestaurants.forEach(r => {
-        for (const category in restaurantData) {
-            if (restaurantData[category].some(originalR => originalR.name === r.name)) {
-                if (!filteredData[category]) {
-                    filteredData[category] = [];
-                }
-                filteredData[category].push(r);
-                break;
-            }
+    const finalFilteredData = {};
+    for (const category in restaurantData) {
+        const categoryRestaurants = restaurantData[category].filter(r => globallyFilteredNames.has(r.name));
+        if (categoryRestaurants.length > 0) {
+            finalFilteredData[category] = categoryRestaurants;
         }
-    });
-
-    initCategoriesMapAndRender(filteredData);
+    }
     
-    renderRestaurantPreviewList(activeCategory, filteredData);
+    initCategoriesMapAndRender(finalFilteredData);
+    // *** 恢復：呼叫預覽列表渲染函式 ***
+    renderRestaurantPreviewList(activeCategory, finalFilteredData);
 }
 
 export function getUserLocation() {
@@ -60,17 +56,27 @@ function handleRadiusChange(newRadius) {
 }
 
 export async function handleConfirmRadius() {
-    showLoading("正在搜尋附近美食...");
+    showLoading("正在大海撈針，尋找美食...");
     try {
-        const data = await fetchRestaurants(state.userLocation.lat, state.userLocation.lon, state.searchRadiusMeters);
-        state.restaurantData = data;
-        
-        showLoading("AI 正在為您分類美食...");
-        setTimeout(() => {
+        const rawRestaurantData = await findPlaces(state.userLocation.lat, state.userLocation.lon, state.searchRadiusMeters);
+        const restaurantCount = Object.keys(rawRestaurantData).length;
+
+        if (restaurantCount === 0) {
             hideLoading();
-            navigateTo('categories-page');
-            applyFiltersAndRender(); 
-        }, 800);
+            alert("哎呀！這個範圍內似乎沒有找到任何餐廳，試著擴大搜索圈吧！");
+            return;
+        }
+        
+        showLoading(`找到了 ${restaurantCount} 家潛力店家，正請 AI 大廚協助分類...`);
+        
+        const categorizedData = await categorizePlaces(rawRestaurantData);
+        state.restaurantData = categorizedData;
+        state.focusedCategories.clear();
+        state.activeCategory = null;
+        
+        hideLoading();
+        navigateTo('categories-page');
+        applyFiltersAndRender();
 
     } catch (error) {
         DOMElements.loadingText.textContent = `搜尋失敗: ${error.message}，請稍後再試`;
@@ -82,9 +88,7 @@ export function handleRecenter() {
     recenterRadiusMap(state.userLocation);
 }
 
-// *** 優化第二點：新增「點擊空白處關閉」的處理器 ***
 export function handleClickToCloseFilter(e) {
-    // 檢查面板是否可見，以及點擊事件是否發生在面板和觸發按鈕之外
     if (
         DOMElements.filterPanel.classList.contains('visible') &&
         !DOMElements.filterPanel.contains(e.target) &&
@@ -94,44 +98,67 @@ export function handleClickToCloseFilter(e) {
     }
 }
 
-// *** 優化第二點：改造 toggleFilterPanel 來管理事件監聽 ***
 export function toggleFilterPanel() {
     const isVisible = DOMElements.filterPanel.classList.toggle('visible');
     if (isVisible) {
-        // 面板打開時，監聽整個頁面的點擊
         DOMElements.categoriesPage.addEventListener('click', handleClickToCloseFilter);
     } else {
-        // 面板關閉時，移除監聽，避免不必要的檢查
         DOMElements.categoriesPage.removeEventListener('click', handleClickToCloseFilter);
     }
 }
 
 export function handleFilterChange(e) {
-    const target = e.target;
-    // 阻止事件冒泡，避免觸發 handleClickToCloseFilter
     e.stopPropagation(); 
+    const target = e.target;
     const filterType = target.dataset.filter || target.closest('[data-filter]').dataset.filter;
-    
     if (!filterType) return;
-
     if (filterType === 'openNow') {
         state.filters.openNow = target.checked;
     } else {
         const button = target.closest('button');
         if (!button) return;
-        const value = Number(button.dataset.value);
-        state.filters[filterType] = value;
+        state.filters[filterType] = Number(button.dataset.value);
     }
-
     updateFilterUI();
     applyFiltersAndRender();
 }
 
+// *** 重構：全新的單擊互動邏輯 ***
+export function handleCategoryInteraction(e) {
+    const categoryItem = e.target.closest('.category-list-item');
+    if (!categoryItem) return;
+
+    const category = categoryItem.dataset.category;
+
+    // 1. 切換聚焦狀態
+    if (state.focusedCategories.has(category)) {
+        state.focusedCategories.delete(category);
+        // 如果取消的是當前高亮的類別，則同時取消高亮
+        if (state.activeCategory === category) {
+            state.activeCategory = null;
+        }
+    } else {
+        state.focusedCategories.add(category);
+        // 新增聚焦時，將其設為高亮
+        state.activeCategory = category;
+    }
+    
+    // 2. 重新渲染
+    applyFiltersAndRender();
+}
+
+// *** 新增：重設按鈕的處理函式 ***
+export function handleResetView() {
+    if (state.focusedCategories.size > 0) {
+        state.focusedCategories.clear();
+        state.activeCategory = null;
+        applyFiltersAndRender();
+    }
+}
 
 export function handlePopupInteraction(e) {
     const btn = e.target.closest('.add-to-wheel-btn, .details-btn');
     if (!btn) return;
-
     const name = btn.dataset.name;
     if (btn.classList.contains('add-to-wheel-btn')) {
         toggleWheelItem(name);
@@ -168,12 +195,10 @@ export function handleSpinWheel() {
     if (state.isSpinning) return;
     state.isSpinning = true;
     DOMElements.spinBtn.disabled = true;
-    
     const items = [...state.wheelItems];
     const sliceAngle = 360 / items.length;
     const randomIndex = Math.floor(Math.random() * items.length);
     const winner = items[randomIndex];
-    
     const randomOffset = (Math.random() * 0.8 - 0.4) * sliceAngle;
     const targetRotation = 360 * 5 + (360 - (randomIndex * sliceAngle)) - (sliceAngle / 2) + randomOffset;
     let start = null;
@@ -203,21 +228,7 @@ export function handleSpinWheel() {
     state.animationFrameId = requestAnimationFrame(step);
 }
 
-export function handleCategoryInteraction(e) {
-    const target = e.target.closest('.category-list-item');
-    if (!target) return;
-    
-    const category = target.dataset.category;
-
-    if (state.activeCategory === category) {
-        state.activeCategory = null;
-    } else {
-        state.activeCategory = category;
-    }
-
-    applyFiltersAndRender();
-}
-
+// *** 恢復：預覽卡片的處理函式 ***
 export function handlePreviewCardInteraction(e) {
     const card = e.target.closest('.restaurant-preview-card');
     if (!card) return;

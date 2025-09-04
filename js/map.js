@@ -9,7 +9,7 @@ let categoriesMapInstance = null;
 let radiusCircle = null;
 let radiusDragMarker = null;
 let userMarker = null;
-const restaurantMarkers = {}; // 用於儲存 name -> marker 的映射
+const restaurantMarkers = {};
 
 function destinationPoint(lat, lon, distance, bearing) {
     const R = 6371e3;
@@ -42,12 +42,11 @@ export function initRadiusMap(location, radius, onRadiusChange) {
     if (radiusDragMarker) radiusDragMarker.remove();
     radiusDragMarker = L.marker(edgeLatLng, {
         draggable: true,
-        // *** 優化第一點：擴大拖曳手把的觸控區域 ***
         icon: L.divIcon({ 
             html: '<div class="radius-drag-handle-container"><div class="radius-drag-handle"></div></div>', 
-            className: '', // className 留空，由內部 div 控制樣式
-            iconSize: [40, 40], // 擴大 icon 的整體尺寸
-            iconAnchor: [20, 20] // 將錨點置中
+            className: '', 
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
         })
     }).addTo(radiusMapInstance);
 
@@ -82,10 +81,10 @@ export function initCategoriesMap() {
     return categoriesMapInstance;
 }
 
-export function updateMapMarkers(restaurantData, userLocation, highlightedCategory = null) {
+// *** 恢復：接收 activeCategory 進行高亮 ***
+export function updateMapMarkers(restaurantData, userLocation, focusedCategories, activeCategory) {
     if (!categoriesMapInstance) return;
 
-    // 清除舊標記
     Object.values(restaurantMarkers).forEach(marker => marker.remove());
     for (const key in restaurantMarkers) {
         delete restaurantMarkers[key];
@@ -95,32 +94,39 @@ export function updateMapMarkers(restaurantData, userLocation, highlightedCatego
         userMarker = null;
     }
 
-    // 繪製使用者位置
     if (userLocation) {
         userMarker = L.marker([userLocation.lat, userLocation.lon], {
             icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [24, 24] }),
             zIndexOffset: 2000
         }).addTo(categoriesMapInstance);
     }
+    
+    const isFocusMode = focusedCategories && focusedCategories.size > 0;
 
-    // 繪製餐廳標記
     for (const category in restaurantData) {
+        if (isFocusMode && !focusedCategories.has(category)) {
+            continue;
+        }
+
         const iconMatch = category.match(/(\p{Emoji})/u);
         const iconEmoji = iconMatch ? iconMatch[1] : '📍';
         
         restaurantData[category].forEach(restaurant => {
+            // *** 判斷是否為高亮狀態 ***
+            const isHighlighted = activeCategory === category;
             const iconHtml = `<div class="map-category-icon">${iconEmoji}</div>`;
             const customIcon = L.divIcon({
                 html: iconHtml,
-                className: 'map-category-icon-container',
+                className: `map-category-icon-container ${isHighlighted ? 'marker-highlight' : ''}`,
                 iconSize: [36, 36],
                 iconAnchor: [18, 18]
             });
-
-            const isHighlighted = highlightedCategory === null || category === highlightedCategory;
+            
             const marker = L.marker([restaurant.lat, restaurant.lon], {
                 icon: customIcon,
-                opacity: isHighlighted ? 1 : 0.4
+                // *** 如果有高亮類別，其他類別就半透明 ***
+                opacity: (activeCategory && !isHighlighted) ? 0.35 : 1,
+                zIndexOffset: isHighlighted ? 1000 : 0
             }).addTo(categoriesMapInstance);
 
             marker.bindPopup(renderPopupContent(restaurant), { className: 'custom-popup' });
@@ -128,6 +134,7 @@ export function updateMapMarkers(restaurantData, userLocation, highlightedCatego
         });
     }
 }
+
 
 export function fitMapToBounds(coords) {
     if (categoriesMapInstance && coords.length > 0) {
