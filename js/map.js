@@ -28,8 +28,8 @@ function renderPopupContent(restaurant) {
 }
 
 
-// 分別管理不同頁面的地圖實例和圖層
-const mapInstances = {
+// --- 修正：導出 mapInstances 供 ui.js 使用 ---
+export const mapInstances = {
     radius: null,
     categories: null
 };
@@ -110,6 +110,7 @@ export function removeRadiusEditor(mapKey) {
     }
 }
 
+// --- 修正：導出 getEditorState 並返回 circle 物件 ---
 export function getEditorState(mapKey) {
     const editor = editorLayers[mapKey];
     if (!editor) return null;
@@ -121,7 +122,8 @@ export function getEditorState(mapKey) {
     if (circle && centerMarker) {
         return {
             center: centerMarker.getLatLng(),
-            radius: circle.getRadius()
+            radius: circle.getRadius(),
+            circle: circle // 返回 circle 實例
         };
     }
     return null;
@@ -134,7 +136,10 @@ export function initRadiusMap(location, radius, onRadiusChange) {
     const mapKey = 'radius';
     if (!mapInstances[mapKey]) {
         mapInstances[mapKey] = L.map(DOMElements.radiusMap, { zoomControl: false }).setView([location.lat, location.lon], 15);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(mapInstances[mapKey]);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { 
+            maxZoom: 20,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(mapInstances[mapKey]);
     }
     
     drawRadiusEditor(mapKey, location, radius, onRadiusChange);
@@ -240,19 +245,43 @@ export function fitMapToBounds(coords, paddingOptions) {
     }
 }
 
+export function flyToCoords(coords) {
+    const map = mapInstances.categories;
+    if (map && coords.length > 0) {
+        const paddingOptions = { 
+            paddingTopLeft: [20, 100], 
+            paddingBottomRight: [20, 300] 
+        };
+        map.flyToBounds(coords, { ...paddingOptions, duration: 0.5 });
+    }
+}
+
 export function flyToMarker(name) {
     const map = mapInstances.categories;
     const marker = restaurantMarkers[name];
     if (marker && map) {
-        map.flyTo(marker.getLatLng());
+        const targetLatLng = marker.getLatLng();
+        
+        const mapSize = map.getSize();
+        const targetPoint = map.latLngToContainerPoint(targetLatLng);
+
+        const yOffset = mapSize.y / 4;
+        const newCenterPoint = L.point(targetPoint.x, targetPoint.y + yOffset);
+
+        const newCenterLatLng = map.containerPointToLatLng(newCenterPoint);
+
+        map.flyTo(newCenterLatLng, map.getZoom(), {
+            duration: 0.5
+        });
+
         setTimeout(() => {
             marker.openPopup();
             if (marker._icon) {
                 marker._icon.classList.add('marker-active');
                 setTimeout(() => {
                     if (marker._icon) marker._icon.classList.remove('marker-active');
-                }, 600);
+                }, 800);
             }
-        }, 300);
+        }, 500); 
     }
 }

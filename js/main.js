@@ -16,8 +16,8 @@ import {
     handleToggleRadiusEdit,
     handleConfirmRadiusReSearch,
     handleToggleHub,
-    handleShowCandidateList, // *** 新增 ***
-    handleCandidateListInteraction, // *** 新增 ***
+    handleShowCandidateList,
+    handleCandidateListInteraction,
 } from './handlers.js';
 import { hideResult, updateWheelCount, hideCandidateList } from './ui.js';
 
@@ -29,14 +29,16 @@ function init() {
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     
     DOMElements.backBtns.forEach(btn => btn.addEventListener('click', navigateBack));
-    DOMElements.goToWheelBtn.addEventListener('click', () => navigateTo('wheel-page')); // *** 修改 ***
+    DOMElements.goToWheelBtn.addEventListener('click', () => navigateTo('wheel-page'));
+    
+    // *** 修改：重新命名與綁定事件 ***
     DOMElements.reSearchBtn.addEventListener('click', handleConfirmRadiusReSearch); 
+    DOMElements.cancelEditBtn.addEventListener('click', handleToggleRadiusEdit);
     
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
     DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
-    DOMElements.restaurantPreviewList.addEventListener('mouseover', handlePreviewCardInteraction);
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
@@ -51,7 +53,7 @@ function init() {
     
     DOMElements.hubToggleBtn.addEventListener('click', handleToggleHub);
     
-    // *** 新增：為候選清單視窗綁定事件 ***
+    // 為候選清單視窗綁定事件
     DOMElements.showCandidatesBtn.addEventListener('click', handleShowCandidateList);
     DOMElements.closeCandidateListBtn.addEventListener('click', hideCandidateList);
     DOMElements.candidateListOverlay.addEventListener('click', (e) => {

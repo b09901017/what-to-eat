@@ -28,31 +28,33 @@
     100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); } 
 }
 
-.leaflet-marker-icon.marker-active { 
-    animation: bounce 0.6s; 
+/* --- 修改：將動畫應用於子元素，並使用新的 marker-pop 動畫 --- */
+.leaflet-marker-icon.marker-active .map-category-icon { 
+    animation: marker-pop 0.8s ease-in-out; 
 }
 
-@keyframes bounce { 
-    0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 
-    40% {transform: translateY(-15px);} 
-    60% {transform: translateY(-7px);} 
+/* --- 修改：用一次性的縮放動畫取代原本的 bounce 動畫 --- */
+@keyframes marker-pop { 
+    0% { transform: scale(1); } 
+    50% { transform: scale(1.3); } 
+    100% { transform: scale(1); } 
 }
 
-/* *** 新增：地圖標記高亮動畫 *** */
-.leaflet-marker-icon.marker-highlight {
-    animation: highlight-bounce 0.8s ease-in-out;
+.leaflet-marker-icon.marker-highlight .map-category-icon {
+    animation: pulse-scale 1.5s ease-in-out infinite;
 }
 
-@keyframes highlight-bounce {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.2) translateY(-5px); }
+@keyframes pulse-scale {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
 }
 
 
 .map-category-icon-container { 
     margin: 0; 
     padding: 0; 
-    transition: opacity 0.3s ease-in-out; /* 讓透明度變化更平滑 */
+    transition: opacity 0.3s ease-in-out;
 }
 
 .map-category-icon {

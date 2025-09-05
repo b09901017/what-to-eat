@@ -122,7 +122,6 @@
                         <button id="hub-toggle-btn" class="hub-toggle-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 5"/><path d="M12 19L12 22"/><path d="M5 12L2 12"/><path d="M22 12L19 12"/><path d="M19.07 4.93L17 7"/><path d="M7 17L4.93 19.07"/><path d="M19.07 19.07L17 17"/><path d="M7 7L4.93 4.93"/></svg>
                         </button>
-                        <button id="re-search-hub-btn" class="btn-primary">重新搜尋</button>
                     </div>
                 </div>
                 
@@ -130,9 +129,20 @@
                 <div id="category-list" class="category-list"></div>
             </div>
 
-            <footer class="page-footer">
+            <div id="edit-mode-controls" class="edit-mode-controls">
+                <div id="edit-mode-hint" class="edit-mode-hint">
+                    <p>拖曳圓心或邊緣調整範圍</p>
+                </div>
+                <footer id="edit-mode-footer" class="page-footer edit-mode-footer">
+                    <button id="cancel-edit-btn" class="btn-secondary">取消</button>
+                    <button id="re-search-btn" class="btn-primary">以此範圍重新搜尋</button>
+                </footer>
+            </div>
+            
+            <footer id="main-footer" class="page-footer">
                 <button id="go-to-wheel-btn" class="btn-primary">隨便啦 !</button>
             </footer>
+
         </section>
         
         <section id="wheel-page" class="page">

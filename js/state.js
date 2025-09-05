@@ -39,7 +39,7 @@ export const DOMElements = {
     wheelPlaceholder: document.getElementById('wheel-placeholder'),
     backBtns: document.querySelectorAll('.back-btn'),
     wheelCountBadges: document.querySelectorAll('.wheel-count-badge'),
-    goToWheelBtn: document.getElementById('go-to-wheel-btn'), // *** 修改 ***
+    goToWheelBtn: document.getElementById('go-to-wheel-btn'),
     loadingOverlay: document.getElementById('loading-overlay'),
     loadingText: document.getElementById('loading-text'),
     resultOverlay: document.getElementById('result-overlay'),
@@ -71,9 +71,14 @@ export const DOMElements = {
     floatingActionHub: document.getElementById('floating-action-hub'),
     hubToggleBtn: document.getElementById('hub-toggle-btn'),
     hubItemList: document.getElementById('hub-item-list'),
-    reSearchBtn: document.getElementById('re-search-hub-btn'),
 
-    // *** 新增：候選清單視窗相關元素 ***
+    // 調整範圍模式相關元素
+    mainFooter: document.getElementById('main-footer'),
+    editModeControls: document.getElementById('edit-mode-controls'),
+    reSearchBtn: document.getElementById('re-search-btn'),
+    cancelEditBtn: document.getElementById('cancel-edit-btn'),
+    
+    // 候選清單視窗相關元素
     showCandidatesBtn: document.getElementById('show-candidates-btn'),
     candidateListOverlay: document.getElementById('candidate-list-overlay'),
     candidateListContent: document.getElementById('candidate-list-content'),

@@ -6,9 +6,31 @@ import { findPlaces, categorizePlaces } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, showResult, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, showCandidateList, hideCandidateList, renderCandidateList } from './ui.js';
 import { initRadiusMap, recenterRadiusMap, flyToMarker, drawRadiusEditor, removeRadiusEditor, getEditorState, updateMapMarkers } from './map.js';
 
+/**
+ * 處理懸浮按鈕的展開與收合，並動態綁定外部點擊事件。
+ */
 export function handleToggleHub() {
     state.isHubExpanded = !state.isHubExpanded;
     toggleHub(state.isHubExpanded);
+
+    const eventListenerTarget = DOMElements.categoriesPage;
+    if (state.isHubExpanded) {
+        // 按鈕展開時，監聽頁面點擊
+        eventListenerTarget.addEventListener('click', handleClickToCloseHub);
+    } else {
+        // 按鈕收合時，移除監聽
+        eventListenerTarget.removeEventListener('click', handleClickToCloseHub);
+    }
+}
+
+/**
+ * 處理頁面點擊事件，如果點擊位置在 Hub 之外，則關閉 Hub。
+ * @param {Event} e - 點擊事件物件
+ */
+function handleClickToCloseHub(e) {
+    if (state.isHubExpanded && !DOMElements.floatingActionHub.contains(e.target)) {
+        handleToggleHub(); // 直接呼叫 handleToggleHub 來處理收合邏輯
+    }
 }
 
 // *** 新增：候選清單視窗的事件處理 ***
@@ -55,13 +77,26 @@ export function getUserLocation() {
         DOMElements.confirmRadiusBtn.disabled = false;
         initRadiusMap(state.userLocation, state.searchRadiusMeters, handleRadiusChange);
     };
-    const onError = () => {
+    const onError = (err) => {
         state.userLocation = { lat: 24.975, lon: 121.538 };
-        DOMElements.locationStatus.textContent = '無法取得位置，將使用預設地點';
+        // 根據錯誤代碼提供更具體的錯誤訊息
+        if (err.code === 1) { // PERMISSION_DENIED
+            DOMElements.locationStatus.textContent = '無法取得位置，請允許定位權限';
+        } else {
+            DOMElements.locationStatus.textContent = '無法取得位置，將使用預設地點';
+        }
         DOMElements.confirmRadiusBtn.disabled = false;
         initRadiusMap(state.userLocation, state.searchRadiusMeters, handleRadiusChange);
     };
-    navigator.geolocation.getCurrentPosition(onSuccess, onError);
+
+    // --- 修改：增加高精確度定位選項 ---
+    const options = {
+        enableHighAccuracy: true, // 啟用高精確度模式
+        timeout: 10000,           // 設置 10 秒超時
+        maximumAge: 0             // 不使用快取的位置
+    };
+
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
 }
 
 function handleRadiusChange(newRadius) {
@@ -149,19 +184,31 @@ export function handleFilterChange(e) {
     applyFiltersAndRender();
 }
 
+// --- 修正：恢復並優化類別互動邏輯 ---
 export function handleCategoryInteraction(e) {
     const categoryItem = e.target.closest('.category-list-item');
     if (!categoryItem) return;
     const category = categoryItem.dataset.category;
+
+    // 檢查點擊的類別是否已在聚焦清單中
     if (state.focusedCategories.has(category)) {
+        // 如果已在清單中，再次點擊則將其從清單移除
         state.focusedCategories.delete(category);
-        if (state.activeCategory === category) { state.activeCategory = null; }
+        // 如果被移除的剛好是當前活躍的類別，則清空活躍類別，隱藏預覽
+        if (state.activeCategory === category) {
+            state.activeCategory = null;
+        }
     } else {
+        // 如果是新點擊的類別，則將其加入聚焦清單
         state.focusedCategories.add(category);
+        // 並將其設為當前活躍的類別，以顯示預覽
         state.activeCategory = category;
     }
+    
+    // 每次互動後都重新渲染畫面
     applyFiltersAndRender();
 }
+
 
 export function handleResetView() {
     if (state.focusedCategories.size > 0) {

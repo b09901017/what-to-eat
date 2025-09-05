@@ -1,8 +1,8 @@
 // 處理所有 DOM 渲染和更新
 
 import { state, DOMElements } from './state.js';
-import { getUserLocation } from './handlers.js';
-import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter } from './map.js';
+import { getUserLocation, applyFiltersAndRender } from './handlers.js';
+import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter, flyToCoords, getEditorState, mapInstances } from './map.js';
 
 /**
  * 根據頁面 ID 渲染對應內容或執行初始化
@@ -54,47 +54,85 @@ export function updateRadiusLabel(radius) {
 }
 
 export function toggleRadiusEditMode(isEditing, onRadiusChange) {
-    const { categoryListContainer, floatingActionHub, reSearchBtn, hubItemList, goToWheelBtn } = DOMElements;
+    const { 
+        categoryListContainer, 
+        floatingActionHub, 
+        mainFooter, 
+        editModeControls
+    } = DOMElements;
     
     categoryListContainer.classList.toggle('hidden', isEditing);
     floatingActionHub.classList.toggle('hidden', isEditing);
-    goToWheelBtn.style.display = isEditing ? 'none' : 'inline-flex';
-    
-    reSearchBtn.classList.toggle('visible', isEditing);
-    hubItemList.style.display = isEditing ? 'none' : '';
-    DOMElements.hubToggleBtn.style.display = isEditing ? 'none' : 'flex';
+    mainFooter.style.display = isEditing ? 'none' : 'block';
+    editModeControls.classList.toggle('visible', isEditing);
 
     if (isEditing) {
         const center = state.searchCenter || state.userLocation;
         initCategoriesMap(); 
+        const map = mapInstances.categories;
         setRadiusMapCenter('categories', center);
         drawRadiusEditor('categories', center, state.searchRadiusMeters, onRadiusChange);
         updateRadiusLabel(state.searchRadiusMeters);
+
+        const allRestaurants = Object.values(state.restaurantData).flat();
+        const globallyFilteredRestaurants = allRestaurants.filter(r => {
+            const isOpen = !state.filters.openNow || r.hours === "營業中";
+            const isPriceMatch = state.filters.priceLevel === 0 || r.price_level === state.filters.priceLevel;
+            const isRatingMatch = state.filters.rating === 0 || r.rating >= state.filters.rating;
+            return isOpen && isPriceMatch && isRatingMatch;
+        });
+
+        const tempFilteredData = {};
+        globallyFilteredRestaurants.forEach(r => {
+            for (const category in state.restaurantData) {
+                if (state.restaurantData[category].some(resto => resto.name === r.name)) {
+                    if (!tempFilteredData[category]) {
+                        tempFilteredData[category] = [];
+                    }
+                    tempFilteredData[category].push(r);
+                    break; 
+                }
+            }
+        });
+        
+        updateMapMarkers(tempFilteredData, state.userLocation, null, null);
+        
+        const editorState = getEditorState('categories');
+        if (editorState && editorState.circle) {
+            map.fitBounds(editorState.circle.getBounds(), { padding: [50, 50] });
+        }
+
     } else {
         removeRadiusEditor('categories');
         DOMElements.radiusLabel.classList.remove('visible');
+        applyFiltersAndRender();
     }
 }
+
 
 export function initCategoriesMapAndRender(filteredData) {
     initCategoriesMap();
     updateMapMarkers(filteredData, state.userLocation, state.focusedCategories, state.activeCategory);
     
-    const coordsToFit = [];
     const isFocusMode = state.focusedCategories.size > 0;
 
-    if (isFocusMode) {
-        for (const category of state.focusedCategories) {
+    if (isFocusMode && state.activeCategory && filteredData[state.activeCategory]) {
+        const coordsOfActiveCategory = filteredData[state.activeCategory].map(r => [r.lat, r.lon]);
+        flyToCoords(coordsOfActiveCategory);
+    } else {
+        const coordsToFit = [];
+        const categoriesToConsider = isFocusMode ? state.focusedCategories : Object.keys(filteredData);
+        
+        for (const category of categoriesToConsider) {
             if (filteredData[category]) {
                 filteredData[category].forEach(r => coordsToFit.push([r.lat, r.lon]));
             }
         }
-    } else {
-        Object.values(filteredData).flat().forEach(r => coordsToFit.push([r.lat, r.lon]));
+        
+        if (state.userLocation) { coordsToFit.push([state.userLocation.lat, state.userLocation.lon]); }
+        if (coordsToFit.length > 0) { fitMapToBounds(coordsToFit, { paddingTopLeft: [20, 100], paddingBottomRight: [20, 200] }); }
     }
-    
-    if (state.userLocation) { coordsToFit.push([state.userLocation.lat, state.userLocation.lon]); }
-    if (coordsToFit.length > 0) { fitMapToBounds(coordsToFit, { paddingTopLeft: [20, 100], paddingBottomRight: [20, 200] }); }
+
 
     renderCategories(filteredData);
     
