@@ -1,10 +1,10 @@
-// 處理所有事件監聽器和回呼函式
+// js/handlers.js
 
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces } from './api.js';
-import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, showResult, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, showCandidateList, hideCandidateList, renderCandidateList } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, drawRadiusEditor, removeRadiusEditor, getEditorState, updateMapMarkers } from './map.js';
+import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub } from './ui.js';
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, updateMapMarkers } from './map.js';
 
 /**
  * 處理懸浮按鈕的展開與收合，並動態綁定外部點擊事件。
@@ -15,10 +15,8 @@ export function handleToggleHub() {
 
     const eventListenerTarget = DOMElements.categoriesPage;
     if (state.isHubExpanded) {
-        // 按鈕展開時，監聽頁面點擊
         eventListenerTarget.addEventListener('click', handleClickToCloseHub);
     } else {
-        // 按鈕收合時，移除監聽
         eventListenerTarget.removeEventListener('click', handleClickToCloseHub);
     }
 }
@@ -29,29 +27,18 @@ export function handleToggleHub() {
  */
 function handleClickToCloseHub(e) {
     if (state.isHubExpanded && !DOMElements.floatingActionHub.contains(e.target)) {
-        handleToggleHub(); // 直接呼叫 handleToggleHub 來處理收合邏輯
+        handleToggleHub();
     }
 }
 
-// *** 新增：候選清單視窗的事件處理 ***
-export function handleShowCandidateList() {
-    showCandidateList();
-}
-export function handleCandidateListInteraction(e) {
-    const removeBtn = e.target.closest('.remove-candidate-btn');
-    if (removeBtn) {
-        const name = removeBtn.dataset.name;
-        // 直接調用 toggle 邏輯來移除
-        toggleWheelItem(name, false); 
-        // 重新渲染列表
-        renderCandidateList();
-    }
-}
-
-
+/**
+ * 根據當前篩選條件過濾餐廳資料並重新渲染地圖和列表
+ */
 export function applyFiltersAndRender() {
     const { restaurantData, filters } = state;
     const allRestaurants = Object.values(restaurantData).flat();
+    
+    // 根據全局篩選器過濾出符合條件的餐廳名稱
     const globallyFilteredRestaurants = allRestaurants.filter(r => {
         const isOpen = !filters.openNow || r.hours === "營業中";
         const isPriceMatch = filters.priceLevel === 0 || r.price_level === filters.priceLevel;
@@ -59,6 +46,8 @@ export function applyFiltersAndRender() {
         return isOpen && isPriceMatch && isRatingMatch;
     });
     const globallyFilteredNames = new Set(globallyFilteredRestaurants.map(r => r.name));
+    
+    // 建立一個只包含符合條件餐廳的新資料結構
     const finalFilteredData = {};
     for (const category in restaurantData) {
         const categoryRestaurants = restaurantData[category].filter(r => globallyFilteredNames.has(r.name));
@@ -66,10 +55,14 @@ export function applyFiltersAndRender() {
             finalFilteredData[category] = categoryRestaurants;
         }
     }
+    
     initCategoriesMapAndRender(finalFilteredData);
     renderRestaurantPreviewList(state.activeCategory, finalFilteredData);
 }
 
+/**
+ * 獲取使用者地理位置
+ */
 export function getUserLocation() {
     const onSuccess = (pos) => {
         state.userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
@@ -78,9 +71,8 @@ export function getUserLocation() {
         initRadiusMap(state.userLocation, state.searchRadiusMeters, handleRadiusChange);
     };
     const onError = (err) => {
-        state.userLocation = { lat: 24.975, lon: 121.538 };
-        // 根據錯誤代碼提供更具體的錯誤訊息
-        if (err.code === 1) { // PERMISSION_DENIED
+        state.userLocation = { lat: 24.975, lon: 121.538 }; // 預設位置
+        if (err.code === 1) { 
             DOMElements.locationStatus.textContent = '無法取得位置，請允許定位權限';
         } else {
             DOMElements.locationStatus.textContent = '無法取得位置，將使用預設地點';
@@ -89,25 +81,28 @@ export function getUserLocation() {
         initRadiusMap(state.userLocation, state.searchRadiusMeters, handleRadiusChange);
     };
 
-    // --- 修改：增加高精確度定位選項 ---
-    const options = {
-        enableHighAccuracy: true, // 啟用高精確度模式
-        timeout: 10000,           // 設置 10 秒超時
-        maximumAge: 0             // 不使用快取的位置
-    };
-
+    const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
     navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
 }
 
+/**
+ * 當半徑在地圖上被改變時的回呼函式
+ * @param {number} newRadius - 新的半徑（公尺）
+ */
 function handleRadiusChange(newRadius) {
     state.searchRadiusMeters = newRadius;
     updateRadiusLabel(newRadius);
 }
 
+/**
+ * 執行搜尋流程（呼叫 API -> 分類 -> 更新狀態）
+ * @param {object} center - 中心點經緯度 {lat, lng}
+ * @param {number} radius - 半徑（公尺）
+ * @returns {Promise<boolean>} - 回傳搜尋是否成功並找到店家
+ */
 async function performSearch(center, radius) {
     if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') {
         alert("無法獲取有效的地理位置，請重試。");
-        console.error("performSearch 收到無效的 center 物件:", center);
         return false;
     }
     showLoading("正在大海撈針，尋找美食...");
@@ -134,6 +129,9 @@ async function performSearch(center, radius) {
     }
 }
 
+/**
+ * 處理在初始地圖頁點擊「確認範圍」的事件
+ */
 export async function handleConfirmRadius() {
     const editorState = getEditorState('radius');
     if (!editorState) { alert("無法讀取地圖編輯器狀態，請重試。"); return; }
@@ -143,6 +141,9 @@ export async function handleConfirmRadius() {
     if (success) { navigateTo('categories-page'); applyFiltersAndRender(); }
 }
 
+/**
+ * 處理在美食地圖頁的編輯模式下點擊「重新搜尋」的事件
+ */
 export async function handleConfirmRadiusReSearch() {
     const editorState = getEditorState('categories');
      if (!editorState) { alert("無法讀取地圖編輯器狀態，請重試。"); return; }
@@ -152,10 +153,16 @@ export async function handleConfirmRadiusReSearch() {
     if (success) { toggleRadiusEditMode(false, handleRadiusChange); applyFiltersAndRender(); }
 }
 
+/**
+ * 處理「回到中心」按鈕點擊事件
+ */
 export function handleRecenter() {
     recenterRadiusMap(state.userLocation);
 }
 
+/**
+ * 開關篩選面板
+ */
 export function toggleFilterPanel() {
     const isVisible = DOMElements.filterPanel.classList.toggle('visible');
     const eventListenerTarget = DOMElements.categoriesPage; 
@@ -163,12 +170,20 @@ export function toggleFilterPanel() {
     else { eventListenerTarget.removeEventListener('click', handleClickToCloseFilter); }
 }
 
+/**
+ * 處理點擊篩選面板外部區域來關閉面板的邏輯
+ * @param {Event} e - 點擊事件
+ */
 export function handleClickToCloseFilter(e) {
     if ( DOMElements.filterPanel.classList.contains('visible') && !DOMElements.filterPanel.contains(e.target) && !e.target.closest('.floating-action-hub') ) {
         toggleFilterPanel();
     }
 }
 
+/**
+ * 處理篩選條件變更的事件
+ * @param {Event} e - 變更或點擊事件
+ */
 export function handleFilterChange(e) {
     e.stopPropagation(); 
     const target = e.target;
@@ -184,32 +199,31 @@ export function handleFilterChange(e) {
     applyFiltersAndRender();
 }
 
-// --- 修正：恢復並優化類別互動邏輯 ---
+/**
+ * 處理點擊美食類別的互動邏輯
+ * @param {Event} e - 點擊事件
+ */
 export function handleCategoryInteraction(e) {
     const categoryItem = e.target.closest('.category-list-item');
     if (!categoryItem) return;
     const category = categoryItem.dataset.category;
 
-    // 檢查點擊的類別是否已在聚焦清單中
     if (state.focusedCategories.has(category)) {
-        // 如果已在清單中，再次點擊則將其從清單移除
         state.focusedCategories.delete(category);
-        // 如果被移除的剛好是當前活躍的類別，則清空活躍類別，隱藏預覽
         if (state.activeCategory === category) {
             state.activeCategory = null;
         }
     } else {
-        // 如果是新點擊的類別，則將其加入聚焦清單
         state.focusedCategories.add(category);
-        // 並將其設為當前活躍的類別，以顯示預覽
         state.activeCategory = category;
     }
     
-    // 每次互動後都重新渲染畫面
     applyFiltersAndRender();
 }
 
-
+/**
+ * 處理點擊「重設檢視」按鈕的事件
+ */
 export function handleResetView() {
     if (state.focusedCategories.size > 0) {
         state.focusedCategories.clear();
@@ -218,11 +232,18 @@ export function handleResetView() {
     }
 }
 
+/**
+ * 開關半徑編輯模式
+ */
 export function handleToggleRadiusEdit() {
     state.isEditingRadius = !state.isEditingRadius;
     toggleRadiusEditMode(state.isEditingRadius, handleRadiusChange);
 }
 
+/**
+ * 處理在地圖 popup 上的互動（加入候選、查看詳情）
+ * @param {Event} e - 點擊事件
+ */
 export function handlePopupInteraction(e) {
     const btn = e.target.closest('.add-to-wheel-btn, .details-btn');
     if (!btn) return;
@@ -237,11 +258,12 @@ export function handlePopupInteraction(e) {
 }
 
 /**
- * @param {string} name - The name of the restaurant.
- * @param {boolean} [shouldAdd=true] - Optional. If false, it will only remove the item.
- * @returns {boolean} - Returns true if the item is now in the set, false otherwise.
+ * 新增或移除候選清單中的項目，是個核心共用邏輯
+ * @param {string} name - 餐廳名稱
+ * @param {boolean} [shouldAdd=true] - 是否執行新增操作
+ * @returns {boolean} - 回傳該項目最終是否存在於候選清單中
  */
-function toggleWheelItem(name, shouldAdd = true) {
+export function toggleWheelItem(name, shouldAdd = true) {
     let isAdded;
     if (state.wheelItems.has(name)) {
         state.wheelItems.delete(name);
@@ -249,17 +271,20 @@ function toggleWheelItem(name, shouldAdd = true) {
     } else if (shouldAdd) {
         if (state.wheelItems.size >= 8) {
             alert('候選清單最多8個選項喔！');
-            return state.wheelItems.has(name); // return current state
+            return state.wheelItems.has(name);
         }
         state.wheelItems.add(name);
         isAdded = true;
     }
     updateWheelCount();
-    // Force re-render of map markers to update popup content
-    applyFiltersAndRender();
+    applyFiltersAndRender(); // 強制重繪地圖標記來更新 popup
     return isAdded;
 }
 
+/**
+ * 導航至詳情頁
+ * @param {string} name - 餐廳名稱
+ */
 function showDetails(name) {
     const restaurant = Object.values(state.restaurantData).flat().find(r => r.name === name);
     if (restaurant) {
@@ -268,53 +293,13 @@ function showDetails(name) {
     }
 }
 
-export function handleSpinWheel() {
-    if (state.isSpinning) return;
-    state.isSpinning = true;
-    DOMElements.spinBtn.disabled = true;
-    const items = [...state.wheelItems];
-    const sliceAngle = 360 / items.length;
-    const randomIndex = Math.floor(Math.random() * items.length);
-    const winner = items[randomIndex];
-    const randomOffset = (Math.random() * 0.8 - 0.4) * sliceAngle;
-    const targetRotation = 360 * 5 + (360 - (randomIndex * sliceAngle)) - (sliceAngle / 2) + randomOffset;
-    let start = null;
-    const duration = 5000;
-    const easeOutQuint = t => 1 - Math.pow(1 - t, 5);
-    const step = (timestamp) => {
-        if (!start) start = timestamp;
-        const progress = timestamp - start;
-        const t = Math.min(progress / duration, 1);
-        const easedT = easeOutQuint(t);
-        const rotation = state.currentWheelRotation + easedT * (targetRotation - state.currentWheelRotation);
-        DOMElements.wheelContainer.style.transform = `rotate(${rotation}deg)`;
-        if (progress < duration) {
-            state.animationFrameId = requestAnimationFrame(step);
-        } else {
-            state.currentWheelRotation = rotation % 360;
-            state.isSpinning = false;
-            DOMElements.spinBtn.disabled = false;
-            const winnerSlice = DOMElements.wheelContainer.querySelector(`.wheel-slice[data-name="${winner}"]`);
-            if (winnerSlice) winnerSlice.classList.add('winner-glow');
-            setTimeout(() => showResult(winner), 500);
-        }
-    };
-    cancelAnimationFrame(state.animationFrameId);
-    state.animationFrameId = requestAnimationFrame(step);
-}
-
+/**
+ * 處理點擊店家預覽卡片的事件
+ * @param {Event} e - 點擊事件
+ */
 export function handlePreviewCardInteraction(e) {
     const card = e.target.closest('.restaurant-preview-card');
     if (!card) return;
     const name = card.dataset.name;
     flyToMarker(name);
-}
-
-export function handleAddToWheelFromDetails() {
-    if (state.currentRestaurantDetails) {
-        const name = state.currentRestaurantDetails.name;
-        const isAdded = toggleWheelItem(name);
-        DOMElements.addToWheelDetailsBtn.classList.toggle('added', isAdded);
-        DOMElements.addToWheelDetailsBtn.querySelector('span').textContent = isAdded ? '已加入' : '加入候選';
-    }
 }

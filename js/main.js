@@ -1,13 +1,11 @@
-// 應用程式主入口
+// js/main.js
 
 import { DOMElements } from './state.js';
 import { navigateTo, navigateBack } from './navigation.js';
 import {
     handleConfirmRadius,
     handleRecenter,
-    handleSpinWheel,
     handlePreviewCardInteraction,
-    handleAddToWheelFromDetails,
     toggleFilterPanel,
     handleFilterChange,
     handleClickToCloseFilter,
@@ -16,10 +14,15 @@ import {
     handleToggleRadiusEdit,
     handleConfirmRadiusReSearch,
     handleToggleHub,
+} from './handlers.js';
+import {
     handleShowCandidateList,
     handleCandidateListInteraction,
-} from './handlers.js';
-import { hideResult, updateWheelCount, hideCandidateList } from './ui.js';
+    hideCandidateList
+} from './candidate.js';
+import { handleSpinWheel, hideResult } from './wheel.js';
+import { handleAddToWheelFromDetails } from './details.js';
+import { updateWheelCount } from './ui.js';
 
 // 初始化應用程式
 function init() {
@@ -31,7 +34,6 @@ function init() {
     DOMElements.backBtns.forEach(btn => btn.addEventListener('click', navigateBack));
     DOMElements.goToWheelBtn.addEventListener('click', () => navigateTo('wheel-page'));
     
-    // *** 修改：重新命名與綁定事件 ***
     DOMElements.reSearchBtn.addEventListener('click', handleConfirmRadiusReSearch); 
     DOMElements.cancelEditBtn.addEventListener('click', handleToggleRadiusEdit);
     
@@ -61,7 +63,7 @@ function init() {
     });
     DOMElements.candidateListContent.addEventListener('click', handleCandidateListInteraction);
 
-
+    // 初始化 UI
     updateWheelCount();
 }
 
