@@ -126,6 +126,32 @@ UI/UX 核心重塑 - Floating Action Hub:
 
 根據使用者回饋，加高了美食分類區塊的高度，使其能更舒適地容納兩排選項。
 
+===v8===
+
+使用者體驗全面優化 (UX Overhaul):
+
+高精準度定位: 啟用 GPS 優先定位模式，大幅提升初次定位的準確性，並提供更明確的權限錯誤提示。
+
+地圖資訊增強: 為「探索圈」頁面地圖加入路名圖層，提升實用性。
+
+地圖互動升級:
+
+智慧聚焦: 點擊美食類別或店家清單時，地圖會自動平移，將目標置於視野上半部的視覺中心，而非畫面正中央，避免被下方 UI 遮擋。
+
+流暢動畫: 將地圖標記的提示動畫從「跳動」改為更柔和的「呼吸」或「縮放」效果，並徹底解決了動畫與地圖縮放的渲染衝突問題。
+
+直覺操作: 修正了類別點擊後預覽清單延遲出現的 Bug，並將店家預覽的觸發方式由「懸浮」改為「點擊」，避免誤觸。
+
+「調整範圍」模式重構:
+
+介面重構: 重新設計了該模式的底部 UI，以一個寬大的主操作按鈕搭配一個小巧的「取消」按鈕，取代了原先擁擠的佈局，並新增了不透明的提示文字區塊，徹底解決了 UI 元件互相遮擋的問題。
+
+宏觀視野: 進入此模式時，地圖會自動縮放至剛好能完整顯示整個探索圈的視野，方便使用者進行調整。
+
+全覽視角: 在此模式下，地圖會暫時忽略已選的類別，顯示所有符合篩選條件的店家，提供完整的地理分佈參考。
+
+穩定性修復: 修正了因 JavaScript 模組 export/import 邏輯錯誤導致的功能失效，以及 HTML 中的 SVG 語法錯誤。
+
 🚀 技術棧 (Tech Stack)
 
 前端 (Frontend):
@@ -152,7 +178,7 @@ geopy: 用於精準計算地理距離。
 
 Clone Repo
 
-git clone [https://github.com/YOUR_USERNAME/what-to-eat.git](https://github.com/YOUR_USERNAME/what-to-eat.git)
+git clone https://github.com/YOUR_USERNAME/what-to-eat.git
 cd what-to-eat
 
 取得 API 金鑰
@@ -170,10 +196,10 @@ GEMINI_API_KEY="你的Gemini API金鑰"
 
 安裝與啟動伺服器
 
-# 安裝所需的 Python 套件
+安裝所需的 Python 套件
 pip install -r requirements.txt
 
-# 啟動整合後的前後端伺服器
+啟動整合後的前後端伺服器
 python app.py
 
 開啟 App
