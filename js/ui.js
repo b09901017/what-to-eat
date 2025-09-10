@@ -63,11 +63,15 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         floatingActionHub, 
         mainFooter, 
         editModeControls,
-        locationSearchContainer
+        locationSearchContainer,
+        returnToCenterBtn // *** 新增 ***
     } = DOMElements;
     
+    const returnToCenterHubItem = returnToCenterBtn.closest('.hub-item');
+
     categoryListContainer.classList.toggle('hidden', isEditing);
     floatingActionHub.classList.toggle('hidden', isEditing);
+    if (returnToCenterHubItem) returnToCenterHubItem.style.display = isEditing ? 'none' : 'flex'; // *** 新增 ***
     mainFooter.style.display = isEditing ? 'none' : 'block';
     editModeControls.classList.toggle('visible', isEditing);
     
@@ -112,7 +116,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
             }
         });
         
-        updateMapMarkers(tempFilteredData, state.userLocation, null, null);
+        updateMapMarkers(tempFilteredData, null, null, null); // 在編輯模式不顯示使用者位置
         
         const editorState = getEditorState('categories');
         if (editorState && editorState.circle) {
@@ -129,7 +133,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
 
 export function initCategoriesMapAndRender(filteredData) {
     initCategoriesMap();
-    updateMapMarkers(filteredData, state.userLocation, state.focusedCategories, state.activeCategory);
+    updateMapMarkers(filteredData, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
     
     const isFocusMode = state.focusedCategories.size > 0;
 
@@ -146,7 +150,8 @@ export function initCategoriesMapAndRender(filteredData) {
             }
         }
         
-        if (state.userLocation) { coordsToFit.push([state.userLocation.lat, state.userLocation.lon]); }
+        // *** 修改：改為將 searchCenter 加入視野範圍 ***
+        if (state.searchCenter) { coordsToFit.push([state.searchCenter.lat, state.searchCenter.lon]); }
         if (coordsToFit.length > 0) { fitMapToBounds(coordsToFit, { paddingTopLeft: [20, 100], paddingBottomRight: [20, 200] }); }
     }
 
@@ -230,17 +235,12 @@ export function showResult(winner) {
     typeWriter();
 }
 
-/**
- * *** 新增：隱藏結果的共用邏輯 ***
- */
 export function hideResult() {
     DOMElements.resultOverlay.classList.remove('visible');
     
-    // 如果是從命運羅盤頁面觸發的，就重置羅盤
     if (state.currentPage === 'wheel-page') {
         hideWheelResult();
     } else {
-        // 否則，就是從地圖頁面觸發的，重置地圖
         clearWinnerMarker();
         applyFiltersAndRender();
     }

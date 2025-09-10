@@ -45,12 +45,10 @@
     100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); } 
 }
 
-/* --- 修改：將動畫應用於子元素，並使用新的 marker-pop 動畫 --- */
 .leaflet-marker-icon.marker-active .map-category-icon { 
     animation: marker-pop 0.8s ease-in-out; 
 }
 
-/* --- 修改：用一次性的縮放動畫取代原本的 bounce 動畫 --- */
 @keyframes marker-pop { 
     0% { transform: scale(1); } 
     50% { transform: scale(1.3); } 
@@ -67,7 +65,6 @@
     100% { transform: scale(1); }
 }
 
-/* --- 新增：地圖隨機決定動畫 --- */
 .leaflet-marker-icon.marker-flash .map-category-icon {
     animation: marker-flash 0.3s ease-in-out;
 }
@@ -86,7 +83,7 @@
 .map-category-icon-container { 
     margin: 0; 
     padding: 0; 
-    transition: all 0.3s ease-in-out;
+    /* --- 修正：移除此行的 transition --- */
 }
 
 .map-category-icon {
@@ -123,3 +120,13 @@
 .popup-actions .btn-primary { flex-shrink: 0; width: 44px; height: 44px; padding: 0; font-size: 1.5rem; }
 .popup-actions .add-to-wheel-btn.added { background-color: var(--winner-color); }
 .leaflet-popup-tip { box-shadow: none; }
+
+/* --- 新增：探索中心點樣式 --- */
+.search-center-marker {
+    background-color: var(--primary-color);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}

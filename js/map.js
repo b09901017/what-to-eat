@@ -39,7 +39,7 @@ const editorLayers = {
 };
 
 let restaurantMarkers = {};
-let userLocationMarker = null;
+let centerMarker = null;
 
 // --- Helper Functions ---
 
@@ -52,6 +52,28 @@ function destinationPoint(lat, lon, distance, bearing) {
     const newLonRad = lonRad + Math.atan2(Math.sin(bearingRad) * Math.sin(distance / R) * Math.cos(latRad), Math.cos(distance / R) - Math.sin(latRad) * Math.sin(newLatRad));
     return L.latLng(newLatRad * 180 / Math.PI, newLonRad * 180 / Math.PI);
 }
+
+/**
+ * --- 修正：更正視覺中心計算邏輯 ---
+ * 根據目標經緯度，計算出一個新的經緯度，當地圖以此為中心時，目標點會落在畫面上方 1/4 處。
+ * @param {L.LatLng} targetLatLng - 目標點的經緯度物件
+ * @param {L.Map} map - Leaflet 地圖實例
+ * @returns {L.LatLng} - 計算後的地圖中心經緯度
+ */
+function getVisualCenterLatLng(targetLatLng, map) {
+    const mapSize = map.getSize();
+    const targetPoint = map.project(targetLatLng); 
+    
+    const yOffset = mapSize.y / 4; 
+    
+    // *** 修正：將減法改為加法，才能將地圖中心下移，讓目標點出現在上半部 ***
+    const newCenterPoint = L.point(targetPoint.x, targetPoint.y + yOffset); 
+    
+    const newCenterLatLng = map.unproject(newCenterPoint);
+    
+    return newCenterLatLng;
+}
+
 
 // --- Radius Editor Logic (Reusable) ---
 
@@ -190,18 +212,23 @@ export function destroyRadiusMap() {
     }
 }
 
-
-export function updateMapMarkers(restaurantData, userLocation, focusedCategories, activeCategory) {
+export function updateMapMarkers(restaurantData, userLocation, searchCenter, focusedCategories, activeCategory) {
     const map = mapInstances.categories;
     if (!map) return;
 
     Object.values(restaurantMarkers).forEach(marker => marker.remove());
     restaurantMarkers = {};
-    if (userLocationMarker) userLocationMarker.remove();
+    if (centerMarker) centerMarker.remove();
     
     if (userLocation) {
-        userLocationMarker = L.marker([userLocation.lat, userLocation.lon], {
+        L.marker([userLocation.lat, userLocation.lon], {
             icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [24, 24] }),
+            zIndexOffset: 1500
+        }).addTo(map);
+    }
+    if (searchCenter) {
+        centerMarker = L.marker([searchCenter.lat, searchCenter.lon], {
+            icon: L.divIcon({ html: '<div class="search-center-marker"></div>', className: '', iconSize: [24, 24] }),
             zIndexOffset: 2000
         }).addTo(map);
     }
@@ -238,10 +265,7 @@ export function updateMapMarkers(restaurantData, userLocation, focusedCategories
     }
 }
 
-/**
- * *** 新增：只顯示候選清單中的店家 ***
- * @param {string[]} candidateNames - 候選店家名稱列表
- */
+
 export function showOnlyCandidateMarkers(candidateNames) {
     const candidateSet = new Set(candidateNames);
     for (const name in restaurantMarkers) {
@@ -254,9 +278,6 @@ export function showOnlyCandidateMarkers(candidateNames) {
     }
 }
 
-/**
- * *** 新增：移除上一位獲勝者的樣式 ***
- */
 export function clearWinnerMarker() {
     if (state.lastWinner && restaurantMarkers[state.lastWinner]) {
         const marker = restaurantMarkers[state.lastWinner];
@@ -279,12 +300,21 @@ export function fitMapToBounds(coords, paddingOptions) {
 
 export function flyToCoords(coords) {
     const map = mapInstances.categories;
-    if (map && coords.length > 0) {
+    if (!map || coords.length === 0) return;
+
+    const isSinglePoint = coords.length === 1;
+
+    if (isSinglePoint) {
+        const targetLatLng = L.latLng(coords[0][0], coords[0][1]);
+        const newCenterLatLng = getVisualCenterLatLng(targetLatLng, map);
+        
+        map.flyTo(newCenterLatLng, 16, { duration: 0.8 });
+    } else {
         const paddingOptions = { 
             paddingTopLeft: [20, 100], 
             paddingBottomRight: [20, 300] 
         };
-        map.flyToBounds(coords, { ...paddingOptions, duration: 0.5 });
+        map.flyToBounds(coords, { ...paddingOptions, duration: 0.8 });
     }
 }
 
@@ -294,13 +324,7 @@ export function flyToMarker(name) {
     if (marker && map) {
         const targetLatLng = marker.getLatLng();
         
-        const mapSize = map.getSize();
-        const targetPoint = map.latLngToContainerPoint(targetLatLng);
-
-        const yOffset = mapSize.y / 4;
-        const newCenterPoint = L.point(targetPoint.x, targetPoint.y + yOffset);
-
-        const newCenterLatLng = map.containerPointToLatLng(newCenterPoint);
+        const newCenterLatLng = getVisualCenterLatLng(targetLatLng, map);
 
         map.flyTo(newCenterLatLng, map.getZoom(), {
             duration: 0.5

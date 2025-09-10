@@ -17,6 +17,7 @@ import {
     handleSearchInput,
     handleSearchResultClick,
     handleRandomDecisionOnMap,
+    handleReturnToCenter, // *** 新增 ***
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -25,7 +26,7 @@ import {
 } from './candidate.js';
 import { handleSpinWheel } from './wheel.js';
 import { handleAddToWheelFromDetails } from './details.js';
-import { updateWheelCount, hideResult } from './ui.js'; // *** 修改：引入 ui.js 中的 hideResult ***
+import { updateWheelCount, hideResult } from './ui.js';
 
 // 初始化應用程式
 function init() {
@@ -42,7 +43,7 @@ function init() {
     DOMElements.cancelEditBtn.addEventListener('click', handleToggleRadiusEdit);
     
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
-    DOMElements.closeResultBtn.addEventListener('click', hideResult); // *** 修改：使用共用的 hideResult ***
+    DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
     DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
@@ -52,6 +53,7 @@ function init() {
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
     DOMElements.resetViewBtn.addEventListener('click', handleResetView);
     DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit);
+    DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter); // *** 新增 ***
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
     DOMElements.openNowToggle.addEventListener('change', handleFilterChange);
     DOMElements.priceFilterButtons.addEventListener('click', handleFilterChange);

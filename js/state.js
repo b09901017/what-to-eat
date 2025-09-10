@@ -24,7 +24,7 @@ export const state = {
     isSearchActive: false,
     searchTimeoutId: null,
     isDecidingOnMap: false,
-    lastWinner: null, // *** 新增：用於追蹤上一位獲勝者 ***
+    lastWinner: null,
 };
 
 export const DOMElements = {
@@ -65,6 +65,7 @@ export const DOMElements = {
     filterBtn: document.getElementById('filter-btn'),
     resetViewBtn: document.getElementById('reset-view-btn'),
     resizeRadiusBtn: document.getElementById('resize-radius-btn'),
+    returnToCenterBtn: document.getElementById('return-to-center-btn'), // *** 修正：補上此行 ***
     filterPanel: document.getElementById('filter-panel'),
     closeFilterBtn: document.getElementById('close-filter-btn'),
     openNowToggle: document.getElementById('open-now-toggle'),

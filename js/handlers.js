@@ -4,7 +4,7 @@ import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, updateMapMarkers, startRandomMarkerAnimation, showOnlyCandidateMarkers } from './map.js';
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js'; // *** 新增 flyToCoords ***
 import { hideCandidateList } from './candidate.js';
 
 
@@ -163,6 +163,15 @@ export function handleRecenter() {
 }
 
 /**
+ * *** 新增：處理「回到探索中心」按鈕點擊事件 ***
+ */
+export function handleReturnToCenter() {
+    if (state.searchCenter) {
+        flyToCoords([[state.searchCenter.lat, state.searchCenter.lon]]);
+    }
+}
+
+/**
  * 開關篩選面板
  */
 export function toggleFilterPanel() {
@@ -307,7 +316,7 @@ export function handlePreviewCardInteraction(e) {
 }
 
 /**
- * *** 修改：處理在地圖上隨機決定的按鈕點擊事件 ***
+ * 處理在地圖上隨機決定的按鈕點擊事件
  */
 export async function handleRandomDecisionOnMap() {
     if (state.isDecidingOnMap || state.wheelItems.size < 2) return;
@@ -316,19 +325,19 @@ export async function handleRandomDecisionOnMap() {
     hideCandidateList();
     
     const candidates = [...state.wheelItems];
-    showOnlyCandidateMarkers(candidates); // *** 新增：只顯示候選店家 ***
+    showOnlyCandidateMarkers(candidates);
 
     try {
         const winner = await startRandomMarkerAnimation(candidates);
-        state.lastWinner = winner; // *** 新增：記錄獲勝者 ***
+        state.lastWinner = winner;
         setTimeout(() => {
             showResult(winner);
             state.isDecidingOnMap = false;
-        }, 500); // 等待最後一個動畫結束後再顯示結果
+        }, 500);
     } catch (error) {
         console.error("地圖決定動畫出錯:", error);
         state.isDecidingOnMap = false;
-        applyFiltersAndRender(); // 出錯時恢復地圖
+        applyFiltersAndRender();
     }
 }
 
