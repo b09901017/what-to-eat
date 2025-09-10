@@ -11,7 +11,8 @@
 @import url('./components/_filter_panel.css');
 @import url('./components/_map_elements.css');
 @import url('./components/_overlays.css');
-@import url('./components/_floating_hub.css'); /* *** 新增 *** */
+@import url('./components/_floating_hub.css');
+@import url('./components/_search_location.css'); /* *** 新增 *** */
 
 /* 3. Pages: 特定頁面的專屬樣式 */
 @import url('./pages/_splash.css');

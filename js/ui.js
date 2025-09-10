@@ -61,13 +61,28 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         categoryListContainer, 
         floatingActionHub, 
         mainFooter, 
-        editModeControls
+        editModeControls,
+        locationSearchContainer
     } = DOMElements;
     
+    // Toggle visibility of main page elements vs. edit mode elements
     categoryListContainer.classList.toggle('hidden', isEditing);
     floatingActionHub.classList.toggle('hidden', isEditing);
     mainFooter.style.display = isEditing ? 'none' : 'block';
     editModeControls.classList.toggle('visible', isEditing);
+    
+    // Move the search component to the correct context and add/remove class for styling
+    if (isEditing) {
+        editModeControls.before(locationSearchContainer);
+        locationSearchContainer.dataset.mapKey = 'categories';
+        locationSearchContainer.classList.add('in-edit-mode'); // Add class
+    } else {
+        const mapPageOverlay = document.querySelector('#map-page .map-ui-overlay');
+        mapPageOverlay.insertBefore(locationSearchContainer, mapPageOverlay.querySelector('.page-footer'));
+        locationSearchContainer.dataset.mapKey = 'radius';
+        locationSearchContainer.classList.remove('in-edit-mode'); // Remove class
+    }
+
 
     if (isEditing) {
         const center = state.searchCenter || state.userLocation;
@@ -195,4 +210,43 @@ export function updateFilterUI() {
     const { priceLevel, rating } = state.filters;
     DOMElements.priceFilterButtons.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', Number(btn.dataset.value) === priceLevel); });
     DOMElements.ratingFilterButtons.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', Number(btn.dataset.value) === rating); });
+}
+
+// --- Location Search UI ---
+
+export function toggleSearchUI(isActive) {
+    DOMElements.locationSearchContainer.classList.toggle('active', isActive);
+    if (isActive) {
+        setTimeout(() => DOMElements.locationSearchInput.focus(), 700); // Delay focus until animation is complete
+    } else {
+        DOMElements.locationSearchInput.value = '';
+        DOMElements.locationSearchInput.blur();
+        clearSearchResults();
+    }
+}
+
+export function renderSearchResults(results, mapKey) {
+    const { locationSearchResults } = DOMElements;
+    clearSearchResults();
+    if (results.length > 0) {
+        results.forEach(result => {
+            const li = document.createElement('li');
+            li.textContent = result.address;
+            li.dataset.lat = result.lat;
+            li.dataset.lon = result.lon;
+            li.dataset.mapKey = mapKey;
+            locationSearchResults.appendChild(li);
+        });
+    } else {
+        const li = document.createElement('li');
+        li.textContent = '找不到結果';
+        li.classList.add('loading');
+        locationSearchResults.appendChild(li);
+    }
+    locationSearchResults.classList.add('visible');
+}
+
+export function clearSearchResults() {
+    DOMElements.locationSearchResults.innerHTML = '';
+    DOMElements.locationSearchResults.classList.remove('visible');
 }

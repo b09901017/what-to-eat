@@ -8,35 +8,22 @@
     z-index: 0;
 }
 
-.map-ui-overlay {
-    position: relative;
-    z-index: 1000;
-    width: 100%;
-    height: 100%;
-    padding: 2rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    pointer-events: none;
-}
-
-.map-ui-overlay > * {
-    pointer-events: auto;
-}
-
 .page#map-page .page-header {
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 50%, transparent);
     text-align: center;
-    padding: 0;
-    margin: 0;
+    padding-top: 2rem;
+    padding-bottom: 3rem; /* Add more padding to avoid overlap with search */
+    margin: -2rem -1.5rem 0;
+    position: relative;
+    z-index: 10;
 }
 
-.page#map-page .page-footer,
-.page#categories-page .page-footer {
+.page#map-page .page-footer {
     background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 70%, transparent);
-    padding: 0;
-    margin: 0;
+    padding: 1.5rem 1.5rem;
+    margin: 0 -1.5rem -2rem;
 }
+
 
 .recenter-btn {
     position: absolute;

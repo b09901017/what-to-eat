@@ -6,6 +6,24 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from geopy.distance import geodesic
 from .config import gmaps, GOOGLE_MAPS_API_KEY
 
+def geocode_address(query):
+    """
+    使用 Google Geocoding API 將地址或地點名稱轉換為經緯度。
+    """
+    try:
+        geocode_result = gmaps.geocode(query, language='zh-TW')
+        if not geocode_result:
+            return []
+            
+        return [{
+            "address": result.get('formatted_address'),
+            "lat": result['geometry']['location']['lat'],
+            "lon": result['geometry']['location']['lng']
+        } for result in geocode_result]
+    except Exception as e:
+        logging.error(f"Geocoding 查詢 '{query}' 時發生錯誤: {e}")
+        return []
+
 def search_unique_places(location, radius):
     """
     使用複合式策略搜尋地點，並回傳唯一的 Place ID 列表。

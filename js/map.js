@@ -166,17 +166,21 @@ export function setRadiusMapCenter(mapKey, location) {
     }
 }
 
-export function recenterRadiusMap(location) {
-    const mapKey = 'radius';
+export function recenterRadiusMap(mapKey, location) {
     const map = mapInstances[mapKey];
     if (map && location) {
-        map.setView([location.lat, location.lon], 15);
-        const editorState = getEditorState(mapKey);
-        if (editorState) {
-            drawRadiusEditor(mapKey, location, editorState.radius, (r) => {});
-        }
+        map.flyTo([location.lat, location.lon], 15, { duration: 1.0 });
+        
+        // Wait for flyTo to finish before redrawing
+        setTimeout(() => {
+            const editorState = getEditorState(mapKey);
+            const radius = editorState ? editorState.radius : state.searchRadiusMeters;
+            // The onRadiusChange callback is a dummy here as this is a programmatic change.
+            drawRadiusEditor(mapKey, location, radius, (r) => { state.searchRadiusMeters = r; });
+        }, 1000);
     }
 }
+
 
 export function destroyRadiusMap() {
     const mapKey = 'radius';

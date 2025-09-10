@@ -53,3 +53,25 @@ export async function categorizePlaces(restaurants) {
         throw error;
     }
 }
+
+
+/**
+ * 根據查詢字串，請求地理編碼轉換
+ * @param {string} query - 使用者輸入的地址或地標
+ * @returns {Promise<Array>} - 包含地點結果的陣列
+ */
+export async function geocodeLocation(query) {
+    try {
+        const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP 錯誤! 狀態: ${response.status}`);
+        }
+        return await response.json();
+
+    } catch (error) {
+        console.error("地理編碼失敗:", error);
+        throw error;
+    }
+}

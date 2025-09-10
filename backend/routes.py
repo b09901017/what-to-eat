@@ -64,3 +64,21 @@ def categorize_places_api():
         logging.error("在 /api/categorize_places 路由發生未預期的錯誤:")
         traceback.print_exc()
         return jsonify({"error": "AI 分類時發生未預期的錯誤"}), 500
+
+@api_bp.route('/geocode', methods=['GET'])
+def geocode_api():
+    """
+    API 端點：將地址轉換為經緯度。
+    """
+    try:
+        query = request.args.get('q')
+        if not query:
+            return jsonify({"error": "缺少查詢參數 'q'"}), 400
+        
+        results = gm_service.geocode_address(query)
+        return jsonify(results)
+
+    except Exception as e:
+        logging.error("在 /api/geocode 路由發生未預期的錯誤:")
+        traceback.print_exc()
+        return jsonify({"error": "地理編碼時發生錯誤"}), 500

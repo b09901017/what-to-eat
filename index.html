@@ -32,12 +32,22 @@
 
         <section id="map-page" class="page">
             <div id="radius-map" class="radius-map"></div>
-
+            
             <div class="map-ui-overlay">
                 <header class="page-header">
                     <h2 class="font-serif">畫出你的探索圈</h2>
                     <p id="location-status">正在取得您的位置...</p>
                 </header>
+
+                <div id="location-search-container" class="location-search-container" data-map-key="radius">
+                    <div class="location-search-bar">
+                        <input type="text" id="location-search-input" placeholder="輸入地址或地標...">
+                    </div>
+                    <button class="location-search-toggle-btn" title="搜尋地點">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                    <ul id="location-search-results" class="location-search-results"></ul>
+                </div>
                 
                 <footer class="page-footer">
                     <button id="confirm-radius-btn" class="btn-primary" disabled>在此範圍中搜尋</button>
@@ -128,6 +138,10 @@
                 <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
                 <div id="category-list" class="category-list"></div>
             </div>
+            
+            <footer id="main-footer" class="page-footer">
+                <button id="go-to-wheel-btn" class="btn-primary">隨便啦 !</button>
+            </footer>
 
             <div id="edit-mode-controls" class="edit-mode-controls">
                 <div id="edit-mode-hint" class="edit-mode-hint">
@@ -138,11 +152,6 @@
                     <button id="re-search-btn" class="btn-primary">以此範圍重新搜尋</button>
                 </footer>
             </div>
-            
-            <footer id="main-footer" class="page-footer">
-                <button id="go-to-wheel-btn" class="btn-primary">隨便啦 !</button>
-            </footer>
-
         </section>
         
         <section id="wheel-page" class="page">

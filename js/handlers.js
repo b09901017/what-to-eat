@@ -2,8 +2,8 @@
 
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
-import { findPlaces, categorizePlaces } from './api.js';
-import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub } from './ui.js';
+import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
+import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults } from './ui.js';
 import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, updateMapMarkers } from './map.js';
 
 /**
@@ -157,7 +157,7 @@ export async function handleConfirmRadiusReSearch() {
  * 處理「回到中心」按鈕點擊事件
  */
 export function handleRecenter() {
-    recenterRadiusMap(state.userLocation);
+    recenterRadiusMap('radius', state.userLocation);
 }
 
 /**
@@ -302,4 +302,41 @@ export function handlePreviewCardInteraction(e) {
     if (!card) return;
     const name = card.dataset.name;
     flyToMarker(name);
+}
+
+// --- Location Search Handlers ---
+export function handleSearchIconClick() {
+    state.isSearchActive = !state.isSearchActive;
+    toggleSearchUI(state.isSearchActive);
+}
+
+export function handleSearchInput(e) {
+    const query = e.target.value;
+    const mapKey = e.target.closest('.location-search-container').dataset.mapKey;
+
+    clearTimeout(state.searchTimeoutId);
+    if (!query) {
+        clearSearchResults();
+        return;
+    }
+
+    state.searchTimeoutId = setTimeout(async () => {
+        DOMElements.locationSearchResults.innerHTML = '<li class="loading">搜尋中...</li>';
+        DOMElements.locationSearchResults.classList.add('visible');
+        const results = await geocodeLocation(query);
+        renderSearchResults(results, mapKey);
+    }, 300); // Debounce delay
+}
+
+export function handleSearchResultClick(e) {
+    const item = e.target.closest('li');
+    if (!item || item.classList.contains('loading')) return;
+
+    const { lat, lon, mapKey } = item.dataset;
+    const newLocation = { lat: parseFloat(lat), lon: parseFloat(lon) };
+    
+    recenterRadiusMap(mapKey, newLocation);
+
+    state.isSearchActive = false;
+    toggleSearchUI(false);
 }

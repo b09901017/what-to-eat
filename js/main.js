@@ -8,12 +8,14 @@ import {
     handlePreviewCardInteraction,
     toggleFilterPanel,
     handleFilterChange,
-    handleClickToCloseFilter,
     handleCategoryInteraction,
     handleResetView,
     handleToggleRadiusEdit,
     handleConfirmRadiusReSearch,
     handleToggleHub,
+    handleSearchIconClick,
+    handleSearchInput,
+    handleSearchResultClick,
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -62,6 +64,12 @@ function init() {
         if (e.target === DOMElements.candidateListOverlay) hideCandidateList();
     });
     DOMElements.candidateListContent.addEventListener('click', handleCandidateListInteraction);
+    
+    // 為地點搜尋元件綁定事件
+    DOMElements.locationSearchToggleBtn.addEventListener('click', handleSearchIconClick);
+    DOMElements.locationSearchInput.addEventListener('input', handleSearchInput);
+    DOMElements.locationSearchResults.addEventListener('click', handleSearchResultClick);
+
 
     // 初始化 UI
     updateWheelCount();

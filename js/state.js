@@ -21,6 +21,8 @@ export const state = {
     },
     isEditingRadius: false,
     isHubExpanded: false,
+    isSearchActive: false,
+    searchTimeoutId: null,
 };
 
 export const DOMElements = {
@@ -83,4 +85,10 @@ export const DOMElements = {
     candidateListOverlay: document.getElementById('candidate-list-overlay'),
     candidateListContent: document.getElementById('candidate-list-content'),
     closeCandidateListBtn: document.getElementById('close-candidate-list-btn'),
+    
+    // 地點搜尋相關元素
+    locationSearchContainer: document.getElementById('location-search-container'),
+    locationSearchToggleBtn: document.querySelector('.location-search-toggle-btn'),
+    locationSearchInput: document.getElementById('location-search-input'),
+    locationSearchResults: document.getElementById('location-search-results'),
 };
