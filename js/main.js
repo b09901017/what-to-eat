@@ -16,15 +16,16 @@ import {
     handleSearchIconClick,
     handleSearchInput,
     handleSearchResultClick,
+    handleRandomDecisionOnMap,
 } from './handlers.js';
 import {
     handleShowCandidateList,
     handleCandidateListInteraction,
     hideCandidateList
 } from './candidate.js';
-import { handleSpinWheel, hideResult } from './wheel.js';
+import { handleSpinWheel } from './wheel.js';
 import { handleAddToWheelFromDetails } from './details.js';
-import { updateWheelCount } from './ui.js';
+import { updateWheelCount, hideResult } from './ui.js'; // *** 修改：引入 ui.js 中的 hideResult ***
 
 // 初始化應用程式
 function init() {
@@ -34,13 +35,14 @@ function init() {
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     
     DOMElements.backBtns.forEach(btn => btn.addEventListener('click', navigateBack));
+    
     DOMElements.goToWheelBtn.addEventListener('click', () => navigateTo('wheel-page'));
     
     DOMElements.reSearchBtn.addEventListener('click', handleConfirmRadiusReSearch); 
     DOMElements.cancelEditBtn.addEventListener('click', handleToggleRadiusEdit);
     
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
-    DOMElements.closeResultBtn.addEventListener('click', hideResult);
+    DOMElements.closeResultBtn.addEventListener('click', hideResult); // *** 修改：使用共用的 hideResult ***
     
     DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
@@ -57,13 +59,13 @@ function init() {
     
     DOMElements.hubToggleBtn.addEventListener('click', handleToggleHub);
     
-    // 為候選清單視窗綁定事件
-    DOMElements.showCandidatesBtn.addEventListener('click', handleShowCandidateList);
+    DOMElements.showCandidatesFooterBtn.addEventListener('click', handleShowCandidateList);
     DOMElements.closeCandidateListBtn.addEventListener('click', hideCandidateList);
     DOMElements.candidateListOverlay.addEventListener('click', (e) => {
         if (e.target === DOMElements.candidateListOverlay) hideCandidateList();
     });
     DOMElements.candidateListContent.addEventListener('click', handleCandidateListInteraction);
+    DOMElements.randomDecisionBtn.addEventListener('click', handleRandomDecisionOnMap);
     
     // 為地點搜尋元件綁定事件
     DOMElements.locationSearchToggleBtn.addEventListener('click', handleSearchIconClick);

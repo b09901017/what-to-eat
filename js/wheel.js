@@ -1,6 +1,7 @@
 // js/wheel.js
 
 import { state, DOMElements } from './state.js';
+import { showResult } from './ui.js';
 
 /**
  * 根據 state.wheelItems 渲染命運羅盤的扇區
@@ -9,7 +10,6 @@ export function renderWheel() {
     const items = [...state.wheelItems];
     const hasEnoughItems = items.length >= 2;
 
-    // 根據是否有足夠選項，切換佔位符和羅盤的顯示
     DOMElements.wheelPlaceholder.style.display = hasEnoughItems ? 'none' : 'block';
     DOMElements.wheelContainer.parentElement.style.display = hasEnoughItems ? 'flex' : 'none';
     DOMElements.spinBtn.style.display = hasEnoughItems ? 'inline-flex' : 'none';
@@ -39,7 +39,6 @@ export function renderWheel() {
         sliceContent.appendChild(text);
         slice.appendChild(sliceContent);
         
-        // 使用 clip-path 繪製扇形
         if (items.length > 2) {
             const angleRad = (Math.PI / 180) * sliceAngle;
             const tan = Math.tan(angleRad / 2);
@@ -62,8 +61,8 @@ export function handleSpinWheel() {
     const sliceAngle = 360 / items.length;
     const randomIndex = Math.floor(Math.random() * items.length);
     const winner = items[randomIndex];
+    state.lastWinner = winner;
 
-    // 增加隨機偏移量，讓指針不會每次都停在正中間
     const randomOffset = (Math.random() * 0.8 - 0.4) * sliceAngle;
     const targetRotation = 360 * 5 + (360 - (randomIndex * sliceAngle)) - (sliceAngle / 2) + randomOffset;
     
@@ -98,33 +97,14 @@ export function handleSpinWheel() {
     state.animationFrameId = requestAnimationFrame(step);
 }
 
-/**
- * 顯示轉盤結果的彈出視窗
- * @param {string} winner - 獲勝的餐廳名稱
- */
-export function showResult(winner) {
-    DOMElements.resultText.textContent = '';
-    DOMElements.resultOverlay.classList.add('visible');
-    
-    let i = 0;
-    function typeWriter() {
-        if (i < winner.length) {
-            DOMElements.resultText.innerHTML += winner.charAt(i);
-            i++;
-            setTimeout(typeWriter, 100);
-        }
-    }
-    typeWriter();
-}
 
 /**
- * 隱藏轉盤結果的彈出視窗，並重置羅盤狀態
+ * *** 修改：僅處理羅盤頁面的結果重置 ***
  */
 export function hideResult() {
-    DOMElements.resultOverlay.classList.remove('visible');
     const winnerSlice = DOMElements.wheelContainer.querySelector('.winner-glow');
     if (winnerSlice) {
         winnerSlice.classList.remove('winner-glow');
     }
-    renderWheel(); // 重新渲染以清除高亮
+    renderWheel();
 }

@@ -3,8 +3,10 @@
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
-import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, updateMapMarkers } from './map.js';
+import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, updateMapMarkers, startRandomMarkerAnimation, showOnlyCandidateMarkers } from './map.js';
+import { hideCandidateList } from './candidate.js';
+
 
 /**
  * 處理懸浮按鈕的展開與收合，並動態綁定外部點擊事件。
@@ -303,6 +305,33 @@ export function handlePreviewCardInteraction(e) {
     const name = card.dataset.name;
     flyToMarker(name);
 }
+
+/**
+ * *** 修改：處理在地圖上隨機決定的按鈕點擊事件 ***
+ */
+export async function handleRandomDecisionOnMap() {
+    if (state.isDecidingOnMap || state.wheelItems.size < 2) return;
+
+    state.isDecidingOnMap = true;
+    hideCandidateList();
+    
+    const candidates = [...state.wheelItems];
+    showOnlyCandidateMarkers(candidates); // *** 新增：只顯示候選店家 ***
+
+    try {
+        const winner = await startRandomMarkerAnimation(candidates);
+        state.lastWinner = winner; // *** 新增：記錄獲勝者 ***
+        setTimeout(() => {
+            showResult(winner);
+            state.isDecidingOnMap = false;
+        }, 500); // 等待最後一個動畫結束後再顯示結果
+    } catch (error) {
+        console.error("地圖決定動畫出錯:", error);
+        state.isDecidingOnMap = false;
+        applyFiltersAndRender(); // 出錯時恢復地圖
+    }
+}
+
 
 // --- Location Search Handlers ---
 export function handleSearchIconClick() {

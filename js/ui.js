@@ -2,8 +2,8 @@
 
 import { state, DOMElements } from './state.js';
 import { getUserLocation, applyFiltersAndRender } from './handlers.js';
-import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter, flyToCoords, getEditorState, mapInstances } from './map.js';
-import { renderWheel } from './wheel.js';
+import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter, flyToCoords, getEditorState, mapInstances, clearWinnerMarker } from './map.js';
+import { renderWheel, hideResult as hideWheelResult } from './wheel.js';
 import { renderDetailsPage } from './details.js';
 import { hideCandidateList } from './candidate.js';
 
@@ -25,7 +25,8 @@ export function renderPageContent(pageId) {
                 state.isHubExpanded = false;
                 toggleHub(false);
             }
-            hideCandidateList(); // 確保離開時關閉
+            clearWinnerMarker();
+            hideCandidateList();
             break;
         case 'wheel-page':
             renderWheel();
@@ -65,22 +66,20 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         locationSearchContainer
     } = DOMElements;
     
-    // Toggle visibility of main page elements vs. edit mode elements
     categoryListContainer.classList.toggle('hidden', isEditing);
     floatingActionHub.classList.toggle('hidden', isEditing);
     mainFooter.style.display = isEditing ? 'none' : 'block';
     editModeControls.classList.toggle('visible', isEditing);
     
-    // Move the search component to the correct context and add/remove class for styling
     if (isEditing) {
         editModeControls.before(locationSearchContainer);
         locationSearchContainer.dataset.mapKey = 'categories';
-        locationSearchContainer.classList.add('in-edit-mode'); // Add class
+        locationSearchContainer.classList.add('in-edit-mode');
     } else {
         const mapPageOverlay = document.querySelector('#map-page .map-ui-overlay');
         mapPageOverlay.insertBefore(locationSearchContainer, mapPageOverlay.querySelector('.page-footer'));
         locationSearchContainer.dataset.mapKey = 'radius';
-        locationSearchContainer.classList.remove('in-edit-mode'); // Remove class
+        locationSearchContainer.classList.remove('in-edit-mode');
     }
 
 
@@ -202,8 +201,12 @@ export function updateWheelCount() {
     const count = state.wheelItems.size;
     DOMElements.wheelCountBadges.forEach(badge => {
         badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline-flex' : 'none';
     });
+
+    const mainBadge = DOMElements.showCandidatesFooterBtn.querySelector('.wheel-count-badge');
+    if (mainBadge) {
+        mainBadge.classList.toggle('visible', count > 0);
+    }
 }
 
 export function updateFilterUI() {
@@ -212,12 +215,43 @@ export function updateFilterUI() {
     DOMElements.ratingFilterButtons.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', Number(btn.dataset.value) === rating); });
 }
 
+export function showResult(winner) {
+    DOMElements.resultText.textContent = '';
+    DOMElements.resultOverlay.classList.add('visible');
+    
+    let i = 0;
+    function typeWriter() {
+        if (i < winner.length) {
+            DOMElements.resultText.innerHTML += winner.charAt(i);
+            i++;
+            setTimeout(typeWriter, 100);
+        }
+    }
+    typeWriter();
+}
+
+/**
+ * *** 新增：隱藏結果的共用邏輯 ***
+ */
+export function hideResult() {
+    DOMElements.resultOverlay.classList.remove('visible');
+    
+    // 如果是從命運羅盤頁面觸發的，就重置羅盤
+    if (state.currentPage === 'wheel-page') {
+        hideWheelResult();
+    } else {
+        // 否則，就是從地圖頁面觸發的，重置地圖
+        clearWinnerMarker();
+        applyFiltersAndRender();
+    }
+}
+
 // --- Location Search UI ---
 
 export function toggleSearchUI(isActive) {
     DOMElements.locationSearchContainer.classList.toggle('active', isActive);
     if (isActive) {
-        setTimeout(() => DOMElements.locationSearchInput.focus(), 700); // Delay focus until animation is complete
+        setTimeout(() => DOMElements.locationSearchInput.focus(), 700);
     } else {
         DOMElements.locationSearchInput.value = '';
         DOMElements.locationSearchInput.blur();

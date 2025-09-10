@@ -8,22 +8,31 @@ import { toggleWheelItem } from './handlers.js'; // 依賴 handlers 中的核心
  */
 export function renderCandidateList() {
     const contentEl = DOMElements.candidateListContent;
+    const decisionBtn = DOMElements.randomDecisionBtn;
     contentEl.innerHTML = '';
     
-    if (state.wheelItems.size === 0) {
+    const itemCount = state.wheelItems.size;
+
+    if (itemCount === 0) {
         contentEl.innerHTML = '<p class="candidate-list-placeholder">尚未加入任何候選店家</p>';
-        return;
+    } else {
+        [...state.wheelItems].forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'candidate-item';
+            item.innerHTML = `
+                <span>${name}</span>
+                <button class="remove-candidate-btn" data-name="${name}">&times;</button>
+            `;
+            contentEl.appendChild(item);
+        });
     }
-    
-    [...state.wheelItems].forEach(name => {
-        const item = document.createElement('div');
-        item.className = 'candidate-item';
-        item.innerHTML = `
-            <span>${name}</span>
-            <button class="remove-candidate-btn" data-name="${name}">&times;</button>
-        `;
-        contentEl.appendChild(item);
-    });
+
+    // 根據候選數量決定是否禁用決定按鈕
+    if (itemCount >= 2) {
+        decisionBtn.disabled = false;
+    } else {
+        decisionBtn.disabled = true;
+    }
 }
 
 /**

@@ -82,23 +82,6 @@
     padding: 1rem; 
 }
 
-.hub-action-btn { position: relative; }
-.wheel-count-badge { 
-    background-color: var(--primary-color); 
-    color: white; 
-    border: 2px solid white;
-    border-radius: 50%; 
-    width: 1.5rem; 
-    height: 1.5rem; 
-    font-size: 0.8rem; 
-    display: inline-flex; 
-    justify-content: center; 
-    align-items: center; 
-    position: absolute; 
-    top: -4px; 
-    right: -4px;
-}
-
 .restaurant-preview-list { 
     display: flex; 
     gap: 0.75rem; 
@@ -150,6 +133,32 @@
     border-top: 1px solid var(--border-color);
     background: var(--bg-color);
     margin: 0;
+}
+
+/* --- *** 修改：重新設計計數器樣式 *** --- */
+#show-candidates-footer-btn .wheel-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.1rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    transition: all var(--transition-fast);
+    transform: scale(0);
+    opacity: 0;
+    position: static; /* 移除絕對定位 */
+    border: none;
+    width: auto;
+    height: auto;
+}
+
+#show-candidates-footer-btn .wheel-count-badge.visible {
+    transform: scale(1);
+    opacity: 1;
 }
 
 

@@ -67,11 +67,26 @@
     100% { transform: scale(1); }
 }
 
+/* --- 新增：地圖隨機決定動畫 --- */
+.leaflet-marker-icon.marker-flash .map-category-icon {
+    animation: marker-flash 0.3s ease-in-out;
+}
+@keyframes marker-flash {
+    0% { transform: scale(1.1); filter: brightness(1.1) drop-shadow(0 0 5px var(--primary-color)); }
+    50% { transform: scale(1.4); filter: brightness(1.3) drop-shadow(0 0 15px var(--primary-color)); }
+    100% { transform: scale(1.1); filter: brightness(1.1) drop-shadow(0 0 5px var(--primary-color)); }
+}
+.leaflet-marker-icon.marker-winner .map-category-icon {
+    transform: scale(1.3);
+    filter: brightness(1.2) drop-shadow(0 0 15px var(--winner-color));
+    box-shadow: 0 0 0 5px white, 0 0 0 8px var(--winner-color);
+}
+
 
 .map-category-icon-container { 
     margin: 0; 
     padding: 0; 
-    transition: opacity 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 .map-category-icon {
@@ -85,6 +100,7 @@
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     border: 2px solid white;
+    transition: all 0.3s ease-in-out;
 }
 
 .leaflet-popup-content-wrapper { 

@@ -109,6 +109,10 @@
                     <div id="floating-action-hub" class="floating-action-hub">
                         <div id="hub-item-list">
                             <div class="hub-item">
+                                <span class="hub-label">命運羅盤</span>
+                                <button id="go-to-wheel-btn" class="hub-action-btn" title="命運羅盤"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg></button>
+                            </div>
+                            <div class="hub-item">
                                 <span class="hub-label">調整範圍</span>
                                 <button id="resize-radius-btn" class="hub-action-btn" title="調整範圍"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.66"></path><path d="M22 4V2H20"></path><path d="M12 18V12L7 7"></path></svg></button>
                             </div>
@@ -119,13 +123,6 @@
                             <div class="hub-item">
                                 <span class="hub-label">篩選</span>
                                 <button id="filter-btn" class="hub-action-btn" title="篩選"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
-                            </div>
-                            <div class="hub-item">
-                                <span class="hub-label">查看候選</span>
-                                <button id="show-candidates-btn" class="hub-action-btn" title="查看候選清單">
-                                    <span class="wheel-count-badge">0</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                                </button>
                             </div>
                         </div>
                         
@@ -140,7 +137,10 @@
             </div>
             
             <footer id="main-footer" class="page-footer">
-                <button id="go-to-wheel-btn" class="btn-primary">隨便啦 !</button>
+                <button id="show-candidates-footer-btn" class="btn-primary">
+                    查看候選店家
+                    <span class="wheel-count-badge">0</span>
+                </button>
             </footer>
 
             <div id="edit-mode-controls" class="edit-mode-controls">
@@ -230,6 +230,9 @@
             <h3 class="font-serif">我的候選清單</h3>
             <div id="candidate-list-content" class="candidate-list-content">
                 </div>
+            <div class="candidate-list-footer">
+                <button id="random-decision-btn" class="btn-primary">在地圖上隨機決定！</button>
+            </div>
         </div>
     </div>
 

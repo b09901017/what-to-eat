@@ -23,6 +23,8 @@ export const state = {
     isHubExpanded: false,
     isSearchActive: false,
     searchTimeoutId: null,
+    isDecidingOnMap: false,
+    lastWinner: null, // *** 新增：用於追蹤上一位獲勝者 ***
 };
 
 export const DOMElements = {
@@ -81,10 +83,11 @@ export const DOMElements = {
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
     
     // 候選清單視窗相關元素
-    showCandidatesBtn: document.getElementById('show-candidates-btn'),
+    showCandidatesFooterBtn: document.getElementById('show-candidates-footer-btn'),
     candidateListOverlay: document.getElementById('candidate-list-overlay'),
     candidateListContent: document.getElementById('candidate-list-content'),
     closeCandidateListBtn: document.getElementById('close-candidate-list-btn'),
+    randomDecisionBtn: document.getElementById('random-decision-btn'),
     
     // 地點搜尋相關元素
     locationSearchContainer: document.getElementById('location-search-container'),

@@ -28,7 +28,6 @@ function renderPopupContent(restaurant) {
 }
 
 
-// --- 修正：導出 mapInstances 供 ui.js 使用 ---
 export const mapInstances = {
     radius: null,
     categories: null
@@ -38,6 +37,9 @@ const editorLayers = {
     radius: null,
     categories: null
 };
+
+let restaurantMarkers = {};
+let userLocationMarker = null;
 
 // --- Helper Functions ---
 
@@ -110,7 +112,6 @@ export function removeRadiusEditor(mapKey) {
     }
 }
 
-// --- 修正：導出 getEditorState 並返回 circle 物件 ---
 export function getEditorState(mapKey) {
     const editor = editorLayers[mapKey];
     if (!editor) return null;
@@ -123,7 +124,7 @@ export function getEditorState(mapKey) {
         return {
             center: centerMarker.getLatLng(),
             radius: circle.getRadius(),
-            circle: circle // 返回 circle 實例
+            circle: circle
         };
     }
     return null;
@@ -171,11 +172,9 @@ export function recenterRadiusMap(mapKey, location) {
     if (map && location) {
         map.flyTo([location.lat, location.lon], 15, { duration: 1.0 });
         
-        // Wait for flyTo to finish before redrawing
         setTimeout(() => {
             const editorState = getEditorState(mapKey);
             const radius = editorState ? editorState.radius : state.searchRadiusMeters;
-            // The onRadiusChange callback is a dummy here as this is a programmatic change.
             drawRadiusEditor(mapKey, location, radius, (r) => { state.searchRadiusMeters = r; });
         }, 1000);
     }
@@ -191,8 +190,6 @@ export function destroyRadiusMap() {
     }
 }
 
-let restaurantMarkers = {};
-let userLocationMarker = null;
 
 export function updateMapMarkers(restaurantData, userLocation, focusedCategories, activeCategory) {
     const map = mapInstances.categories;
@@ -241,6 +238,37 @@ export function updateMapMarkers(restaurantData, userLocation, focusedCategories
     }
 }
 
+/**
+ * *** 新增：只顯示候選清單中的店家 ***
+ * @param {string[]} candidateNames - 候選店家名稱列表
+ */
+export function showOnlyCandidateMarkers(candidateNames) {
+    const candidateSet = new Set(candidateNames);
+    for (const name in restaurantMarkers) {
+        const marker = restaurantMarkers[name];
+        if (candidateSet.has(name)) {
+            marker.setOpacity(1);
+        } else {
+            marker.setOpacity(0);
+        }
+    }
+}
+
+/**
+ * *** 新增：移除上一位獲勝者的樣式 ***
+ */
+export function clearWinnerMarker() {
+    if (state.lastWinner && restaurantMarkers[state.lastWinner]) {
+        const marker = restaurantMarkers[state.lastWinner];
+        if (marker._icon) {
+            marker._icon.classList.remove('marker-winner');
+        }
+        marker.closePopup();
+        state.lastWinner = null;
+    }
+}
+
+
 export function fitMapToBounds(coords, paddingOptions) {
     const map = mapInstances.categories;
     if (map && coords.length > 0) {
@@ -288,4 +316,55 @@ export function flyToMarker(name) {
             }
         }, 500); 
     }
+}
+
+export function startRandomMarkerAnimation(candidateNames) {
+    return new Promise((resolve) => {
+        const map = mapInstances.categories;
+        if (!map) resolve(null);
+        
+        const candidateMarkers = candidateNames.map(name => restaurantMarkers[name]).filter(Boolean);
+        if (candidateMarkers.length < 2) resolve(candidateMarkers.length > 0 ? candidateNames[0] : null);
+
+        const markerBounds = L.latLngBounds(candidateMarkers.map(m => m.getLatLng()));
+        map.flyToBounds(markerBounds, { padding: [100, 100], duration: 0.5 });
+        
+        const winnerIndex = Math.floor(Math.random() * candidateNames.length);
+        const winnerName = candidateNames[winnerIndex];
+
+        let delay = 100;
+        let totalFlashes = candidateMarkers.length * 2 + winnerIndex;
+        let flashCount = 0;
+        let lastMarker = null;
+
+        function flashNext() {
+            if (lastMarker && lastMarker._icon) {
+                lastMarker._icon.classList.remove('marker-flash');
+            }
+
+            if (flashCount >= totalFlashes) {
+                const winnerMarker = restaurantMarkers[winnerName];
+                if (winnerMarker && winnerMarker._icon) {
+                    winnerMarker._icon.classList.add('marker-winner');
+                    winnerMarker.openPopup();
+                }
+                resolve(winnerName);
+                return;
+            }
+
+            const currentMarker = candidateMarkers[flashCount % candidateMarkers.length];
+            if (currentMarker && currentMarker._icon) {
+                currentMarker._icon.classList.add('marker-flash');
+            }
+            lastMarker = currentMarker;
+
+            if (flashCount > Math.floor(totalFlashes * 0.5)) delay *= 1.2;
+            if (flashCount > Math.floor(totalFlashes * 0.8)) delay *= 1.3;
+            
+            flashCount++;
+            setTimeout(flashNext, delay);
+        }
+
+        setTimeout(flashNext, 500);
+    });
 }
