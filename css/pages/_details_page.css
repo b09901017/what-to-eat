@@ -13,12 +13,41 @@
     width: 100%; 
     background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent); 
     padding-top: 1.5rem; 
+    z-index: 10;
 }
 
+/* --- 修改：使用 SVG 圖示並優化按鈕樣式 --- */
 .details-header .back-btn { 
-    color: white; 
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5); 
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background-color: rgba(34, 34, 34, 0.4);
+    backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 12px;
+    width: 44px; /* 設定固定寬度 */
+    height: 44px; /* 設定固定高度 */
+    padding: 0; /* 移除內邊距，由 Flexbox 置中 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
+
+.details-header .back-btn svg {
+    color: white;
+    width: 22px; /* 控制 SVG 圖示的大小 */
+    height: 22px;
+}
+
+.details-header .back-btn:hover {
+    background-color: rgba(34, 34, 34, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
 
 .details-header-image { 
     width: 100%; 
