@@ -1,22 +1,21 @@
 /* --- 地點搜尋元件 --- */
 .location-search-container {
     position: absolute;
-    top: 140px; /* Default position for map-page */
-    left: 50%; /* *** 修改：確保置中 *** */
-    transform: translateX(-50%); /* *** 修改：確保置中 *** */
+    top: 140px; /* map-page 的預設位置 */
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1001; 
     display: flex;
     align-items: center;
     justify-content: center;
     height: 50px;
-    width: calc(100% - 3rem); /* *** 新增：設定寬度以利計算 *** */
-    max-width: 380px; /* *** 新增：設定最大寬度 *** */
+    /* *** 修改：移除 width & max-width，讓定位更純粹 *** */
     transition: top var(--transition-fast);
 }
 
-/* New style for edit mode */
+/* 編輯模式下的新樣式 */
 .location-search-container.in-edit-mode {
-    top: 40px; /* Higher position for edit mode */
+    top: 40px; /* 編輯模式下位置更高 */
 }
 
 
@@ -42,19 +41,13 @@
     transform: scale(1.05);
 }
 
-.location-search-container.active .location-search-toggle-btn {
-    /* When active, move the icon to the left */
-    transform: translateX(-170px);
-}
-
-
 .location-search-bar {
     position: absolute;
     height: 50px;
     width: 0;
     background-color: white;
     border-radius: 25px;
-    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Slower and smoother transition */
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
     align-items: center;
     pointer-events: none;
@@ -63,10 +56,16 @@
 }
 
 .location-search-container.active .location-search-bar {
-    width: calc(100vw - 3rem - 40px);
-    max-width: 300px; /* Slightly smaller for the icon to fit */
+    /* *** 修改：展開後的寬度 *** */
+    width: calc(100vw - 5rem); 
+    max-width: 320px;
     pointer-events: auto;
 }
+.location-search-container.active .location-search-toggle-btn {
+    transform: translateX(calc((100vw - 5rem) / 2));
+    max-width: 320px;
+}
+
 
 .location-search-bar input {
     width: 100%;
@@ -78,7 +77,7 @@
     background: transparent;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    transition-delay: 0.3s; /* Delay appearance */
+    transition-delay: 0.3s;
 }
 
 .location-search-container.active .location-search-bar input {
@@ -90,8 +89,8 @@
     top: calc(100% + 10px);
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100vw - 3rem - 40px);
-    max-width: 300px; /* Match the search bar width */
+    width: calc(100vw - 5rem);
+    max-width: 320px;
     background-color: white;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);

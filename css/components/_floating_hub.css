@@ -1,11 +1,10 @@
-/* --- Floating Action Hub Component --- */
+/* --- Floating Action Hub Component (互動修復) --- */
 .floating-action-hub {
     position: relative;
-    bottom: 8px;
     z-index: 1001;
-    display: flex; /* *** 新增 *** */
-    flex-direction: column; /* *** 新增 *** */
-    align-items: flex-end; /* *** 新增 *** */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 #hub-item-list {
@@ -13,13 +12,14 @@
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 1rem;
+    /* *** 修改：確保初始狀態正確 *** */
     pointer-events: none;
-    opacity: 0; /* *** 修改：初始隱藏 *** */
-    transform: translateY(10px); /* *** 修改：初始偏移 *** */
-    transition: all var(--transition-fast); /* *** 修改：加上過渡 *** */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 
-/* *** 新增：Active 狀態下的樣式 *** */
+/* *** 新增/修改：is-active 狀態下的樣式 *** */
 .floating-action-hub.is-active #hub-item-list {
     pointer-events: auto;
     opacity: 1;
@@ -30,8 +30,22 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    transition: all var(--transition-fast);
+    /* *** 新增：為每個 item 加上獨立的過渡效果，實現交錯動畫 *** */
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
+.floating-action-hub.is-active .hub-item {
+    opacity: 1;
+    transform: translateX(0);
+}
+/* *** 新增：交錯動畫延遲 *** */
+.floating-action-hub.is-active .hub-item:nth-child(1) { transition-delay: 0.1s; }
+.floating-action-hub.is-active .hub-item:nth-child(2) { transition-delay: 0.08s; }
+.floating-action-hub.is-active .hub-item:nth-child(3) { transition-delay: 0.06s; }
+.floating-action-hub.is-active .hub-item:nth-child(4) { transition-delay: 0.04s; }
+.floating-action-hub.is-active .hub-item:nth-child(5) { transition-delay: 0.02s; }
+
 
 .hub-item .hub-label {
     background-color: rgba(66, 66, 66, 0.9);
@@ -57,12 +71,10 @@
     border: none;
     transition: all var(--transition-fast);
 }
-
 .hub-item .hub-action-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
-
 .hub-item .hub-action-btn svg {
     width: 24px;
     height: 24px;
@@ -82,7 +94,6 @@
     cursor: pointer;
     transition: all var(--transition-fast);
 }
-
 .hub-toggle-btn:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(229, 115, 115, 0.6);
@@ -95,7 +106,6 @@
     transition: transform 0.3s ease;
 }
 
-/* *** 修改：Active 狀態下的按鈕旋轉 *** */
 .floating-action-hub.is-active .hub-toggle-btn {
     transform: rotate(45deg);
 }

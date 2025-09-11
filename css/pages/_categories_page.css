@@ -34,7 +34,7 @@
 .floating-action-hub {
     position: absolute;
     right: calc(1.5rem + var(--safe-area-inset-right));
-    bottom: calc(150px + var(--safe-area-inset-bottom)); /* 避免與底部抽屜重疊 */
+    bottom: calc(35% + 1rem + var(--safe-area-inset-bottom)); /* *** 修改：定位在抽屜上方 *** */
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -131,47 +131,46 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 8; /* 在 footer 上方，但在 edit-mode-controls 下方 */
+    z-index: 8;
     background: var(--bg-color);
-    max-height: 45%; /* 限制抽屜最大高度 */
-    overflow-y: auto; /* 允許滾動 */
+    max-height: 35%; /* *** 修改：加大抽屜高度 *** */
+    overflow: hidden; /* *** 修改：外層隱藏，由內層滾動 *** */
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
-    transform: translateY(100%); /* 初始隱藏在底部 */
+    transform: translateY(100%);
     transition: transform 0.3s ease-out;
-    padding-bottom: var(--safe-area-inset-bottom); /* 考慮安全區 */
-    display: flex; /* 讓其內容垂直堆疊 */
+    padding: 1rem 0; /* *** 修改：調整 padding *** */
+    display: flex;
     flex-direction: column;
-    padding-top: 1rem;
-    padding-left: calc(1.5rem + var(--safe-area-inset-left));
-    padding-right: calc(1.5rem + var(--safe-area-inset-right));
 }
 .map-bottom-drawer.visible {
     transform: translateY(0); /* 顯示時滑出 */
 }
 
-/* *** 修改：類別列表樣式，更小巧且一目了然 *** */
+/* --- 類別列表樣式 (可左右滑動) --- */
 .category-list {
     width: 100%;
-    display: grid;
-    /* 自動調整行數，每行高度最小 20px，最大 1fr，讓分類項目更密集 */
-    grid-auto-flow: column; /* 讓項目水平排列 */
-    grid-template-rows: repeat(auto-fit, minmax(20px, 1fr)); /* 讓分類項目更小巧 */
-    gap: 0.5rem; /* 縮小間距 */
-    overflow-x: auto; /* 允許水平滾動 */
-    padding: 0.5rem 0 0.5rem 0; /* 調整 padding */
-    max-height: 120px; /* 限制分類列表的最大高度 */
+    overflow-x: auto; /* *** 修改：讓外容器可以水平滾動 *** */
+    padding: 0.5rem calc(1.5rem + var(--safe-area-inset-left));
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
 .category-list::-webkit-scrollbar { display: none; }
 
+/* *** 新增：內部滾動容器 *** */
+.category-list-inner {
+    display: flex;
+    flex-direction: column; /* 讓項目垂直堆疊 */
+    flex-wrap: wrap; /* 允許換行 */
+    height: 80px; /* *** 修改：固定高度以形成多行佈局 *** */
+    gap: 0.5rem 0.75rem; /* row-gap column-gap */
+}
+
 .category-list-item { 
-    padding: 0.5rem 1rem; /* 縮小 padding */
-    border-radius: 20px; /* 調整圓角 */
-    font-size: 0.9rem; /* 縮小字體 */
-    /* ... 其他樣式保持不變 ... */
+    padding: 0.4rem 0.9rem; /* *** 修改：再縮小一點 *** */
+    border-radius: 20px; 
+    font-size: 0.85rem; /* *** 修改：再縮小一點 *** */
     background: white; 
     border: 1px solid var(--border-color); 
     cursor: pointer; 
