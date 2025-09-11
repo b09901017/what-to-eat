@@ -133,3 +133,10 @@ python app.py
 請打開您的網頁瀏覽器 (建議使用 Chrome)，並直接訪問 http://127.0.0.1:5000。
 
 注意：由於已改為模組化架構，請不要再直接點開 index.html 檔案，否則會因 CORS 策略而無法運行。
+
+
+===v12===
+改成可以部屬在render的樣子
+第一 : 修改App.py 把最底部的# 注意：底部的 if __name__ == '__main__': ... 已被移除，以利 Gunicorn 部署
+第二 : 新增config.js 只要修改API_BASE_URL就好  export const API_BASE_URL = 'http://127.0.0.1:5000';
+第三 : 把api.js 中所有的網址前面都改成 API_BASE_URL 讓config.js去集中管理
