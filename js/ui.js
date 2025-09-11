@@ -88,9 +88,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         locationSearchContainer.classList.remove('in-edit-mode');
     }
 
-    // *** 核心 Bug 修復 ***
-    // 直接在現有的 categories 地圖上操作，而不是重新初始化
-    const map = initCategoriesMap(); // 確保地圖已初始化
+    const map = initCategoriesMap();
     if (!map) return;
 
     if (isEditing) {
@@ -113,7 +111,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
 
 
 export function initCategoriesMapAndRender(filteredData) {
-    initCategoriesMap(); // 確保地圖實例存在
+    initCategoriesMap(); 
     updateMapMarkers(filteredData, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
     
     const isFocusMode = state.focusedCategories.size > 0;
@@ -142,7 +140,6 @@ export function initCategoriesMapAndRender(filteredData) {
         mapBottomDrawer.classList.add('visible');
     }
 
-    // *** 修改 ***: 控制新的「顯示所有店家」按鈕
     DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
     
     if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {
@@ -170,10 +167,12 @@ function renderCategories(filteredData) {
 
 export function renderRestaurantPreviewList(category, filteredData) {
     const listEl = DOMElements.restaurantPreviewList;
+    const drawerEl = DOMElements.mapBottomDrawer; // 取得抽屜元素
     listEl.innerHTML = '';
 
     if (!category || !filteredData[category] || filteredData[category].length === 0) {
         listEl.classList.remove('visible');
+        drawerEl.classList.remove('expanded'); // *** 修改 ***: 隱藏時移除 expanded class
         return;
     }
 
@@ -185,6 +184,7 @@ export function renderRestaurantPreviewList(category, filteredData) {
         listEl.appendChild(card);
     });
     listEl.classList.add('visible');
+    drawerEl.classList.add('expanded'); // *** 修改 ***: 顯示時加上 expanded class
 }
 
 export function updateWheelCount() {

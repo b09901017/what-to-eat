@@ -37,6 +37,12 @@
     z-index: 1001;
     transition: all var(--transition-slow);
 }
+
+/* *** 新增 ***: 當抽屜展開時，讓 Hub 往上移動 */
+.map-bottom-drawer.expanded + .floating-action-hub {
+    bottom: calc(52% + 1rem + var(--safe-area-inset-bottom));
+}
+
 .floating-action-hub.hidden-for-edit {
     opacity: 0;
     visibility: hidden;
@@ -57,12 +63,19 @@
     border-top-right-radius: 20px;
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     transform: translateY(100%);
-    transition: transform 0.3s ease-out, visibility 0.3s;
+    /* *** 修改 ***: 讓 max-height 的變化也產生動畫 */
+    transition: transform 0.3s ease-out, visibility 0.3s, max-height 0.3s ease-out;
     padding: 1rem 0;
     display: flex;
     flex-direction: column;
     padding-bottom: 6rem;
 }
+
+/* *** 新增 ***: 抽屜展開時的新高度 */
+.map-bottom-drawer.expanded {
+    max-height: 52%;
+}
+
 .map-bottom-drawer.visible {
     transform: translateY(0);
 }
@@ -222,7 +235,6 @@
     justify-content: flex-end; 
 }
 
-/* *** BUG 修正 ***: 之前是 > *，會讓 spacer 也接收點擊，現在只針對需要互動的元件 */
 .edit-mode-controls > .edit-mode-hint,
 .edit-mode-controls > .edit-mode-footer,
 .edit-mode-controls > .location-search-container {
