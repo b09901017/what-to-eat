@@ -3,18 +3,27 @@
     position: relative;
     bottom: 8px;
     z-index: 1001;
+    display: flex; /* *** 新增 *** */
+    flex-direction: column; /* *** 新增 *** */
+    align-items: flex-end; /* *** 新增 *** */
 }
 
-/* 新增：包裹 Hub 按鈕的容器 */
 #hub-item-list {
-    position: absolute;
-    bottom: 100%; /* 從主按鈕頂部開始定位 */
-    right: 0;
     display: flex;
-    flex-direction: column-reverse; /* *** 讓項目由下往上堆疊 *** */
+    flex-direction: column;
     gap: 1rem;
-    margin-bottom: 1rem; /* 與主按鈕的間距 */
-    pointer-events: none; /* 預設不可點擊 */
+    margin-bottom: 1rem;
+    pointer-events: none;
+    opacity: 0; /* *** 修改：初始隱藏 *** */
+    transform: translateY(10px); /* *** 修改：初始偏移 *** */
+    transition: all var(--transition-fast); /* *** 修改：加上過渡 *** */
+}
+
+/* *** 新增：Active 狀態下的樣式 *** */
+.floating-action-hub.is-active #hub-item-list {
+    pointer-events: auto;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .hub-item {
@@ -22,8 +31,6 @@
     align-items: center;
     justify-content: flex-end;
     transition: all var(--transition-fast);
-    opacity: 0;
-    transform: translateY(10px); /* 預設向下偏移 */
 }
 
 .hub-item .hub-label {
@@ -88,37 +95,7 @@
     transition: transform 0.3s ease;
 }
 
-/* --- Active State --- */
+/* *** 修改：Active 狀態下的按鈕旋轉 *** */
 .floating-action-hub.is-active .hub-toggle-btn {
     transform: rotate(45deg);
-}
-
-.floating-action-hub.is-active #hub-item-list {
-    pointer-events: auto; /* 啟用點擊 */
-}
-
-.floating-action-hub.is-active .hub-item {
-    opacity: 1;
-    transform: translateY(0); /* 恢復正常位置 */
-}
-
-/* Staggered animation */
-.floating-action-hub.is-active .hub-item:nth-child(1) { transition-delay: 0.15s; }
-.floating-action-hub.is-active .hub-item:nth-child(2) { transition-delay: 0.1s; }
-.floating-action-hub.is-active .hub-item:nth-child(3) { transition-delay: 0.05s; }
-.floating-action-hub.is-active .hub-item:nth-child(4) { transition-delay: 0s; }
-
-
-#re-search-hub-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-}
-#re-search-hub-btn.visible {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
 }

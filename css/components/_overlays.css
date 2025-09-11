@@ -51,12 +51,15 @@
     margin-bottom: 1rem; 
 }
 
+/* *** 修改：讓打字機效果自成一塊，不影響排版 *** */
 .result-text-typing { 
     font-family: var(--font-serif); 
     font-size: 3rem; 
     color: var(--text-dark); 
     min-height: 4rem; 
-    display: inline-block; 
+    display: block; /* *** 修改 *** */
+    margin: 0 auto; /* *** 新增 *** */
+    width: fit-content; /* *** 新增 *** */
     border-right: 3px solid var(--text-dark); 
     white-space: nowrap; 
     overflow: hidden; 
@@ -66,6 +69,8 @@
 .result-actions { 
     margin-top: 3rem; 
     width: 250px; 
+    margin-left: auto; /* *** 新增 *** */
+    margin-right: auto; /* *** 新增 *** */
 }
 
 @keyframes typing { 

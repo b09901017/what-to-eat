@@ -59,19 +59,17 @@ export function updateRadiusLabel(radius) {
 
 export function toggleRadiusEditMode(isEditing, onRadiusChange) {
     const { 
-        categoryListContainer, 
+        bottomControlsContainer, // *** 修改：使用新的容器 class ***
         floatingActionHub, 
         mainFooter, 
         editModeControls,
         locationSearchContainer,
-        returnToCenterBtn // *** 新增 ***
     } = DOMElements;
     
-    const returnToCenterHubItem = returnToCenterBtn.closest('.hub-item');
+    // *** 修改：使用新的容器 class ***
+    if (bottomControlsContainer) bottomControlsContainer.classList.toggle('hidden-for-edit', isEditing);
+    if (floatingActionHub) floatingActionHub.classList.toggle('hidden-for-edit', isEditing);
 
-    categoryListContainer.classList.toggle('hidden', isEditing);
-    floatingActionHub.classList.toggle('hidden', isEditing);
-    if (returnToCenterHubItem) returnToCenterHubItem.style.display = isEditing ? 'none' : 'flex'; // *** 新增 ***
     mainFooter.style.display = isEditing ? 'none' : 'block';
     editModeControls.classList.toggle('visible', isEditing);
     
@@ -150,13 +148,18 @@ export function initCategoriesMapAndRender(filteredData) {
             }
         }
         
-        // *** 修改：改為將 searchCenter 加入視野範圍 ***
         if (state.searchCenter) { coordsToFit.push([state.searchCenter.lat, state.searchCenter.lon]); }
         if (coordsToFit.length > 0) { fitMapToBounds(coordsToFit, { paddingTopLeft: [20, 100], paddingBottomRight: [20, 200] }); }
     }
 
     renderCategories(filteredData);
     
+    // *** 新增：讓底部抽屜可見 ***
+    const mapBottomDrawer = DOMElements.categoriesPage.querySelector('.map-bottom-drawer');
+    if (mapBottomDrawer) {
+        mapBottomDrawer.classList.add('visible');
+    }
+
     const resetViewHubItem = DOMElements.resetViewBtn.closest('.hub-item');
     if(resetViewHubItem) { resetViewHubItem.style.display = isFocusMode ? 'flex' : 'none'; }
     
