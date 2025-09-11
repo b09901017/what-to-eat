@@ -24,7 +24,7 @@
     padding: 1rem calc(1.5rem + var(--safe-area-inset-right)) 0.5rem calc(1.5rem + var(--safe-area-inset-left));
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
     text-align: left;
-    z-index: 10; /* 確保在 Hub 上方 */
+    z-index: 10;
 }
 .page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
@@ -34,12 +34,8 @@
 .floating-action-hub {
     position: absolute;
     right: calc(1.5rem + var(--safe-area-inset-right));
-    bottom: calc(35% + 1rem + var(--safe-area-inset-bottom)); /* *** 修改：定位在抽屜上方 *** */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.75rem;
-    z-index: 10;
+    bottom: calc(35% + 1rem + var(--safe-area-inset-bottom));
+    z-index: 1001; /* 確保在抽屜和 Header 之上 */
     transition: all var(--transition-slow);
 }
 .floating-action-hub.hidden-for-edit {
@@ -47,83 +43,7 @@
     visibility: hidden;
     transform: translateX(100%);
 }
-#hub-item-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    background-color: var(--bg-color);
-    padding: 0.75rem;
-    border-radius: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(0.8) translateY(10px);
-    transform-origin: bottom right;
-    transition: all var(--transition-fast);
-}
-#hub-item-list.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1) translateY(0);
-}
-.hub-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.hub-label {
-    font-size: 0.9rem;
-    color: var(--text-light);
-    white-space: nowrap;
-}
-.hub-action-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-.hub-action-btn:hover {
-    background-color: var(--primary-dark);
-    transform: scale(1.05);
-}
-.hub-action-btn svg {
-    width: 22px;
-    height: 22px;
-}
-.hub-toggle-btn {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    margin-top: 1rem;
-}
-.hub-toggle-btn.active {
-    transform: rotate(45deg);
-}
-.hub-toggle-btn:hover {
-    background-color: var(--primary-dark);
-    transform: scale(1.05);
-}
-.hub-toggle-btn svg {
-    width: 24px;
-    height: 24px;
-}
+
 
 /* *** 新增：底部抽屜容器 (包含類別和預覽列表) *** */
 .map-bottom-drawer {
@@ -133,14 +53,14 @@
     right: 0;
     z-index: 8;
     background: var(--bg-color);
-    max-height: 35%; /* *** 修改：加大抽屜高度 *** */
-    overflow: hidden; /* *** 修改：外層隱藏，由內層滾動 *** */
+    max-height: 35%;
+    overflow: hidden;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
-    padding: 1rem 0; /* *** 修改：調整 padding *** */
+    padding: 1rem 0;
     display: flex;
     flex-direction: column;
 }
@@ -151,32 +71,30 @@
 /* --- 類別列表樣式 (可左右滑動) --- */
 .category-list {
     width: 100%;
-    overflow-x: auto; /* *** 修改：讓外容器可以水平滾動 *** */
+    overflow-x: auto;
     padding: 0.5rem calc(1.5rem + var(--safe-area-inset-left));
     -ms-overflow-style: none;
     scrollbar-width: none;
+    display: flex; /* 改為 flex */
+    flex-wrap: wrap; /* 允許換行 */
+    align-content: flex-start; /* 從頭部開始排列 */
+    height: 80px; /* 固定高度以形成多行佈局 */
+    gap: 0.5rem 0.75rem; /* row-gap column-gap */
 }
 .category-list::-webkit-scrollbar { display: none; }
 
-/* *** 新增：內部滾動容器 *** */
-.category-list-inner {
-    display: flex;
-    flex-direction: column; /* 讓項目垂直堆疊 */
-    flex-wrap: wrap; /* 允許換行 */
-    height: 80px; /* *** 修改：固定高度以形成多行佈局 *** */
-    gap: 0.5rem 0.75rem; /* row-gap column-gap */
-}
-
 .category-list-item { 
-    padding: 0.4rem 0.9rem; /* *** 修改：再縮小一點 *** */
+    padding: 0.4rem 0.9rem;
     border-radius: 20px; 
-    font-size: 0.85rem; /* *** 修改：再縮小一點 *** */
+    font-size: 0.85rem;
     background: white; 
     border: 1px solid var(--border-color); 
     cursor: pointer; 
     text-align: center; 
     transition: all var(--transition-fast); 
     white-space: nowrap;
+    /* 確保項目不會被壓縮 */
+    flex-shrink: 0;
 }
 .category-list-item:hover { transform: translateY(-4px); }
 .category-list-item.active { 
@@ -189,11 +107,6 @@
 .category-list-item.unfocused:hover { opacity: 0.7; transform: translateY(-4px); }
 
 .empty-state-message { 
-    grid-column: 1 / -1;
-    grid-row: 1 / -1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     width: 100%; 
     text-align: center; 
     color: var(--text-light); 
@@ -219,7 +132,7 @@
 .restaurant-preview-list.visible { 
     height: 90px; /* 顯示時的高度 */
     opacity: 1; 
-    padding: 0.5rem 0 1rem 0; /* 調整 padding */
+    padding: 0.5rem 0 1rem calc(1.5rem + var(--safe-area-inset-left));
 }
 
 .restaurant-preview-card { 

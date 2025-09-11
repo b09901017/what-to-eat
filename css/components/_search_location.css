@@ -2,14 +2,12 @@
 .location-search-container {
     position: absolute;
     top: 140px; /* map-page 的預設位置 */
-    left: 50%;
-    transform: translateX(-50%);
+    left: 1.5rem;
+    right: 1.5rem;
     z-index: 1001; 
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 50px;
-    /* *** 修改：移除 width & max-width，讓定位更純粹 *** */
     transition: top var(--transition-fast);
 }
 
@@ -33,11 +31,9 @@
     color: var(--text-dark);
     z-index: 2;
     padding: 0;
-    opacity: 0.8;
     transition: all var(--transition-slow);
 }
 .location-search-toggle-btn:hover {
-    opacity: 1;
     transform: scale(1.05);
 }
 
@@ -56,14 +52,12 @@
 }
 
 .location-search-container.active .location-search-bar {
-    /* *** 修改：展開後的寬度 *** */
-    width: calc(100vw - 5rem); 
+    width: 100%;
     max-width: 320px;
     pointer-events: auto;
 }
 .location-search-container.active .location-search-toggle-btn {
-    transform: translateX(calc((100vw - 5rem) / 2));
-    max-width: 320px;
+    transform: translateX(calc((min(100vw - 3rem, 320px) / 2) - 25px - 1.5rem));
 }
 
 
@@ -89,7 +83,7 @@
     top: calc(100% + 10px);
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100vw - 5rem);
+    width: 100%;
     max-width: 320px;
     background-color: white;
     border-radius: 12px;

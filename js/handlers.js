@@ -15,23 +15,26 @@ export function handleToggleHub() {
     state.isHubExpanded = !state.isHubExpanded;
     toggleHub(state.isHubExpanded);
 
-    const eventListenerTarget = DOMElements.categoriesPage;
+    // Click-away to close logic
+    const eventListenerTarget = DOMElements.categoriesPage.querySelector('.map-ui-overlay');
+    const closeHubHandler = (e) => {
+        if (!DOMElements.floatingActionHub.contains(e.target)) {
+            state.isHubExpanded = false;
+            toggleHub(false);
+            eventListenerTarget.removeEventListener('click', closeHubHandler);
+        }
+    };
+
     if (state.isHubExpanded) {
-        eventListenerTarget.addEventListener('click', handleClickToCloseHub);
+        // Use a timeout to prevent the same click event that opened the hub from closing it immediately
+        setTimeout(() => {
+            eventListenerTarget.addEventListener('click', closeHubHandler);
+        }, 0);
     } else {
-        eventListenerTarget.removeEventListener('click', handleClickToCloseHub);
+        eventListenerTarget.removeEventListener('click', closeHubHandler);
     }
 }
 
-/**
- * 處理頁面點擊事件，如果點擊位置在 Hub 之外，則關閉 Hub。
- * @param {Event} e - 點擊事件物件
- */
-function handleClickToCloseHub(e) {
-    if (state.isHubExpanded && !DOMElements.floatingActionHub.contains(e.target)) {
-        handleToggleHub();
-    }
-}
 
 /**
  * 根據當前篩選條件過濾餐廳資料並重新渲染地圖和列表
@@ -176,20 +179,22 @@ export function handleReturnToCenter() {
  */
 export function toggleFilterPanel() {
     const isVisible = DOMElements.filterPanel.classList.toggle('visible');
-    const eventListenerTarget = DOMElements.categoriesPage; 
-    if (isVisible) { eventListenerTarget.addEventListener('click', handleClickToCloseFilter); } 
-    else { eventListenerTarget.removeEventListener('click', handleClickToCloseFilter); }
-}
+    const eventListenerTarget = DOMElements.categoriesPage.querySelector('.map-ui-overlay'); 
+    
+    const handleClickToCloseFilter = (e) => {
+        if (!DOMElements.filterPanel.contains(e.target) && !e.target.closest('.floating-action-hub')) {
+            DOMElements.filterPanel.classList.remove('visible');
+            eventListenerTarget.removeEventListener('click', handleClickToCloseFilter);
+        }
+    };
 
-/**
- * 處理點擊篩選面板外部區域來關閉面板的邏輯
- * @param {Event} e - 點擊事件
- */
-export function handleClickToCloseFilter(e) {
-    if ( DOMElements.filterPanel.classList.contains('visible') && !DOMElements.filterPanel.contains(e.target) && !e.target.closest('.floating-action-hub') ) {
-        toggleFilterPanel();
+    if (isVisible) { 
+        setTimeout(() => eventListenerTarget.addEventListener('click', handleClickToCloseFilter), 0);
+    } else { 
+        eventListenerTarget.removeEventListener('click', handleClickToCloseFilter); 
     }
 }
+
 
 /**
  * 處理篩選條件變更的事件

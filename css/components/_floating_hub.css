@@ -12,29 +12,22 @@
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 1rem;
-    /* *** 修改：確保初始狀態正確 *** */
     pointer-events: none;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-/* *** 新增/修改：is-active 狀態下的樣式 *** */
-.floating-action-hub.is-active #hub-item-list {
-    pointer-events: auto;
-    opacity: 1;
-    transform: translateY(0);
 }
 
 .hub-item {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    /* *** 新增：為每個 item 加上獨立的過渡效果，實現交錯動畫 *** */
     opacity: 0;
     transform: translateX(20px);
     transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
+
+.floating-action-hub.is-active #hub-item-list {
+    pointer-events: auto;
+}
+
 .floating-action-hub.is-active .hub-item {
     opacity: 1;
     transform: translateX(0);
