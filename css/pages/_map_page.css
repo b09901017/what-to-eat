@@ -1,35 +1,30 @@
-/* --- 範圍選擇頁面 --- */
-.radius-map {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+/* --- 範圍選擇頁面 (沉浸式重構) --- */
+
+.page#map-page .map-ui-overlay {
+    pointer-events: none;
+}
+.page#map-page .map-ui-overlay > * {
+    pointer-events: auto;
 }
 
 .page#map-page .page-header {
-    background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 50%, transparent);
+    background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
     text-align: center;
-    padding-top: 2rem;
-    padding-bottom: 3rem; /* Add more padding to avoid overlap with search */
-    margin: -2rem -1.5rem 0;
-    position: relative;
-    z-index: 10;
+    padding: 1rem; /* 簡化 padding */
+    margin: 0; /* 移除負 margin */
 }
 
-.page#map-page .page-footer {
-    background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 70%, transparent);
-    padding: 1.5rem 1.5rem;
-    margin: 0 -1.5rem -2rem;
+/* *** 新增：包裹底部按鈕和半徑標籤的容器 *** */
+.map-controls-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
-
 
 .recenter-btn {
-    position: absolute;
-    bottom: 120px;
-    right: 20px;
-    z-index: 1001;
+    position: static; /* *** 移除絕對定位 *** */
     width: 50px;
     height: 50px;
     background-color: white;
@@ -43,23 +38,18 @@
     transition: all var(--transition-fast);
     color: var(--text-dark);
 }
-
 .recenter-btn:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
-
 .recenter-btn svg {
     width: 24px;
     height: 24px;
 }
 
 .radius-label {
-    position: absolute;
-    bottom: 135px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1001;
+    position: static; /* *** 移除絕對定位 *** */
+    transform: none; /* *** 移除 transform *** */
     background-color: rgba(66, 66, 66, 0.8);
     padding: 0.5rem 1rem;
     border-radius: 20px;
@@ -71,13 +61,19 @@
     visibility: hidden;
     transition: all var(--transition-fast);
 }
-
 .radius-label.visible {
     opacity: 1;
     visibility: visible;
 }
 
-/* --- 新增：可拖曳的中心點樣式 --- */
+.page#map-page .page-footer {
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 70%, transparent);
+    padding: 1.5rem 0 0 0; /* 簡化 padding */
+    margin: 0; /* 移除負 margin */
+    width: 100%;
+}
+
+/* --- 可拖曳的中心點樣式 --- */
 .radius-center-marker {
     width: 24px;
     height: 24px;
@@ -91,7 +87,6 @@
     cursor: grabbing;
 }
 
-
 .radius-drag-handle-container {
     width: 40px;
     height: 40px;
@@ -100,7 +95,6 @@
     align-items: center;
     cursor: grab;
 }
-
 .radius-drag-handle {
     width: 20px;
     height: 20px;
@@ -109,7 +103,6 @@
     border-radius: 50%;
     pointer-events: none;
 }
-
 .leaflet-marker-icon.leaflet-div-icon.leaflet-zoom-animated.leaflet-interactive:active .radius-drag-handle-container {
     cursor: grabbing;
 }

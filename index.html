@@ -31,7 +31,7 @@
         </section>
 
         <section id="map-page" class="page">
-            <div id="radius-map" class="radius-map"></div>
+            <div id="radius-map" class="leaflet-map"></div>
             
             <div class="map-ui-overlay">
                 <header class="page-header">
@@ -49,26 +49,29 @@
                     <ul id="location-search-results" class="location-search-results"></ul>
                 </div>
                 
+                <div class="map-controls-bottom">
+                    <button id="recenter-btn" class="recenter-btn" title="回到中心">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 2L12 5"></path>
+                            <path d="M22 12L19 12"></path>
+                            <path d="M12 22L12 19"></path>
+                            <path d="M2 12L5 12"></path>
+                        </svg>
+                    </button>
+                    <div id="radius-label" class="radius-label">500 公尺</div>
+                </div>
+
                 <footer class="page-footer">
                     <button id="confirm-radius-btn" class="btn-primary" disabled>在此範圍中搜尋</button>
                 </footer>
             </div>
 
-            <div id="radius-label" class="radius-label">500 公尺</div>
-            <button id="recenter-btn" class="recenter-btn" title="回到中心">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 2L12 5"></path>
-                    <path d="M22 12L19 12"></path>
-                    <path d="M12 22L12 19"></path>
-                    <path d="M2 12L5 12"></path>
-                </svg>
-            </button>
         </section>
 
         <section id="categories-page" class="page">
             <div id="leaflet-map" class="leaflet-map"></div>
-            
+
             <div id="filter-panel" class="filter-panel">
                 <div class="filter-panel-header">
                     <h3 class="font-serif">篩選條件</h3>
@@ -101,14 +104,15 @@
                 </div>
             </div>
             
-            <div class="category-list-container">
-                <div class="bottom-controls-header">
-                    <header class="page-header-condensed">
-                        <div class="header-content">
-                            <h2 class="font-serif">附近的美食地圖</h2>
-                            <p>點選下方類別以探索</p>
-                        </div>
-                    </header>
+            <div class="map-ui-overlay">
+                <header class="page-header-condensed">
+                    <div class="header-content">
+                        <h2 class="font-serif">附近的美食地圖</h2>
+                        <p>點選下方類別以探索</p>
+                    </div>
+                </header>
+
+                <div class="bottom-controls-container">
                     <div id="floating-action-hub" class="floating-action-hub">
                         <div id="hub-item-list">
                             <div class="hub-item">
@@ -137,10 +141,10 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 5"/><path d="M12 19L12 22"/><path d="M5 12L2 12"/><path d="M22 12L19 12"/><path d="M19.07 4.93L17 7"/><path d="M7 17L4.93 19.07"/><path d="M19.07 19.07L17 17"/><path d="M7 7L4.93 4.93"/></svg>
                         </button>
                     </div>
+
+                    <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
+                    <div id="category-list" class="category-list"></div>
                 </div>
-                
-                <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
-                <div id="category-list" class="category-list"></div>
             </div>
             
             <footer id="main-footer" class="page-footer">
@@ -151,10 +155,10 @@
             </footer>
 
             <div id="edit-mode-controls" class="edit-mode-controls">
-                <div id="edit-mode-hint" class="edit-mode-hint">
+                <div class="edit-mode-hint">
                     <p>拖曳圓心或邊緣調整範圍</p>
                 </div>
-                <footer id="edit-mode-footer" class="page-footer edit-mode-footer">
+                <footer class="page-footer edit-mode-footer">
                     <button id="cancel-edit-btn" class="btn-secondary">取消</button>
                     <button id="re-search-btn" class="btn-primary">以此範圍重新搜尋</button>
                 </footer>
