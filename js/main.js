@@ -51,9 +51,9 @@ function init() {
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.resetViewBtn.addEventListener('click', handleResetView);
+    DOMElements.showAllBtn.addEventListener('click', handleResetView); // *** 修改 ***
     DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit);
-    DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter); // *** 新增 ***
+    DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter);
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
     DOMElements.openNowToggle.addEventListener('change', handleFilterChange);
     DOMElements.priceFilterButtons.addEventListener('click', handleFilterChange);

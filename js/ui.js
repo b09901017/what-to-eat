@@ -63,11 +63,10 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         mainFooter, 
         editModeControls,
         locationSearchContainer,
-        pageHeaderCondensed, // *** 新增 ***
-        mapBottomDrawer      // *** 新增 ***
+        pageHeaderCondensed,
+        mapBottomDrawer
     } = DOMElements;
     
-    // *** 修改：隱藏/顯示主介面元素 ***
     if (pageHeaderCondensed) pageHeaderCondensed.style.visibility = isEditing ? 'hidden' : 'visible';
     if (mapBottomDrawer) mapBottomDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
     if (mainFooter) mainFooter.style.visibility = isEditing ? 'hidden' : 'visible';
@@ -75,9 +74,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
     if (floatingActionHub) floatingActionHub.classList.toggle('hidden-for-edit', isEditing);
     editModeControls.classList.toggle('visible', isEditing);
     
-    // 控制搜尋框的移動
     if (isEditing) {
-        // 將搜尋框移動到 edit-mode-controls 內部，使其在 hint 和 footer 之間
         const hintElement = editModeControls.querySelector('.edit-mode-hint');
         if(hintElement) {
             editModeControls.insertBefore(locationSearchContainer, hintElement);
@@ -85,45 +82,23 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         locationSearchContainer.dataset.mapKey = 'categories';
         locationSearchContainer.classList.add('in-edit-mode');
     } else {
-        // 將搜尋框移回 map-page 的初始位置
         const mapPageOverlay = document.querySelector('#map-page .map-ui-overlay');
         mapPageOverlay.insertBefore(locationSearchContainer, mapPageOverlay.querySelector('.page-footer'));
         locationSearchContainer.dataset.mapKey = 'radius';
         locationSearchContainer.classList.remove('in-edit-mode');
     }
 
-    // 處理地圖繪製邏輯
+    // *** 核心 Bug 修復 ***
+    // 直接在現有的 categories 地圖上操作，而不是重新初始化
+    const map = initCategoriesMap(); // 確保地圖已初始化
+    if (!map) return;
+
     if (isEditing) {
         const center = state.searchCenter || state.userLocation;
-        initCategoriesMap(); 
-        const map = mapInstances.categories;
         setRadiusMapCenter('categories', center);
         drawRadiusEditor('categories', center, state.searchRadiusMeters, onRadiusChange);
         updateRadiusLabel(state.searchRadiusMeters);
 
-        const allRestaurants = Object.values(state.restaurantData).flat();
-        const globallyFilteredRestaurants = allRestaurants.filter(r => {
-            const isOpen = !state.filters.openNow || r.hours === "營業中";
-            const isPriceMatch = state.filters.priceLevel === 0 || r.price_level === state.filters.priceLevel;
-            const isRatingMatch = state.filters.rating === 0 || r.rating >= state.filters.rating;
-            return isOpen && isPriceMatch && isRatingMatch;
-        });
-
-        const tempFilteredData = {};
-        globallyFilteredRestaurants.forEach(r => {
-            for (const category in state.restaurantData) {
-                if (state.restaurantData[category].some(resto => resto.name === r.name)) {
-                    if (!tempFilteredData[category]) {
-                        tempFilteredData[category] = [];
-                    }
-                    tempFilteredData[category].push(r);
-                    break; 
-                }
-            }
-        });
-        
-        updateMapMarkers(tempFilteredData, null, null, null);
-        
         const editorState = getEditorState('categories');
         if (editorState && editorState.circle) {
             map.fitBounds(editorState.circle.getBounds(), { padding: [50, 50] });
@@ -138,7 +113,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
 
 
 export function initCategoriesMapAndRender(filteredData) {
-    initCategoriesMap();
+    initCategoriesMap(); // 確保地圖實例存在
     updateMapMarkers(filteredData, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
     
     const isFocusMode = state.focusedCategories.size > 0;
@@ -167,8 +142,8 @@ export function initCategoriesMapAndRender(filteredData) {
         mapBottomDrawer.classList.add('visible');
     }
 
-    const resetViewHubItem = DOMElements.resetViewBtn.closest('.hub-item');
-    if(resetViewHubItem) { resetViewHubItem.style.display = isFocusMode ? 'flex' : 'none'; }
+    // *** 修改 ***: 控制新的「顯示所有店家」按鈕
+    DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
     
     if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {
          DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;

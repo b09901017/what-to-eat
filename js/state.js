@@ -63,7 +63,6 @@ export const DOMElements = {
     
     categoriesPage: document.getElementById('categories-page'),
     filterBtn: document.getElementById('filter-btn'),
-    resetViewBtn: document.getElementById('reset-view-btn'),
     resizeRadiusBtn: document.getElementById('resize-radius-btn'),
     returnToCenterBtn: document.getElementById('return-to-center-btn'),
     filterPanel: document.getElementById('filter-panel'),
@@ -98,4 +97,7 @@ export const DOMElements = {
     locationSearchToggleBtn: document.querySelector('.location-search-toggle-btn'),
     locationSearchInput: document.getElementById('location-search-input'),
     locationSearchResults: document.getElementById('location-search-results'),
+    
+    // 新的「顯示所有店家」按鈕
+    showAllBtn: document.getElementById('show-all-btn'),
 };

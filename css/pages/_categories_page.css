@@ -33,7 +33,7 @@
 .floating-action-hub {
     position: absolute;
     right: calc(1.5rem + var(--safe-area-inset-right));
-    bottom: calc(35% + 1rem + var(--safe-area-inset-bottom));
+    bottom: calc(40% + 1rem + var(--safe-area-inset-bottom));
     z-index: 1001;
     transition: all var(--transition-slow);
 }
@@ -51,7 +51,7 @@
     right: 0;
     z-index: 8;
     background: var(--bg-color);
-    max-height: 35%;
+    max-height: 40%;
     overflow: hidden;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
@@ -76,15 +76,15 @@
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
-    height: 80px;
-    gap: 0.5rem 0.75rem;
+    height: 105px;
+    gap: 0.75rem 1rem;
 }
 .category-list::-webkit-scrollbar { display: none; }
 
 .category-list-item { 
-    padding: 0.4rem 0.9rem;
+    padding: 0.6rem 1.2rem;
     border-radius: 20px; 
-    font-size: 0.85rem;
+    font-size: 1rem;
     background: white; 
     border: 1px solid var(--border-color); 
     cursor: pointer; 
@@ -102,6 +102,37 @@
 }
 .category-list-item.unfocused { opacity: 0.4; }
 .category-list-item.unfocused:hover { opacity: 0.7; transform: translateY(-4px); }
+
+
+.show-all-container {
+    padding: 0 1.5rem 0.75rem 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast);
+    pointer-events: none;
+}
+.show-all-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.show-all-btn {
+    width: auto;
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    color: var(--text-dark);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.show-all-btn:hover {
+    background-color: var(--secondary-hover);
+}
+
 
 .empty-state-message { 
     width: 100%; 
@@ -188,12 +219,16 @@
     transition: all var(--transition-slow);
     display: flex;
     flex-direction: column;
-    /* *** 修改：改為 flex-end，讓內容靠下 *** */
     justify-content: flex-end; 
 }
-.edit-mode-controls > * {
+
+/* *** BUG 修正 ***: 之前是 > *，會讓 spacer 也接收點擊，現在只針對需要互動的元件 */
+.edit-mode-controls > .edit-mode-hint,
+.edit-mode-controls > .edit-mode-footer,
+.edit-mode-controls > .location-search-container {
     pointer-events: auto;
 }
+
 .edit-mode-controls .edit-mode-spacer {
     flex-grow: 1;
 }
@@ -205,7 +240,6 @@
 }
 
 .edit-mode-hint {
-    /* *** 修改：重新設計 hint 樣式 *** */
     padding: 1rem;
     text-align: center;
     color: var(--text-dark);
@@ -215,9 +249,9 @@
 .edit-mode-footer {
     display: flex;
     gap: 1rem;
-    background: var(--bg-color); /* *** 修改：改為實心背景 *** */
-    padding-top: 0; /* *** 修改：移除上方 padding *** */
-    border-top: 1px solid var(--border-color); /* *** 修改：加上分隔線 *** */
+    background: var(--bg-color);
+    padding-top: 0;
+    border-top: 1px solid var(--border-color);
 }
 .edit-mode-footer .btn-secondary {
     flex-grow: 1;
