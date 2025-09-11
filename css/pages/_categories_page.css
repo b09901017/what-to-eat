@@ -3,14 +3,20 @@
 #categories-page .map-ui-overlay {
     display: flex;
     flex-direction: column;
-    pointer-events: none; /* 允許點擊穿透到地圖 */
-    position: absolute; /* 讓 overlay 覆蓋整個地圖 */
+    pointer-events: none; /* 預設點擊穿透 */
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 5; /* 確保在地圖上方 */
+    z-index: 5;
 }
+
+/* *** 新增 ***: 當需要攔截點擊時，啟用 pointer-events */
+#categories-page .map-ui-overlay.click-interceptor-active {
+    pointer-events: auto;
+}
+
 #categories-page .map-ui-overlay > * {
     pointer-events: auto; /* 恢復子元素的點擊 */
 }
@@ -38,8 +44,7 @@
     transition: all var(--transition-slow);
 }
 
-/* *** 新增 ***: 當抽屜展開時，讓 Hub 往上移動 */
-.map-bottom-drawer.expanded + .floating-action-hub {
+.map-bottom-drawer.expanded + .map-ui-overlay .floating-action-hub {
     bottom: calc(52% + 1rem + var(--safe-area-inset-bottom));
 }
 
@@ -63,7 +68,6 @@
     border-top-right-radius: 20px;
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     transform: translateY(100%);
-    /* *** 修改 ***: 讓 max-height 的變化也產生動畫 */
     transition: transform 0.3s ease-out, visibility 0.3s, max-height 0.3s ease-out;
     padding: 1rem 0;
     display: flex;
@@ -71,7 +75,6 @@
     padding-bottom: 6rem;
 }
 
-/* *** 新增 ***: 抽屜展開時的新高度 */
 .map-bottom-drawer.expanded {
     max-height: 52%;
 }
@@ -118,18 +121,22 @@
 
 
 .show-all-container {
-    padding: 0 1.5rem 0.75rem 1.5rem;
+    padding: 0 1.5rem; /* *** 修改 ***: 移除上下 padding */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
     transition: all var(--transition-fast);
     pointer-events: none;
+    overflow: hidden; /* *** 新增 *** */
+    max-height: 0; /* *** 新增 ***: 隱藏時高度為 0 */
 }
 .show-all-container.visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
+    max-height: 50px; /* *** 新增 ***: 顯示時有高度 */
+    padding-bottom: 0.75rem; /* *** 新增 ***: 顯示時才加上 padding */
 }
 .show-all-btn {
     width: auto;

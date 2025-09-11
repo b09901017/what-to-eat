@@ -4,8 +4,34 @@ import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js'; // *** 新增 flyToCoords ***
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomDecisionOnMap, showOnlyCandidateMarkers, flyToCoords } from './map.js';
 import { hideCandidateList } from './candidate.js';
+
+
+/**
+ * 統一管理頁面覆蓋層的點擊事件監聽器，用於實現「點擊外部關閉」功能
+ * @param {boolean} shouldListen - 是否應該開始監聽
+ * @param {function} handler - 點擊時要執行的處理函式
+ */
+function managePageOverlayClickListener(shouldListen, handler) {
+    const overlay = DOMElements.categoriesPage.querySelector('.map-ui-overlay');
+    
+    // 移除舊的監聽器以防重複綁定
+    const existingHandler = window._pageOverlayClickHandler;
+    if (existingHandler) {
+        overlay.removeEventListener('click', existingHandler);
+    }
+
+    if (shouldListen) {
+        window._pageOverlayClickHandler = handler; // 將當前處理函式存到 window，以便後續移除
+        // 使用 setTimeout 確保當前點擊事件不會立即觸發監聽器
+        setTimeout(() => overlay.addEventListener('click', handler), 0);
+        overlay.classList.add('click-interceptor-active');
+    } else {
+        window._pageOverlayClickHandler = null;
+        overlay.classList.remove('click-interceptor-active');
+    }
+}
 
 
 /**
@@ -15,24 +41,15 @@ export function handleToggleHub() {
     state.isHubExpanded = !state.isHubExpanded;
     toggleHub(state.isHubExpanded);
 
-    // Click-away to close logic
-    const eventListenerTarget = DOMElements.categoriesPage.querySelector('.map-ui-overlay');
     const closeHubHandler = (e) => {
         if (!DOMElements.floatingActionHub.contains(e.target)) {
             state.isHubExpanded = false;
             toggleHub(false);
-            eventListenerTarget.removeEventListener('click', closeHubHandler);
+            managePageOverlayClickListener(false); // 關閉 Hub 時，移除監聽
         }
     };
-
-    if (state.isHubExpanded) {
-        // Use a timeout to prevent the same click event that opened the hub from closing it immediately
-        setTimeout(() => {
-            eventListenerTarget.addEventListener('click', closeHubHandler);
-        }, 0);
-    } else {
-        eventListenerTarget.removeEventListener('click', closeHubHandler);
-    }
+    
+    managePageOverlayClickListener(state.isHubExpanded, closeHubHandler);
 }
 
 
@@ -43,7 +60,6 @@ export function applyFiltersAndRender() {
     const { restaurantData, filters } = state;
     const allRestaurants = Object.values(restaurantData).flat();
     
-    // 根據全局篩選器過濾出符合條件的餐廳名稱
     const globallyFilteredRestaurants = allRestaurants.filter(r => {
         const isOpen = !filters.openNow || r.hours === "營業中";
         const isPriceMatch = filters.priceLevel === 0 || r.price_level === filters.priceLevel;
@@ -52,7 +68,6 @@ export function applyFiltersAndRender() {
     });
     const globallyFilteredNames = new Set(globallyFilteredRestaurants.map(r => r.name));
     
-    // 建立一個只包含符合條件餐廳的新資料結構
     const finalFilteredData = {};
     for (const category in restaurantData) {
         const categoryRestaurants = restaurantData[category].filter(r => globallyFilteredNames.has(r.name));
@@ -166,7 +181,7 @@ export function handleRecenter() {
 }
 
 /**
- * *** 新增：處理「回到探索中心」按鈕點擊事件 ***
+ * 處理「回到探索中心」按鈕點擊事件
  */
 export function handleReturnToCenter() {
     if (state.searchCenter) {
@@ -234,13 +249,27 @@ export function handleCategoryInteraction(e) {
         state.activeCategory = category;
     }
     
+    // 定義點擊外部關閉店家列表的處理邏輯
+    const closeDrawerHandler = (event) => {
+        // 如果點擊的不是抽屜、Hub或地圖標記，就重設視圖
+        if (!event.target.closest('.map-bottom-drawer') && !event.target.closest('.floating-action-hub') && !event.target.closest('.leaflet-marker-icon')) {
+            handleResetView();
+        }
+    };
+
+    // 如果有 activeCategory（即店家列表是展開的），就開始監聽
+    managePageOverlayClickListener(!!state.activeCategory, closeDrawerHandler);
+    
     applyFiltersAndRender();
 }
 
 /**
- * 處理點擊「重設檢視」按鈕的事件
+ * 處理點擊「顯示所有店家」按鈕的事件
  */
 export function handleResetView() {
+    // 移除監聽器，因為店家列表要被收起來了
+    managePageOverlayClickListener(false);
+
     if (state.focusedCategories.size > 0) {
         state.focusedCategories.clear();
         state.activeCategory = null;
@@ -252,6 +281,8 @@ export function handleResetView() {
  * 開關半徑編輯模式
  */
 export function handleToggleRadiusEdit() {
+    // 進入編輯模式前，確保外部點擊監聽器是關閉的
+    managePageOverlayClickListener(false);
     state.isEditingRadius = !state.isEditingRadius;
     toggleRadiusEditMode(state.isEditingRadius, handleRadiusChange);
 }
