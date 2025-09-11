@@ -59,32 +59,40 @@ export function updateRadiusLabel(radius) {
 
 export function toggleRadiusEditMode(isEditing, onRadiusChange) {
     const { 
-        bottomControlsContainer, // *** 修改：使用新的容器 class ***
         floatingActionHub, 
         mainFooter, 
         editModeControls,
         locationSearchContainer,
+        pageHeaderCondensed, // *** 新增 ***
+        mapBottomDrawer      // *** 新增 ***
     } = DOMElements;
     
-    // *** 修改：使用新的容器 class ***
-    if (bottomControlsContainer) bottomControlsContainer.classList.toggle('hidden-for-edit', isEditing);
+    // *** 修改：隱藏/顯示主介面元素 ***
+    if (pageHeaderCondensed) pageHeaderCondensed.style.visibility = isEditing ? 'hidden' : 'visible';
+    if (mapBottomDrawer) mapBottomDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
+    if (mainFooter) mainFooter.style.visibility = isEditing ? 'hidden' : 'visible';
+    
     if (floatingActionHub) floatingActionHub.classList.toggle('hidden-for-edit', isEditing);
-
-    mainFooter.style.display = isEditing ? 'none' : 'block';
     editModeControls.classList.toggle('visible', isEditing);
     
+    // 控制搜尋框的移動
     if (isEditing) {
-        editModeControls.before(locationSearchContainer);
+        // 將搜尋框移動到 edit-mode-controls 內部，使其在 hint 和 footer 之間
+        const hintElement = editModeControls.querySelector('.edit-mode-hint');
+        if(hintElement) {
+            editModeControls.insertBefore(locationSearchContainer, hintElement);
+        }
         locationSearchContainer.dataset.mapKey = 'categories';
         locationSearchContainer.classList.add('in-edit-mode');
     } else {
+        // 將搜尋框移回 map-page 的初始位置
         const mapPageOverlay = document.querySelector('#map-page .map-ui-overlay');
         mapPageOverlay.insertBefore(locationSearchContainer, mapPageOverlay.querySelector('.page-footer'));
         locationSearchContainer.dataset.mapKey = 'radius';
         locationSearchContainer.classList.remove('in-edit-mode');
     }
 
-
+    // 處理地圖繪製邏輯
     if (isEditing) {
         const center = state.searchCenter || state.userLocation;
         initCategoriesMap(); 
@@ -114,7 +122,7 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
             }
         });
         
-        updateMapMarkers(tempFilteredData, null, null, null); // 在編輯模式不顯示使用者位置
+        updateMapMarkers(tempFilteredData, null, null, null);
         
         const editorState = getEditorState('categories');
         if (editorState && editorState.circle) {
@@ -154,8 +162,7 @@ export function initCategoriesMapAndRender(filteredData) {
 
     renderCategories(filteredData);
     
-    // *** 新增：讓底部抽屜可見 ***
-    const mapBottomDrawer = DOMElements.categoriesPage.querySelector('.map-bottom-drawer');
+    const mapBottomDrawer = DOMElements.mapBottomDrawer;
     if (mapBottomDrawer) {
         mapBottomDrawer.classList.add('visible');
     }

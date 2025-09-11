@@ -31,7 +31,7 @@ try:
 
     # 初始化 Gemini API
     genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemini_model = genai.GenerativeModel('gemini-2.5-flash')
 
 except Exception as e:
     logging.error(f"初始化 Google 服務失敗: {e}")

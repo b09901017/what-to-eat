@@ -15,7 +15,6 @@
     pointer-events: auto; /* 恢復子元素的點擊 */
 }
 
-/* *** 修改：Header 浮動在頂部，帶有半透明背景 *** */
 .page-header-condensed {
     position: absolute;
     top: var(--safe-area-inset-top);
@@ -25,17 +24,17 @@
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
     text-align: left;
     z-index: 10;
+    transition: visibility 0.3s, opacity 0.3s;
 }
 .page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
 
 
-/* *** 新增/修改：浮動操作按鈕 Hub 獨立定位 *** */
 .floating-action-hub {
     position: absolute;
     right: calc(1.5rem + var(--safe-area-inset-right));
     bottom: calc(35% + 1rem + var(--safe-area-inset-bottom));
-    z-index: 1001; /* 確保在抽屜和 Header 之上 */
+    z-index: 1001;
     transition: all var(--transition-slow);
 }
 .floating-action-hub.hidden-for-edit {
@@ -45,7 +44,6 @@
 }
 
 
-/* *** 新增：底部抽屜容器 (包含類別和預覽列表) *** */
 .map-bottom-drawer {
     position: absolute;
     bottom: 0;
@@ -59,27 +57,27 @@
     border-top-right-radius: 20px;
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     transform: translateY(100%);
-    transition: transform 0.3s ease-out;
+    transition: transform 0.3s ease-out, visibility 0.3s;
     padding: 1rem 0;
     display: flex;
     flex-direction: column;
+    padding-bottom: 6rem;
 }
 .map-bottom-drawer.visible {
-    transform: translateY(0); /* 顯示時滑出 */
+    transform: translateY(0);
 }
 
-/* --- 類別列表樣式 (可左右滑動) --- */
 .category-list {
     width: 100%;
     overflow-x: auto;
     padding: 0.5rem calc(1.5rem + var(--safe-area-inset-left));
     -ms-overflow-style: none;
     scrollbar-width: none;
-    display: flex; /* 改為 flex */
-    flex-wrap: wrap; /* 允許換行 */
-    align-content: flex-start; /* 從頭部開始排列 */
-    height: 80px; /* 固定高度以形成多行佈局 */
-    gap: 0.5rem 0.75rem; /* row-gap column-gap */
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    height: 80px;
+    gap: 0.5rem 0.75rem;
 }
 .category-list::-webkit-scrollbar { display: none; }
 
@@ -93,7 +91,6 @@
     text-align: center; 
     transition: all var(--transition-fast); 
     white-space: nowrap;
-    /* 確保項目不會被壓縮 */
     flex-shrink: 0;
 }
 .category-list-item:hover { transform: translateY(-4px); }
@@ -113,30 +110,29 @@
     padding: 1rem; 
 }
 
-/* *** 修改：預覽列表樣式，更精簡 *** */
 .restaurant-preview-list { 
     width: 100%;
     display: flex; 
     gap: 0.75rem; 
     overflow-x: auto; 
-    height: 0; /* 初始隱藏 */
+    height: 0;
     opacity: 0; 
     padding: 0; 
     transition: all var(--transition-fast); 
     -ms-overflow-style: none; 
     scrollbar-width: none;
-    flex-shrink: 0; /* 不壓縮 */
+    flex-shrink: 0;
 }
-.restaurant-preview-list.hidden { display: none; } /* 確保隱藏時不佔空間 */
+.restaurant-preview-list.hidden { display: none; }
 .restaurant-preview-list::-webkit-scrollbar { display: none; }
 .restaurant-preview-list.visible { 
-    height: 90px; /* 顯示時的高度 */
+    height: 90px;
     opacity: 1; 
     padding: 0.5rem 0 1rem calc(1.5rem + var(--safe-area-inset-left));
 }
 
 .restaurant-preview-card { 
-    flex: 0 0 180px; /* 縮小卡片寬度 */
+    flex: 0 0 180px;
     background-color: white; 
     border: 1px solid var(--border-color); 
     border-radius: 12px; 
@@ -150,69 +146,78 @@
 }
 .restaurant-preview-card h5 { 
     font-family: var(--font-serif); 
-    font-size: 1rem; /* 縮小字體 */
+    font-size: 1rem;
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
 }
-.restaurant-preview-card p { font-size: 0.8rem; color: var(--text-light); } /* 縮小字體 */
+.restaurant-preview-card p { font-size: 0.8rem; color: var(--text-light); }
 
-/* *** 修改：主要頁尾獨立定位，確保在最底部 *** */
 .page#categories-page .page-footer#main-footer {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 10; /* 在抽屜上方 */
-    padding-top: 1rem; /* 增加頂部 padding */
+    z-index: 10;
+    padding-top: 1rem;
     border-top: 1px solid var(--border-color);
-    background: linear-gradient(to top, rgba(248, 245, 242, 0.95) 70%, transparent); /* 漸層背景 */
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.95) 70%, transparent);
     margin: 0;
     display: flex;
     justify-content: center;
+    transition: visibility 0.3s;
 }
 
 #show-candidates-footer-btn {
-    width: calc(100% - 3rem - var(--safe-area-inset-left) - var(--safe-area-inset-right)); /* 讓按鈕寬度適應 */
+    width: calc(100% - 3rem - var(--safe-area-inset-left) - var(--safe-area-inset-right));
 }
 
 /* --- 調整範圍模式 --- */
 .edit-mode-controls {
     position: absolute;
-    top: 0; /* 從頂部覆蓋 */
+    top: 0;
     left: 0;
     right: 0;
-    bottom: 0; /* 覆蓋整個頁面 */
+    bottom: 0;
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    background-color: rgba(248, 245, 242, 0.95); /* 半透明背景覆蓋地圖 */
+    background-color: transparent;
+    pointer-events: none;
     transform: translateY(100%);
     transition: all var(--transition-slow);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    /* *** 修改：改為 flex-end，讓內容靠下 *** */
+    justify-content: flex-end; 
 }
+.edit-mode-controls > * {
+    pointer-events: auto;
+}
+.edit-mode-controls .edit-mode-spacer {
+    flex-grow: 1;
+}
+
 .edit-mode-controls.visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
+
 .edit-mode-hint {
-    background: transparent; /* 不再需要額外背景 */
-    padding-top: calc(2rem + var(--safe-area-inset-top)); /* 考慮安全區 */
-    padding-bottom: 0.5rem;
+    /* *** 修改：重新設計 hint 樣式 *** */
+    padding: 1rem;
     text-align: center;
     color: var(--text-dark);
     font-style: italic;
-    border-top: none;
+    background: var(--bg-color);
 }
 .edit-mode-footer {
     display: flex;
     gap: 1rem;
-    background-color: var(--bg-color);
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
+    background: var(--bg-color); /* *** 修改：改為實心背景 *** */
+    padding-top: 0; /* *** 修改：移除上方 padding *** */
+    border-top: 1px solid var(--border-color); /* *** 修改：加上分隔線 *** */
 }
 .edit-mode-footer .btn-secondary {
     flex-grow: 1;

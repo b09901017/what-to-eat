@@ -65,14 +65,17 @@ export const DOMElements = {
     filterBtn: document.getElementById('filter-btn'),
     resetViewBtn: document.getElementById('reset-view-btn'),
     resizeRadiusBtn: document.getElementById('resize-radius-btn'),
-    returnToCenterBtn: document.getElementById('return-to-center-btn'), // *** 修正：補上此行 ***
+    returnToCenterBtn: document.getElementById('return-to-center-btn'),
     filterPanel: document.getElementById('filter-panel'),
     closeFilterBtn: document.getElementById('close-filter-btn'),
     openNowToggle: document.getElementById('open-now-toggle'),
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
     
-    categoryListContainer: document.querySelector('.category-list-container'),
+    // *** 新增：取得 header 和 bottom drawer 的參照 ***
+    pageHeaderCondensed: document.querySelector('.page-header-condensed'),
+    mapBottomDrawer: document.querySelector('.map-bottom-drawer'),
+
     floatingActionHub: document.getElementById('floating-action-hub'),
     hubToggleBtn: document.getElementById('hub-toggle-btn'),
     hubItemList: document.getElementById('hub-item-list'),
