@@ -1,4 +1,5 @@
 // 處理 API 請求
+import { API_BASE_URL } from './config.js';
 
 /**
  * 根據經緯度和半徑搜尋附近的餐廳
@@ -9,7 +10,7 @@
  */
 export async function findPlaces(lat, lon, radius) {
     try {
-        const response = await fetch('/api/find_places', {
+        const response = await fetch(`${API_BASE_URL}/api/find_places`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lat, lon, radius })
@@ -35,7 +36,7 @@ export async function findPlaces(lat, lon, radius) {
  */
 export async function categorizePlaces(restaurants) {
     try {
-        const response = await fetch('/api/categorize_places', {
+        const response = await fetch(`${API_BASE_URL}/api/categorize_places`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(restaurants)
@@ -62,7 +63,7 @@ export async function categorizePlaces(restaurants) {
  */
 export async function geocodeLocation(query) {
     try {
-        const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`${API_BASE_URL}/api/geocode?q=${encodeURIComponent(query)}`);
         
         if (!response.ok) {
             const errorData = await response.json();

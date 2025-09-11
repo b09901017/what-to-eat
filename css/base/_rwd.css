@@ -1,0 +1,122 @@
+/* --- RWD 與 App 環境適應 --- */
+
+:root {
+    /* 定義安全區域變數，若瀏覽器不支援 env() 則預設為 0px
+      這對於 Capacitor/Cordova 封裝後的 App 至關重要，避免內容被瀏海或底部 Home Bar 遮擋 
+    */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+
+    /* 使用 clamp() 實現流暢的字體大小縮放
+      - 最小值: 14px
+      - 理想值: 4vw (根據視窗寬度變化)
+      - 最大值: 16px
+    */
+    font-size: clamp(14px, 4vw, 16px);
+}
+
+.app-container {
+    /* 確保容器在桌面瀏覽器中保持圓角，但在真實裝置上填滿螢幕 */
+    border-radius: 40px;
+}
+
+/* --- 頁面佈局的安全區域適應 --- */
+
+.page {
+    /* 應用安全區域作為 padding，確保頁面內容不會被系統 UI 遮擋 */
+    padding-top: calc(2rem + var(--safe-area-inset-top));
+    padding-left: calc(1.5rem + var(--safe-area-inset-left));
+    padding-right: calc(1.5rem + var(--safe-area-inset-right));
+    padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* 對於沒有預設 padding 的頁面，也需要應用安全區域 */
+.page#categories-page, .page#map-page {
+    padding: 0;
+}
+.page#map-page .map-ui-overlay {
+    padding-top: calc(2rem + var(--safe-area-inset-top));
+    padding-left: calc(1.5rem + var(--safe-area-inset-left));
+    padding-right: calc(1.5rem + var(--safe-area-inset-right));
+    padding-bottom: calc(1.5rem + var(--safe-area-inset-bottom));
+}
+
+.page-footer {
+    padding-bottom: calc(1.5rem + var(--safe-area-inset-bottom));
+}
+
+#categories-page .page-footer#main-footer {
+    padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
+}
+
+#edit-mode-controls .edit-mode-footer {
+    padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.details-header {
+    padding-top: calc(1.5rem + var(--safe-area-inset-top));
+}
+.details-header .back-btn {
+    top: calc(1.5rem + var(--safe-area-inset-top));
+    left: calc(1.5rem + var(--safe-area-inset-left));
+}
+.details-content {
+    padding-bottom: calc(2rem + var(--safe-area-inset-bottom));
+}
+
+/* --- 元件的安全區域適應 --- */
+
+.location-search-container {
+    /* 確保搜尋列與頂部安全區域保持距離 */
+    top: calc(140px + var(--safe-area-inset-top));
+}
+.location-search-container.in-edit-mode {
+    top: calc(40px + var(--safe-area-inset-top));
+}
+
+.category-list-container {
+    /* 確保底部控制項在 Home Bar 上方 */
+    bottom: calc(80px + var(--safe-area-inset-bottom));
+}
+
+.recenter-btn {
+    bottom: calc(120px + var(--safe-area-inset-bottom));
+    right: calc(20px + var(--safe-area-inset-right));
+}
+
+.radius-label {
+    bottom: calc(135px + var(--safe-area-inset-bottom));
+}
+
+
+/* --- Media Queries for smaller devices --- */
+@media (max-width: 360px) {
+    :root {
+        font-size: 13.5px; /* 在非常窄的螢幕上稍微縮小基礎字體 */
+    }
+
+    .page {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .filter-buttons button {
+        padding: 0.4rem 0.8rem;
+    }
+
+    .wheel-main-content {
+        padding-bottom: 1rem;
+    }
+}
+
+/* 在非行動裝置 (桌面) 環境中，模擬手機外觀 */
+@media (min-width: 415px) {
+    .app-container {
+        height: 80vh; /* 使用 vh 讓高度也能響應 */
+        max-height: 896px; /* 限制最大高度 */
+        border: 10px solid #1a1a1a;
+        box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+    }
+}

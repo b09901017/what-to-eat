@@ -1,4 +1,10 @@
 /* --- 基礎樣式 --- */
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
 body { 
     font-family: var(--font-sans); 
     background-color: #333; 
@@ -6,8 +12,6 @@ body {
     display: flex; 
     justify-content: center; 
     align-items: center; 
-    min-height: 100vh; 
-    overflow: hidden; 
     -webkit-font-smoothing: antialiased; 
     -moz-osx-font-smoothing: grayscale; 
 }
@@ -20,11 +24,9 @@ body {
 .app-container { 
     width: 100%; 
     max-width: 414px; 
-    height: 100vh; 
-    max-height: 896px; 
+    height: 100%; /* *** 修改 *** */
     position: relative; 
     background-color: var(--bg-color); 
-    border-radius: 40px; 
     box-shadow: 0 0 40px rgba(0,0,0,0.3); 
     overflow: hidden; 
 }

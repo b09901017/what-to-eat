@@ -10,8 +10,10 @@
 
 .wheel-assembly { 
     position: relative; 
-    width: 320px; 
-    height: 320px; 
+    width: 80vw;  /* *** 修改 *** */
+    height: 80vw; /* *** 修改 *** */
+    max-width: 320px; /* *** 新增 *** */
+    max-height: 320px; /* *** 新增 *** */
     display: flex; 
     justify-content: center; 
     align-items: center; 

@@ -4,6 +4,7 @@
 @import url('./base/_variables.css');
 @import url('./base/_reset.css');
 @import url('./base/_base.css');
+@import url('./base/_rwd.css'); /* *** 新增 *** */
 
 /* 2. Components: 會在多個頁面重複使用的元件 */
 @import url('./components/_page_layout.css');
@@ -12,7 +13,7 @@
 @import url('./components/_map_elements.css');
 @import url('./components/_overlays.css');
 @import url('./components/_floating_hub.css');
-@import url('./components/_search_location.css'); /* *** 新增 *** */
+@import url('./components/_search_location.css');
 
 /* 3. Pages: 特定頁面的專屬樣式 */
 @import url('./pages/_splash.css');

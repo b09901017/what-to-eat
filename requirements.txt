@@ -4,3 +4,4 @@ googlemaps
 google-generativeai
 python-dotenv
 geopy
+gunicorn
