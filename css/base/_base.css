@@ -3,6 +3,7 @@ html, body {
     height: 100%;
     width: 100%;
     overflow: hidden;
+    margin: 0; /* 確保沒有預設邊距 */
 }
 
 body { 
@@ -21,12 +22,13 @@ body {
     font-weight: 600; 
 }
 
+/* *** 修改：移除模擬器樣式，確保滿版沉浸式體驗 *** */
 .app-container { 
-    width: 100%; 
-    max-width: 414px; 
-    height: 100%; /* *** 修改 *** */
+    width: 100vw; /* 滿版 */
+    height: 100vh; /* 滿版 */
     position: relative; 
     background-color: var(--bg-color); 
-    box-shadow: 0 0 40px rgba(0,0,0,0.3); 
     overflow: hidden; 
+    border-radius: 0; /* 移除圓角 */
+    box-shadow: none; /* 移除陰影 */
 }

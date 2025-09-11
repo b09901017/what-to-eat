@@ -1,4 +1,4 @@
-/* --- RWD 與 App 環境適應 --- */
+/* --- RWD 與 App 環境適應 (針對全螢幕沉浸式體驗重寫) --- */
 
 :root {
     /* 定義安全區域變數，若瀏覽器不支援 env() 則預設為 0px */
@@ -7,46 +7,54 @@
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
-    /* 流暢的字體大小縮放 */
-    font-size: clamp(14px, 4vw, 16px);
+    /* 流暢的字體大小縮放，更適合全螢幕 */
+    font-size: clamp(15px, 3.8vw, 17px);
 }
 
+/* 確保 App 容器在任何尺寸下都是全螢幕，沒有邊框和陰影 */
 .app-container {
-    border-radius: 40px;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: none; /* 移除最大寬度限制 */
+    max-height: none; /* 移除最大高度限制 */
 }
 
 /* --- 頁面佈局的安全區域適應 --- */
 
 .page {
-    /* 預設頁面的 padding 適應安全區域 */
+    /* 預設頁面的 padding 適應安全區域，保持內容不被遮擋 */
     padding-top: calc(2rem + var(--safe-area-inset-top));
     padding-left: calc(1.5rem + var(--safe-area-inset-left));
     padding-right: calc(1.5rem + var(--safe-area-inset-right));
-    padding-bottom: var(--safe-area-inset-bottom);
+    padding-bottom: calc(1.5rem + var(--safe-area-inset-bottom));
 }
 
+/* 地圖相關頁面完全由其內部 overlay 控制 padding */
 .page#map-page, .page#categories-page {
     padding: 0;
 }
 
-/* *** 新增/修改：地圖 UI 覆蓋層的安全區域 *** */
+/* *** 修改：map-ui-overlay 的 padding 重新定義 *** */
 .page .map-ui-overlay {
-    padding-top: calc(1rem + var(--safe-area-inset-top));
-    padding-left: calc(1.5rem + var(--safe-area-inset-left));
-    padding-right: calc(1.5rem + var(--safe-area-inset-right));
-    padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
+    /* 頂部留更多空間給系統狀態列和標題，底部留給 Home Bar 和控制項 */
+    padding-top: var(--safe-area-inset-top);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+    padding-bottom: var(--safe-area-inset-bottom);
 }
 
+/* 針對特定頁面的 footer 安全區域 */
 .page-footer {
-    padding-bottom: calc(1.5rem + var(--safe-area-inset-bottom));
-}
-#categories-page .page-footer#main-footer,
-#map-page .page-footer {
-    padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
+    padding-bottom: var(--safe-area-inset-bottom); /* 讓 footer 直接貼齊底部 */
 }
 
+/* 分類頁和地圖頁的 footer 也要考慮安全區域 */
+#categories-page .page-footer#main-footer,
+#map-page .page-footer,
 #edit-mode-controls .edit-mode-footer {
     padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
+    padding-left: calc(1.5rem + var(--safe-area-inset-left));
+    padding-right: calc(1.5rem + var(--safe-area-inset-right));
 }
 
 /* --- 細節/詳情頁 --- */
@@ -60,39 +68,34 @@
 
 /* --- 元件的安全區域適應 --- */
 
+/* 確保定位搜尋列不會被頂部遮擋 */
 #map-page .location-search-container {
-    top: calc(100px + var(--safe-area-inset-top));
+    top: calc(80px + var(--safe-area-inset-top));
+    left: calc(1.5rem + var(--safe-area-inset-left));
+    right: calc(1.5rem + var(--safe-area-inset-right));
 }
 #categories-page .location-search-container.in-edit-mode {
     top: calc(40px + var(--safe-area-inset-top));
+    left: calc(1.5rem + var(--safe-area-inset-left));
+    right: calc(1.5rem + var(--safe-area-inset-right));
 }
 
-/* 確保篩選面板在安全區域內 */
+/* 篩選面板從頂部下滑，需要考慮安全區域 */
 #filter-panel {
     top: calc(1.5rem + var(--safe-area-inset-top));
 }
 
-
-/* --- Media Queries for smaller devices --- */
+/* --- 微小裝置的字體調整 --- */
 @media (max-width: 360px) {
     :root {
-        font-size: 13.5px;
+        font-size: 14px; /* 在非常窄的螢幕上稍微縮小基礎字體 */
     }
     .page, .map-ui-overlay {
         padding-left: 1rem;
         padding-right: 1rem;
     }
-    .filter-buttons button {
-        padding: 0.4rem 0.8rem;
-    }
-}
-
-/* 在非行動裝置 (桌面) 環境中，模擬手機外觀 */
-@media (min-width: 415px) {
-    .app-container {
-        height: 80vh;
-        max-height: 896px;
-        border: 10px solid #1a1a1a;
-        box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+    /* 調整 hub-toggle-btn 的位置，避免太靠近邊緣 */
+    .floating-action-hub {
+        right: calc(0.5rem + var(--safe-area-inset-right));
     }
 }

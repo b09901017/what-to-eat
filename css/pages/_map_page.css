@@ -2,6 +2,15 @@
 
 .page#map-page .map-ui-overlay {
     pointer-events: none;
+    position: absolute; /* 覆蓋整個地圖 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 讓 header 和 footer 兩端對齊 */
 }
 .page#map-page .map-ui-overlay > * {
     pointer-events: auto;
@@ -10,21 +19,26 @@
 .page#map-page .page-header {
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
     text-align: center;
-    padding: 1rem; /* 簡化 padding */
-    margin: 0; /* 移除負 margin */
+    padding: 1rem calc(1.5rem + var(--safe-area-inset-right)) 0.5rem calc(1.5rem + var(--safe-area-inset-left));
+    margin: 0;
+    z-index: 10; /* 確保在其他元素上方 */
 }
 
-/* *** 新增：包裹底部按鈕和半徑標籤的容器 *** */
-.map-controls-bottom {
+/* *** 修改：浮動控制項容器，定位在右下角 *** */
+.map-floating-controls {
+    position: absolute;
+    bottom: calc(90px + var(--safe-area-inset-bottom)); /* 距離底部按鈕一段距離 */
+    right: calc(1.5rem + var(--safe-area-inset-right));
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    align-items: flex-end; /* 讓內部元素靠右 */
+    gap: 0.75rem; /* 增加間距 */
+    z-index: 10;
 }
 
+/* *** 修改：Re-center 按鈕重新定位回右下角 *** */
 .recenter-btn {
-    position: static; /* *** 移除絕對定位 *** */
+    position: static; /* 讓它在 flex 容器內正常流動 */
     width: 50px;
     height: 50px;
     background-color: white;
@@ -47,14 +61,14 @@
     height: 24px;
 }
 
+/* *** 修改：Radius Label 樣式，精巧浮動 *** */
 .radius-label {
-    position: static; /* *** 移除絕對定位 *** */
-    transform: none; /* *** 移除 transform *** */
+    position: static; /* 讓它在 flex 容器內正常流動 */
     background-color: rgba(66, 66, 66, 0.8);
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem; /* 縮小 padding */
     border-radius: 20px;
     font-family: var(--font-serif);
-    font-size: 1.2rem;
+    font-size: 1rem; /* 縮小字體 */
     color: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     opacity: 0;
@@ -66,11 +80,18 @@
     visibility: visible;
 }
 
+/* *** 修改：頁尾按鈕固定在底部，帶有漸層背景 *** */
 .page#map-page .page-footer {
-    background: linear-gradient(to top, rgba(248, 245, 242, 0.9) 70%, transparent);
-    padding: 1.5rem 0 0 0; /* 簡化 padding */
-    margin: 0; /* 移除負 margin */
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.95) 70%, transparent);
+    padding-top: 1rem; /* 增加頂部 padding */
+    margin: 0;
     width: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+}
+#confirm-radius-btn {
+    width: calc(100% - 3rem - var(--safe-area-inset-left) - var(--safe-area-inset-right)); /* 讓按鈕寬度適應 */
 }
 
 /* --- 可拖曳的中心點樣式 --- */

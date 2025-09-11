@@ -1,57 +1,177 @@
-/* --- 美食地圖頁面 (沉浸式重構) --- */
+/* --- 美食地圖頁面 (沉浸式重構與底部抽屜 UI) --- */
 
-/* *** 修改：改為 map-ui-overlay 控制佈局 *** */
 #categories-page .map-ui-overlay {
     display: flex;
     flex-direction: column;
     pointer-events: none; /* 允許點擊穿透到地圖 */
+    position: absolute; /* 讓 overlay 覆蓋整個地圖 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5; /* 確保在地圖上方 */
 }
 #categories-page .map-ui-overlay > * {
     pointer-events: auto; /* 恢復子元素的點擊 */
 }
 
-.page-header-condensed { 
-    padding: 1rem;
+/* *** 修改：Header 浮動在頂部，帶有半透明背景 *** */
+.page-header-condensed {
+    position: absolute;
+    top: var(--safe-area-inset-top);
+    left: 0;
+    right: 0;
+    padding: 1rem calc(1.5rem + var(--safe-area-inset-right)) 0.5rem calc(1.5rem + var(--safe-area-inset-left));
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
     text-align: left;
+    z-index: 10; /* 確保在 Hub 上方 */
 }
 .page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
 
-/* *** 新增：包裹 Hub 和下方列表的容器 *** */
-.bottom-controls-container {
-    margin-top: auto; /* 將其推至底部 */
-    width: 100%;
+
+/* *** 新增/修改：浮動操作按鈕 Hub 獨立定位 *** */
+.floating-action-hub {
+    position: absolute;
+    right: calc(1.5rem + var(--safe-area-inset-right));
+    bottom: calc(150px + var(--safe-area-inset-bottom)); /* 避免與底部抽屜重疊 */
     display: flex;
     flex-direction: column;
-    align-items: flex-end; /* 讓 Hub 靠右 */
-    padding-top: 1rem;
-    background: linear-gradient(to top, var(--bg-color) 70%, transparent);
+    align-items: flex-end;
+    gap: 0.75rem;
+    z-index: 10;
     transition: all var(--transition-slow);
 }
-.bottom-controls-container.hidden-for-edit {
+.floating-action-hub.hidden-for-edit {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(100%);
+    transform: translateX(100%);
+}
+#hub-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background-color: var(--bg-color);
+    padding: 0.75rem;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8) translateY(10px);
+    transform-origin: bottom right;
+    transition: all var(--transition-fast);
+}
+#hub-item-list.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+.hub-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.hub-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+.hub-action-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+.hub-action-btn:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.05);
+}
+.hub-action-btn svg {
+    width: 22px;
+    height: 22px;
+}
+.hub-toggle-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-top: 1rem;
+}
+.hub-toggle-btn.active {
+    transform: rotate(45deg);
+}
+.hub-toggle-btn:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.05);
+}
+.hub-toggle-btn svg {
+    width: 24px;
+    height: 24px;
 }
 
-.category-list { 
-    width: 100%; /* *** 新增 *** */
+/* *** 新增：底部抽屜容器 (包含類別和預覽列表) *** */
+.map-bottom-drawer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 8; /* 在 footer 上方，但在 edit-mode-controls 下方 */
+    background: var(--bg-color);
+    max-height: 45%; /* 限制抽屜最大高度 */
+    overflow-y: auto; /* 允許滾動 */
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+    transform: translateY(100%); /* 初始隱藏在底部 */
+    transition: transform 0.3s ease-out;
+    padding-bottom: var(--safe-area-inset-bottom); /* 考慮安全區 */
+    display: flex; /* 讓其內容垂直堆疊 */
+    flex-direction: column;
+    padding-top: 1rem;
+    padding-left: calc(1.5rem + var(--safe-area-inset-left));
+    padding-right: calc(1.5rem + var(--safe-area-inset-right));
+}
+.map-bottom-drawer.visible {
+    transform: translateY(0); /* 顯示時滑出 */
+}
+
+/* *** 修改：類別列表樣式，更小巧且一目了然 *** */
+.category-list {
+    width: 100%;
     display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(2, auto);
-    gap: 0.75rem;
-    overflow-x: auto;
-    padding: 0 0 1rem 0; /* *** 修改 *** */
-    height: 120px;
+    /* 自動調整行數，每行高度最小 20px，最大 1fr，讓分類項目更密集 */
+    grid-auto-flow: column; /* 讓項目水平排列 */
+    grid-template-rows: repeat(auto-fit, minmax(20px, 1fr)); /* 讓分類項目更小巧 */
+    gap: 0.5rem; /* 縮小間距 */
+    overflow-x: auto; /* 允許水平滾動 */
+    padding: 0.5rem 0 0.5rem 0; /* 調整 padding */
+    max-height: 120px; /* 限制分類列表的最大高度 */
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
 .category-list::-webkit-scrollbar { display: none; }
 
 .category-list-item { 
-    padding: 0.75rem 1.5rem; 
-    border-radius: 30px; 
+    padding: 0.5rem 1rem; /* 縮小 padding */
+    border-radius: 20px; /* 調整圓角 */
+    font-size: 0.9rem; /* 縮小字體 */
+    /* ... 其他樣式保持不變 ... */
     background: white; 
     border: 1px solid var(--border-color); 
     cursor: pointer; 
@@ -81,28 +201,30 @@
     padding: 1rem; 
 }
 
+/* *** 修改：預覽列表樣式，更精簡 *** */
 .restaurant-preview-list { 
-    width: 100%; /* *** 新增 *** */
+    width: 100%;
     display: flex; 
     gap: 0.75rem; 
     overflow-x: auto; 
-    height: 0; 
+    height: 0; /* 初始隱藏 */
     opacity: 0; 
     padding: 0; 
     transition: all var(--transition-fast); 
     -ms-overflow-style: none; 
     scrollbar-width: none;
+    flex-shrink: 0; /* 不壓縮 */
 }
-.restaurant-preview-list.hidden { display: none; }
+.restaurant-preview-list.hidden { display: none; } /* 確保隱藏時不佔空間 */
 .restaurant-preview-list::-webkit-scrollbar { display: none; }
 .restaurant-preview-list.visible { 
-    height: 90px; 
+    height: 90px; /* 顯示時的高度 */
     opacity: 1; 
-    padding: 0.5rem 0 1rem 0; 
+    padding: 0.5rem 0 1rem 0; /* 調整 padding */
 }
 
 .restaurant-preview-card { 
-    flex: 0 0 200px; 
+    flex: 0 0 180px; /* 縮小卡片寬度 */
     background-color: white; 
     border: 1px solid var(--border-color); 
     border-radius: 12px; 
@@ -116,61 +238,48 @@
 }
 .restaurant-preview-card h5 { 
     font-family: var(--font-serif); 
-    font-size: 1.1rem; 
+    font-size: 1rem; /* 縮小字體 */
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
 }
-.restaurant-preview-card p { font-size: 0.9rem; color: var(--text-light); }
+.restaurant-preview-card p { font-size: 0.8rem; color: var(--text-light); } /* 縮小字體 */
 
+/* *** 修改：主要頁尾獨立定位，確保在最底部 *** */
 .page#categories-page .page-footer#main-footer {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
-    padding: 1rem 1.5rem;
+    z-index: 10; /* 在抽屜上方 */
+    padding-top: 1rem; /* 增加頂部 padding */
     border-top: 1px solid var(--border-color);
-    background: var(--bg-color);
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.95) 70%, transparent); /* 漸層背景 */
     margin: 0;
-}
-
-#show-candidates-footer-btn .wheel-count-badge {
-    display: inline-flex;
-    align-items: center;
+    display: flex;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 0.1rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-left: 0.5rem;
-    transition: all var(--transition-fast);
-    transform: scale(0);
-    opacity: 0;
-    position: static;
-    border: none;
-    width: auto;
-    height: auto;
 }
 
-#show-candidates-footer-btn .wheel-count-badge.visible {
-    transform: scale(1);
-    opacity: 1;
+#show-candidates-footer-btn {
+    width: calc(100% - 3rem - var(--safe-area-inset-left) - var(--safe-area-inset-right)); /* 讓按鈕寬度適應 */
 }
 
 /* --- 調整範圍模式 --- */
 .edit-mode-controls {
     position: absolute;
-    bottom: 0;
+    top: 0; /* 從頂部覆蓋 */
     left: 0;
     right: 0;
+    bottom: 0; /* 覆蓋整個頁面 */
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
+    background-color: rgba(248, 245, 242, 0.95); /* 半透明背景覆蓋地圖 */
     transform: translateY(100%);
     transition: all var(--transition-slow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 .edit-mode-controls.visible {
     opacity: 1;
@@ -178,18 +287,20 @@
     transform: translateY(0);
 }
 .edit-mode-hint {
-    background: var(--bg-color);
-    padding: 1rem 1.5rem 0.5rem;
+    background: transparent; /* 不再需要額外背景 */
+    padding-top: calc(2rem + var(--safe-area-inset-top)); /* 考慮安全區 */
+    padding-bottom: 0.5rem;
     text-align: center;
-    color: var(--text-light);
+    color: var(--text-dark);
     font-style: italic;
-    border-top: 1px solid var(--border-color);
+    border-top: none;
 }
 .edit-mode-footer {
     display: flex;
     gap: 1rem;
     background-color: var(--bg-color);
-    padding: 0 1.5rem; /* *** 新增 *** */
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
 }
 .edit-mode-footer .btn-secondary {
     flex-grow: 1;

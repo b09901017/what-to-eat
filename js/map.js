@@ -158,7 +158,8 @@ export function getEditorState(mapKey) {
 export function initRadiusMap(location, radius, onRadiusChange) {
     const mapKey = 'radius';
     if (!mapInstances[mapKey]) {
-        mapInstances[mapKey] = L.map(DOMElements.radiusMap, { zoomControl: false }).setView([location.lat, location.lon], 15);
+        // *** 修改：將 zoom 等級從 15 改為 13，讓初始地圖範圍更大 ***
+        mapInstances[mapKey] = L.map(DOMElements.radiusMap, { zoomControl: false }).setView([location.lat, location.lon], 13);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { 
             maxZoom: 20,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -192,7 +193,8 @@ export function setRadiusMapCenter(mapKey, location) {
 export function recenterRadiusMap(mapKey, location) {
     const map = mapInstances[mapKey];
     if (map && location) {
-        map.flyTo([location.lat, location.lon], 15, { duration: 1.0 });
+        // *** 修改：回到中心時也使用較大的 zoom 等級 ***
+        map.flyTo([location.lat, location.lon], 13, { duration: 1.0 });
         
         setTimeout(() => {
             const editorState = getEditorState(mapKey);
