@@ -2,7 +2,7 @@
 
 import { state, DOMElements } from './state.js';
 import { getUserLocation, applyFiltersAndRender } from './handlers.js';
-import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter, flyToCoords, getEditorState, mapInstances, clearWinnerMarker } from './map.js';
+import { initCategoriesMap, updateMapMarkers, fitBoundsToSearchRadius, destroyRadiusMap, drawRadiusEditor, removeRadiusEditor, setRadiusMapCenter, getEditorState, mapInstances, clearWinnerMarker } from './map.js';
 import { renderWheel, hideResult as hideWheelResult } from './wheel.js';
 import { renderDetailsPage } from './details.js';
 import { hideCandidateList } from './candidate.js';
@@ -114,23 +114,10 @@ export function initCategoriesMapAndRender(filteredData) {
     initCategoriesMap(); 
     updateMapMarkers(filteredData, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
     
-    const isFocusMode = state.focusedCategories.size > 0;
-
-    if (isFocusMode && state.activeCategory && filteredData[state.activeCategory]) {
-        const coordsOfActiveCategory = filteredData[state.activeCategory].map(r => [r.lat, r.lon]);
-        flyToCoords(coordsOfActiveCategory);
-    } else {
-        const coordsToFit = [];
-        const categoriesToConsider = isFocusMode ? state.focusedCategories : Object.keys(filteredData);
-        
-        for (const category of categoriesToConsider) {
-            if (filteredData[category]) {
-                filteredData[category].forEach(r => coordsToFit.push([r.lat, r.lon]));
-            }
-        }
-        
-        if (state.searchCenter) { coordsToFit.push([state.searchCenter.lat, state.searchCenter.lon]); }
-        if (coordsToFit.length > 0) { fitMapToBounds(coordsToFit, { paddingTopLeft: [20, 100], paddingBottomRight: [20, 200] }); }
+    // *** 新增 ***: 如果是首次載入，則將地圖視野縮放至探索圈範圍
+    if (state.isInitialMapView) {
+        fitBoundsToSearchRadius();
+        state.isInitialMapView = false; // 重設旗標，避免後續操作觸發
     }
 
     renderCategories(filteredData);
@@ -140,6 +127,7 @@ export function initCategoriesMapAndRender(filteredData) {
         mapBottomDrawer.classList.add('visible');
     }
 
+    const isFocusMode = state.focusedCategories.size > 0;
     DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
     
     if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {

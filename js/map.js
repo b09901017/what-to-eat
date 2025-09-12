@@ -53,28 +53,6 @@ function destinationPoint(lat, lon, distance, bearing) {
     return L.latLng(newLatRad * 180 / Math.PI, newLonRad * 180 / Math.PI);
 }
 
-/**
- * --- 修正：更正視覺中心計算邏輯 ---
- * 根據目標經緯度，計算出一個新的經緯度，當地圖以此為中心時，目標點會落在畫面上方 1/4 處。
- * @param {L.LatLng} targetLatLng - 目標點的經緯度物件
- * @param {L.Map} map - Leaflet 地圖實例
- * @returns {L.LatLng} - 計算後的地圖中心經緯度
- */
-function getVisualCenterLatLng(targetLatLng, map) {
-    const mapSize = map.getSize();
-    const targetPoint = map.project(targetLatLng); 
-    
-    const yOffset = mapSize.y / 4; 
-    
-    // *** 修正：將減法改為加法，才能將地圖中心下移，讓目標點出現在上半部 ***
-    const newCenterPoint = L.point(targetPoint.x, targetPoint.y + yOffset); 
-    
-    const newCenterLatLng = map.unproject(newCenterPoint);
-    
-    return newCenterLatLng;
-}
-
-
 // --- Radius Editor Logic (Reusable) ---
 
 export function drawRadiusEditor(mapKey, location, radius, onRadiusChange) {
@@ -291,56 +269,50 @@ export function clearWinnerMarker() {
     }
 }
 
-
-export function fitMapToBounds(coords, paddingOptions) {
+/**
+ * *** 已修正 ***: 動態計算 UI 遮擋區域，精準縮放至可視範圍
+ */
+export function fitBoundsToSearchRadius() {
     const map = mapInstances.categories;
-    if (map && coords.length > 0) {
-        const defaultPadding = { paddingTopLeft: [20, 20], paddingBottomRight: [20, 20] };
-        map.fitBounds(coords, { ...defaultPadding, ...paddingOptions });
-    }
-}
+    const center = state.searchCenter;
+    const radius = state.searchRadiusMeters;
 
-export function flyToCoords(coords) {
-    const map = mapInstances.categories;
-    if (!map || coords.length === 0) return;
-
-    const isSinglePoint = coords.length === 1;
-
-    if (isSinglePoint) {
-        const targetLatLng = L.latLng(coords[0][0], coords[0][1]);
-        const newCenterLatLng = getVisualCenterLatLng(targetLatLng, map);
+    if (map && center && radius) {
+        // 1. 計算探索圈的地理邊界
+        const northEast = destinationPoint(center.lat, center.lon, radius, 45); // 45 度角
+        const southWest = destinationPoint(center.lat, center.lon, radius, 225); // 225 度角
+        const bounds = L.latLngBounds(northEast, southWest);
         
-        map.flyTo(newCenterLatLng, 16, { duration: 0.8 });
-    } else {
+        // 2. 動態獲取頂部和底部 UI 的實際高度
+        const topUIHeight = DOMElements.pageHeaderCondensed?.offsetHeight || 80;
+        const bottomUIHeight = DOMElements.mapBottomDrawer?.offsetHeight || 200;
+        
+        // 3. 設定 Padding，[左右, 上下]
         const paddingOptions = { 
-            paddingTopLeft: [20, 100], 
-            paddingBottomRight: [20, 300] 
+            paddingTopLeft: [20, topUIHeight + 20],      // 頂部 padding
+            paddingBottomRight: [20, bottomUIHeight + 20] // 底部 padding
         };
-        map.flyToBounds(coords, { ...paddingOptions, duration: 0.8 });
+        
+        // 4. 執行飛越動畫
+        map.flyToBounds(bounds, { ...paddingOptions, duration: 1.0, maxZoom: 16 });
     }
 }
+
 
 export function flyToMarker(name) {
     const map = mapInstances.categories;
     const marker = restaurantMarkers[name];
     if (marker && map) {
-        const targetLatLng = marker.getLatLng();
+        // *** 已移除 ***: 移除 map.flyTo(...) 來防止地圖自動移動
         
-        const newCenterLatLng = getVisualCenterLatLng(targetLatLng, map);
-
-        map.flyTo(newCenterLatLng, map.getZoom(), {
-            duration: 0.5
-        });
-
-        setTimeout(() => {
-            marker.openPopup();
-            if (marker._icon) {
-                marker._icon.classList.add('marker-active');
-                setTimeout(() => {
-                    if (marker._icon) marker._icon.classList.remove('marker-active');
-                }, 800);
-            }
-        }, 500); 
+        // 直接打開 Popup 並播放動畫
+        marker.openPopup();
+        if (marker._icon) {
+            marker._icon.classList.add('marker-active');
+            setTimeout(() => {
+                if (marker._icon) marker._icon.classList.remove('marker-active');
+            }, 800);
+        }
     }
 }
 
@@ -352,9 +324,9 @@ export function startRandomMarkerAnimation(candidateNames) {
         const candidateMarkers = candidateNames.map(name => restaurantMarkers[name]).filter(Boolean);
         if (candidateMarkers.length < 2) resolve(candidateMarkers.length > 0 ? candidateNames[0] : null);
 
-        const markerBounds = L.latLngBounds(candidateMarkers.map(m => m.getLatLng()));
-        map.flyToBounds(markerBounds, { padding: [100, 100], duration: 0.5 });
-        
+        // *** 已移除 ***: 移除 map.flyToBounds(...) 來防止地圖自動縮放
+        // 動畫將在當前視野中進行
+
         const winnerIndex = Math.floor(Math.random() * candidateNames.length);
         const winnerName = candidateNames[winnerIndex];
 

@@ -4,7 +4,7 @@ import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js'; // *** 新增 flyToCoords ***
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, fitBoundsToSearchRadius } from './map.js';
 import { hideCandidateList } from './candidate.js';
 
 /**
@@ -36,6 +36,9 @@ export async function handleUITestMode() {
             priceLevel: 0,
             rating: 0,
         };
+
+        // *** 新增 ***: 重設旗標，觸發首次載入的地圖定位
+        state.isInitialMapView = true;
         
         hideLoading();
         
@@ -185,7 +188,11 @@ export async function handleConfirmRadius() {
     const { center, radius } = editorState;
     state.searchCenter = { lat: center.lat, lon: center.lng }; 
     const success = await performSearch(center, radius);
-    if (success) { navigateTo('categories-page'); applyFiltersAndRender(); }
+    if (success) { 
+        state.isInitialMapView = true; // *** 新增 ***: 重設旗標
+        navigateTo('categories-page'); 
+        applyFiltersAndRender(); 
+    }
 }
 
 /**
@@ -197,7 +204,11 @@ export async function handleConfirmRadiusReSearch() {
     const { center, radius } = editorState;
     state.searchCenter = { lat: center.lat, lon: center.lng };
     const success = await performSearch(center, radius);
-    if (success) { toggleRadiusEditMode(false, handleRadiusChange); applyFiltersAndRender(); }
+    if (success) { 
+        state.isInitialMapView = true; // *** 新增 ***: 重設旗標
+        toggleRadiusEditMode(false, handleRadiusChange); 
+        applyFiltersAndRender(); 
+    }
 }
 
 /**
@@ -208,13 +219,12 @@ export function handleRecenter() {
 }
 
 /**
- * *** 新增：處理「回到探索中心」按鈕點擊事件 ***
+ * *** 修改 ***: 處理「回到探索中心」按鈕點擊事件，使其縮放至探索圈範圍
  */
 export function handleReturnToCenter() {
-    if (state.searchCenter) {
-        flyToCoords([[state.searchCenter.lat, state.searchCenter.lon]]);
-    }
+    fitBoundsToSearchRadius();
 }
+
 
 /**
  * 開關篩選面板
@@ -258,7 +268,7 @@ export function handleFilterChange(e) {
 }
 
 /**
- * 處理點擊美食類別的互動邏輯
+ * 處理點擊美食類別的互動邏輯 (*** 已修改為單選邏輯 ***)
  * @param {Event} e - 點擊事件
  */
 export function handleCategoryInteraction(e) {
@@ -266,18 +276,20 @@ export function handleCategoryInteraction(e) {
     if (!categoryItem) return;
     const category = categoryItem.dataset.category;
 
-    if (state.focusedCategories.has(category)) {
-        state.focusedCategories.delete(category);
-        if (state.activeCategory === category) {
-            state.activeCategory = null;
-        }
+    // 如果點擊的類別已經是當前啟用的類別，則取消啟用
+    if (state.activeCategory === category) {
+        state.activeCategory = null;
+        state.focusedCategories.clear();
     } else {
-        state.focusedCategories.add(category);
+        // 否則，將其設為唯一啟用的類別
         state.activeCategory = category;
+        state.focusedCategories.clear();
+        state.focusedCategories.add(category);
     }
     
     applyFiltersAndRender();
 }
+
 
 /**
  * 處理點擊「重設檢視」按鈕的事件

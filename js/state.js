@@ -26,6 +26,7 @@ export const state = {
     isDecidingOnMap: false,
     lastWinner: null,
     isTestMode: false, // 新增：標示是否為測試模式
+    isInitialMapView: true, // 新增：用於判斷是否為首次載入美食地圖
 };
 
 export const DOMElements = {
