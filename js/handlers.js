@@ -7,6 +7,48 @@ import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewLis
 import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js'; // *** 新增 flyToCoords ***
 import { hideCandidateList } from './candidate.js';
 
+/**
+ * 新增：載入假資料並進入測試模式
+ */
+export async function handleUITestMode() {
+    try {
+        showLoading("載入測試資料中...");
+        
+        // 載入假資料
+        const response = await fetch('./fake-data.json');
+        if (!response.ok) {
+            throw new Error('無法載入測試資料');
+        }
+        const fakeData = await response.json();
+        
+        // 設定測試模式狀態
+        state.isTestMode = true;
+        state.restaurantData = fakeData;
+        state.userLocation = { lat: 25.0330, lon: 121.5654 }; // 台北市中心
+        state.searchCenter = { lat: 25.0330, lon: 121.5654 };
+        state.searchRadiusMeters = 800;
+        
+        // 重設篩選和焦點狀態
+        state.focusedCategories.clear();
+        state.activeCategory = null;
+        state.filters = {
+            openNow: true,
+            priceLevel: 0,
+            rating: 0,
+        };
+        
+        hideLoading();
+        
+        // 直接進入美食地圖頁面
+        navigateTo('categories-page');
+        applyFiltersAndRender();
+        
+    } catch (error) {
+        console.error('載入測試資料失敗:', error);
+        hideLoading();
+        alert('載入測試資料失敗，請確認 fake-data.json 檔案存在');
+    }
+}
 
 /**
  * 處理懸浮按鈕的展開與收合，並動態綁定外部點擊事件。
