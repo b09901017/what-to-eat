@@ -3,6 +3,7 @@
 #categories-page .map-ui-overlay {
     display: flex;
     flex-direction: column;
+    justify-content: flex-end; /* *** 修改 ***: 讓抽屜永遠在底部 */
     pointer-events: none; /* 預設點擊穿透 */
     position: absolute;
     top: 0;
@@ -21,33 +22,41 @@
     pointer-events: auto; /* 恢復子元素的點擊 */
 }
 
+/* --- 新增：抽屜頂部滑桿 --- */
+.drawer-handle-container {
+    padding: 0.75rem 0 0.25rem 0;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.drawer-handle {
+    width: 40px;
+    height: 5px;
+    background-color: var(--border-color);
+    border-radius: 2.5px;
+}
+
+
+/* --- 修改：標題現在是抽屜的一部分 --- */
 .page-header-condensed {
-    position: absolute;
-    top: var(--safe-area-inset-top);
-    left: 0;
-    right: 0;
-    padding: 1rem calc(1.5rem + var(--safe-area-inset-right)) 0.5rem calc(1.5rem + var(--safe-area-inset-left));
-    background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem calc(1.5rem + var(--safe-area-inset-right)) 0.5rem calc(1.5rem + var(--safe-area-inset-left));
     text-align: left;
-    z-index: 10;
+    flex-shrink: 0;
     transition: visibility 0.3s, opacity 0.3s;
 }
 .page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
 
 
+/* --- 修改：Hub 現在是標題的一部分 --- */
 .floating-action-hub {
-    position: absolute;
-    right: calc(1.5rem + var(--safe-area-inset-right));
-    bottom: calc(40% + 1rem + var(--safe-area-inset-bottom));
-    z-index: 1001;
-    transition: all var(--transition-slow);
+    position: relative;
+    flex-shrink: 0;
 }
-
-.map-bottom-drawer.expanded + .map-ui-overlay .floating-action-hub {
-    bottom: calc(52% + 1rem + var(--safe-area-inset-bottom));
-}
-
 .floating-action-hub.hidden-for-edit {
     opacity: 0;
     visibility: hidden;
@@ -56,10 +65,7 @@
 
 
 .map-bottom-drawer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: relative; /* *** 修改 *** */
     z-index: 8;
     background: var(--bg-color);
     max-height: 40%;
@@ -69,10 +75,9 @@
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     transform: translateY(100%);
     transition: transform 0.3s ease-out, visibility 0.3s, max-height 0.3s ease-out;
-    padding: 1rem 0;
     display: flex;
     flex-direction: column;
-    padding-bottom: 6rem;
+    padding-bottom: 6rem; /* *** 修改 *** */
 }
 
 .map-bottom-drawer.expanded {
