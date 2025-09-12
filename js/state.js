@@ -25,22 +25,19 @@ export const state = {
     searchTimeoutId: null,
     isDecidingOnMap: false,
     lastWinner: null,
-    isTestMode: false,
-    
-    // === 新增：雙抽屜系統狀態 ===
-    isRestaurantDrawerOpen: false,
-    restaurantDrawerDragState: {
-        isDragging: false,
-        startY: 0,
-        currentY: 0,
-        startTransform: 0
-    }
+<<<<<<< HEAD
+=======
+    isTestMode: false, // 新增：標示是否為測試模式
+>>>>>>> parent of e0cd22f (又炸)
 };
 
 export const DOMElements = {
     pages: document.querySelectorAll('.page'),
     startBtn: document.getElementById('start-btn'),
-    uiTestBtn: document.getElementById('ui-test-btn'),
+<<<<<<< HEAD
+=======
+    uiTestBtn: document.getElementById('ui-test-btn'), // 新增：UI測試按鈕
+>>>>>>> parent of e0cd22f (又炸)
     locationStatus: document.getElementById('location-status'),
     radiusMap: document.getElementById('radius-map'),
     recenterBtn: document.getElementById('recenter-btn'),
@@ -82,15 +79,9 @@ export const DOMElements = {
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
     
-    // *** 更新：雙抽屜系統 DOM 元素 ***
+    // *** 新增：取得 header 和 bottom drawer 的參照 ***
     pageHeaderCondensed: document.querySelector('.page-header-condensed'),
-    
-    // 抽屜一：美食類別抽屜（固定底部）
-    categoryDrawer: document.getElementById('category-drawer'),
-    
-    // 抽屜二：店家列表抽屜（可拖曳）
-    restaurantDrawer: document.getElementById('restaurant-drawer'),
-    restaurantDrawerHandle: document.querySelector('.restaurant-drawer-handle'),
+    mapBottomDrawer: document.querySelector('.map-bottom-drawer'),
 
     floatingActionHub: document.getElementById('floating-action-hub'),
     hubToggleBtn: document.getElementById('hub-toggle-btn'),

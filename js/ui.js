@@ -25,11 +25,6 @@ export function renderPageContent(pageId) {
                 state.isHubExpanded = false;
                 toggleHub(false);
             }
-            // *** 新增：重置雙抽屜狀態 ***
-            if (state.isRestaurantDrawerOpen) {
-                state.isRestaurantDrawerOpen = false;
-                hideRestaurantDrawer();
-            }
             clearWinnerMarker();
             hideCandidateList();
             break;
@@ -69,13 +64,11 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         editModeControls,
         locationSearchContainer,
         pageHeaderCondensed,
-        categoryDrawer,
-        restaurantDrawer
+        mapBottomDrawer
     } = DOMElements;
     
     if (pageHeaderCondensed) pageHeaderCondensed.style.visibility = isEditing ? 'hidden' : 'visible';
-    if (categoryDrawer) categoryDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
-    if (restaurantDrawer) restaurantDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
+    if (mapBottomDrawer) mapBottomDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
     if (mainFooter) mainFooter.style.visibility = isEditing ? 'hidden' : 'visible';
     
     if (floatingActionHub) floatingActionHub.classList.toggle('hidden-for-edit', isEditing);
@@ -142,8 +135,10 @@ export function initCategoriesMapAndRender(filteredData) {
 
     renderCategories(filteredData);
     
-    // *** 修改：顯示類別抽屜而不是舊的底部抽屜 ***
-    showCategoryDrawer();
+    const mapBottomDrawer = DOMElements.mapBottomDrawer;
+    if (mapBottomDrawer) {
+        mapBottomDrawer.classList.add('visible');
+    }
 
     DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
     
@@ -172,107 +167,24 @@ function renderCategories(filteredData) {
 
 export function renderRestaurantPreviewList(category, filteredData) {
     const listEl = DOMElements.restaurantPreviewList;
+    const drawerEl = DOMElements.mapBottomDrawer; // 取得抽屜元素
     listEl.innerHTML = '';
 
     if (!category || !filteredData[category] || filteredData[category].length === 0) {
+        listEl.classList.remove('visible');
+        drawerEl.classList.remove('expanded'); // *** 修改 ***: 隱藏時移除 expanded class
         return;
     }
 
     filteredData[category].forEach(restaurant => {
-    // 建立一個新的 <div> 元素作為卡片
-    const card = document.createElement('div');
-    
-    // 設定 class 和 data attribute
-    card.className = 'restaurant-preview-card';
-    card.dataset.name = restaurant.name;
-    
-    // --- 這行是修正後的地方 ---
-    // 我們在 '$' 字串上呼叫 .repeat() 方法，
-    // 讓它根據 restaurant.price_level 的數值重複出現
-    card.innerHTML = `<h5>${restaurant.name}</h5><p>⭐ ${restaurant.rating} | ${'$'.repeat(restaurant.price_level)}</p>`;
-    
-    // 將建立好的卡片加到列表元素中
-    listEl.appendChild(card);
-});
-}
-
-// === 新增：雙抽屜系統的 UI 控制函式 ===
-
-/**
- * 顯示類別抽屜（固定在底部）
- */
-export function showCategoryDrawer() {
-    DOMElements.categoryDrawer.classList.add('visible');
-}
-
-/**
- * 隱藏類別抽屜
- */
-export function hideCategoryDrawer() {
-    DOMElements.categoryDrawer.classList.remove('visible');
-}
-
-/**
- * 顯示店家抽屜並載入指定類別的店家列表
- * @param {string} category - 要顯示的美食類別
- */
-export function showRestaurantDrawer(category) {
-    if (!state.isRestaurantDrawerOpen) {
-        state.isRestaurantDrawerOpen = true;
-        DOMElements.restaurantDrawer.classList.add('visible');
-        
-        // 更新 Floating Action Hub 位置
-        DOMElements.floatingActionHub.classList.add('restaurant-drawer-open');
-    }
-    
-    // 載入店家列表
-    const filteredData = getFilteredRestaurantData();
-    renderRestaurantPreviewList(category, filteredData);
-}
-
-/**
- * 隱藏店家抽屜
- */
-export function hideRestaurantDrawer() {
-    if (state.isRestaurantDrawerOpen) {
-        state.isRestaurantDrawerOpen = false;
-        DOMElements.restaurantDrawer.classList.remove('visible');
-        
-        // 恢復 Floating Action Hub 位置
-        DOMElements.floatingActionHub.classList.remove('restaurant-drawer-open');
-        
-        // 清空店家列表
-        DOMElements.restaurantPreviewList.innerHTML = '';
-    }
-}
-
-/**
- * 獲取當前篩選後的餐廳資料
- * @returns {Object} 篩選後的餐廳資料
- */
-function getFilteredRestaurantData() {
-    const { restaurantData, filters } = state;
-    const allRestaurants = Object.values(restaurantData).flat();
-    
-    // 根據全局篩選器過濾出符合條件的餐廳名稱
-    const globallyFilteredRestaurants = allRestaurants.filter(r => {
-        const isOpen = !filters.openNow || r.hours === "營業中";
-        const isPriceMatch = filters.priceLevel === 0 || r.price_level === filters.priceLevel;
-        const isRatingMatch = filters.rating === 0 || r.rating >= filters.rating;
-        return isOpen && isPriceMatch && isRatingMatch;
+        const card = document.createElement('div');
+        card.className = 'restaurant-preview-card';
+        card.dataset.name = restaurant.name;
+        card.innerHTML = `<h5>${restaurant.name}</h5><p>⭐ ${restaurant.rating} | ${'$'.repeat(restaurant.price_level)}</p>`;
+        listEl.appendChild(card);
     });
-    const globallyFilteredNames = new Set(globallyFilteredRestaurants.map(r => r.name));
-    
-    // 建立一個只包含符合條件餐廳的新資料結構
-    const finalFilteredData = {};
-    for (const category in restaurantData) {
-        const categoryRestaurants = restaurantData[category].filter(r => globallyFilteredNames.has(r.name));
-        if (categoryRestaurants.length > 0) {
-            finalFilteredData[category] = categoryRestaurants;
-        }
-    }
-    
-    return finalFilteredData;
+    listEl.classList.add('visible');
+    drawerEl.classList.add('expanded'); // *** 修改 ***: 顯示時加上 expanded class
 }
 
 export function updateWheelCount() {
