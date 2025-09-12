@@ -17,7 +17,8 @@ import {
     handleSearchInput,
     handleSearchResultClick,
     handleRandomDecisionOnMap,
-    handleReturnToCenter, // *** 新增 ***
+    handleReturnToCenter,
+    handleUITestMode, // *** 新增 ***
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -32,6 +33,7 @@ import { updateWheelCount, hideResult } from './ui.js';
 function init() {
     // 綁定所有事件監聽器
     DOMElements.startBtn.addEventListener('click', () => navigateTo('map-page'));
+    DOMElements.startBtnTest.addEventListener('click', handleUITestMode); // *** 新增 ***
     DOMElements.confirmRadiusBtn.addEventListener('click', handleConfirmRadius);
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     

@@ -30,6 +30,7 @@ export const state = {
 export const DOMElements = {
     pages: document.querySelectorAll('.page'),
     startBtn: document.getElementById('start-btn'),
+    startBtnTest: document.getElementById('start-btn-test'), // *** 新增 ***
     locationStatus: document.getElementById('location-status'),
     radiusMap: document.getElementById('radius-map'),
     recenterBtn: document.getElementById('recenter-btn'),

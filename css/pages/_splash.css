@@ -3,6 +3,10 @@
     text-align: center; 
     animation: content-fade-in 1s var(--transition-slow) forwards; 
     opacity: 0;
+    display: flex; /* 新增 */
+    flex-direction: column; /* 新增 */
+    align-items: center; /* 新增 */
+    width: 100%; /* 新增 */
 }
 
 .splash-content h1 { 
@@ -11,6 +15,15 @@
 
 .splash-content p { 
     margin: 1rem 0 2rem; 
+}
+
+/* --- 新增 --- */
+.splash-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 300px;
 }
 
 @keyframes content-fade-in { 

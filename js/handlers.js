@@ -8,6 +8,38 @@ import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRan
 import { hideCandidateList } from './candidate.js';
 
 
+// --- 新增：UI 測試模式處理函式 ---
+/**
+ * 處理點擊「UI 測試模式」按鈕的事件
+ */
+export async function handleUITestMode() {
+    showLoading("載入測試資料...");
+    try {
+        const response = await fetch('./fake_data.json');
+        if (!response.ok) {
+            throw new Error(`無法讀取 fake_data.json: ${response.statusText}`);
+        }
+        const fakeData = await response.json();
+        
+        // 設定假資料和必要狀態
+        state.restaurantData = fakeData;
+        state.userLocation = { lat: 24.975, lon: 121.538 }; // 預設一個中心點
+        state.searchCenter = { lat: 24.975, lon: 121.538 };
+        state.focusedCategories.clear();
+        state.activeCategory = null;
+
+        hideLoading();
+        navigateTo('categories-page');
+        applyFiltersAndRender();
+
+    } catch (error) {
+        console.error("UI 測試模式失敗:", error);
+        DOMElements.loadingText.textContent = `載入失敗: ${error.message}`;
+        setTimeout(hideLoading, 3000);
+    }
+}
+
+
 /**
  * 統一管理頁面覆蓋層的點擊事件監聽器，用於實現「點擊外部關閉」功能
  * @param {boolean} shouldListen - 是否應該開始監聽
