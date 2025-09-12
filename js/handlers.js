@@ -125,6 +125,7 @@ async function performSearch(center, radius) {
         state.restaurantData = categorizedData;
         state.focusedCategories.clear();
         state.activeCategory = null;
+        state.isMultiSelectMode = false; // *** 新增：重設為非多選模式 ***
         hideLoading();
         return true;
     } catch (error) {
@@ -216,26 +217,80 @@ export function handleFilterChange(e) {
 }
 
 /**
- * 處理點擊美食類別的互動邏輯
- * @param {Event} e - 點擊事件
+ * *** 修改：處理美食類別互動的完整邏輯（短按與長按） ***
  */
-export function handleCategoryInteraction(e) {
+let pressTimer = null;
+let isLongPress = false;
+
+export function handleCategoryPress(e) {
+    const categoryItem = e.target.closest('.category-list-item');
+    if (!categoryItem) return;
+
+    isLongPress = false;
+    pressTimer = setTimeout(() => {
+        isLongPress = true;
+        
+        // 觸發視覺回饋
+        categoryItem.classList.add('long-press-feedback');
+        setTimeout(() => categoryItem.classList.remove('long-press-feedback'), 400);
+
+        // 進入或繼續多選模式
+        state.isMultiSelectMode = true;
+        const category = categoryItem.dataset.category;
+        
+        // 多選邏輯
+        if (state.focusedCategories.has(category)) {
+            state.focusedCategories.delete(category);
+            if (state.activeCategory === category) {
+                state.activeCategory = [...state.focusedCategories].pop() || null;
+            }
+        } else {
+            state.focusedCategories.add(category);
+            state.activeCategory = category;
+        }
+        applyFiltersAndRender();
+
+    }, 500); // 500ms 觸發長按
+}
+
+export function handleCategoryRelease(e) {
+    clearTimeout(pressTimer);
+    if (isLongPress) {
+        e.preventDefault(); // 防止觸發 click 事件
+        return;
+    }
+
+    // --- 短按邏輯 ---
     const categoryItem = e.target.closest('.category-list-item');
     if (!categoryItem) return;
     const category = categoryItem.dataset.category;
 
-    if (state.focusedCategories.has(category)) {
-        state.focusedCategories.delete(category);
-        if (state.activeCategory === category) {
-            state.activeCategory = null;
+    // 如果當前是多選模式，短按也視為多選操作
+    if (state.isMultiSelectMode) {
+        if (state.focusedCategories.has(category)) {
+            state.focusedCategories.delete(category);
+            if (state.activeCategory === category) {
+                 state.activeCategory = [...state.focusedCategories].pop() || null;
+            }
+        } else {
+            state.focusedCategories.add(category);
+            state.activeCategory = category;
         }
     } else {
-        state.focusedCategories.add(category);
-        state.activeCategory = category;
+        // 單選模式
+        // 如果點擊的是同一個已選中的類別，則取消選取
+        if (state.focusedCategories.has(category)) {
+            state.focusedCategories.clear();
+            state.activeCategory = null;
+        } else {
+            state.focusedCategories.clear();
+            state.focusedCategories.add(category);
+            state.activeCategory = category;
+        }
     }
-    
     applyFiltersAndRender();
 }
+
 
 /**
  * 處理點擊「重設檢視」按鈕的事件
@@ -244,6 +299,7 @@ export function handleResetView() {
     if (state.focusedCategories.size > 0) {
         state.focusedCategories.clear();
         state.activeCategory = null;
+        state.isMultiSelectMode = false; // *** 新增：重設為非多選模式 ***
         applyFiltersAndRender();
     }
 }

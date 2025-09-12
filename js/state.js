@@ -1,3 +1,5 @@
+// js/state.js
+
 // 集中管理所有狀態和 DOM 元素參照
 
 export const state = {
@@ -12,6 +14,7 @@ export const state = {
     restaurantData: {},
     activeCategory: null,
     focusedCategories: new Set(),
+    isMultiSelectMode: false,
     currentWheelRotation: 0,
     animationFrameId: null,
     filters: {
@@ -25,19 +28,11 @@ export const state = {
     searchTimeoutId: null,
     isDecidingOnMap: false,
     lastWinner: null,
-<<<<<<< HEAD
-=======
-    isTestMode: false, // 新增：標示是否為測試模式
->>>>>>> parent of e0cd22f (又炸)
 };
 
 export const DOMElements = {
     pages: document.querySelectorAll('.page'),
     startBtn: document.getElementById('start-btn'),
-<<<<<<< HEAD
-=======
-    uiTestBtn: document.getElementById('ui-test-btn'), // 新增：UI測試按鈕
->>>>>>> parent of e0cd22f (又炸)
     locationStatus: document.getElementById('location-status'),
     radiusMap: document.getElementById('radius-map'),
     recenterBtn: document.getElementById('recenter-btn'),
@@ -79,7 +74,6 @@ export const DOMElements = {
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
     
-    // *** 新增：取得 header 和 bottom drawer 的參照 ***
     pageHeaderCondensed: document.querySelector('.page-header-condensed'),
     mapBottomDrawer: document.querySelector('.map-bottom-drawer'),
 

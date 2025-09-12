@@ -105,6 +105,8 @@
     transition: all var(--transition-fast); 
     white-space: nowrap;
     flex-shrink: 0;
+    user-select: none; /* 防止長按選取文字 */
+    -webkit-user-select: none; /* Safari */
 }
 .category-list-item:hover { transform: translateY(-4px); }
 .category-list-item.active { 
@@ -270,4 +272,14 @@
 }
 .edit-mode-footer .btn-primary {
     flex-grow: 3;
+}
+
+/* *** 新增：長按視覺回饋 *** */
+@keyframes long-press-anim {
+    0% { transform: translateY(-4px) scale(1); }
+    50% { transform: translateY(-4px) scale(1.1); }
+    100% { transform: translateY(-4px) scale(1); }
+}
+.category-list-item.long-press-feedback {
+    animation: long-press-anim 0.4s ease-in-out;
 }
