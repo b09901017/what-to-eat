@@ -18,7 +18,8 @@ import {
     handleSearchResultClick,
     handleRandomDecisionOnMap,
     handleReturnToCenter,
-    handleUITestMode, // 新增：UI測試模式處理器
+    handleUITestMode,
+    handleRestaurantDrawerDragStart, // 新增：拖曳處理
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -33,7 +34,7 @@ import { updateWheelCount, hideResult } from './ui.js';
 function init() {
     // 綁定所有事件監聽器
     DOMElements.startBtn.addEventListener('click', () => navigateTo('map-page'));
-    DOMElements.uiTestBtn.addEventListener('click', handleUITestMode); // 新增：UI測試按鈕事件
+    DOMElements.uiTestBtn.addEventListener('click', handleUITestMode);
     DOMElements.confirmRadiusBtn.addEventListener('click', handleConfirmRadius);
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     
@@ -53,7 +54,7 @@ function init() {
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.showAllBtn.addEventListener('click', handleResetView); // *** 修改 ***
+    DOMElements.showAllBtn.addEventListener('click', handleResetView);
     DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit);
     DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter);
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
@@ -76,6 +77,12 @@ function init() {
     DOMElements.locationSearchInput.addEventListener('input', handleSearchInput);
     DOMElements.locationSearchResults.addEventListener('click', handleSearchResultClick);
 
+    // === 新增：雙抽屜系統的拖曳事件綁定 ===
+    if (DOMElements.restaurantDrawerHandle) {
+        // 支援觸摸和滑鼠事件
+        DOMElements.restaurantDrawerHandle.addEventListener('touchstart', handleRestaurantDrawerDragStart, { passive: false });
+        DOMElements.restaurantDrawerHandle.addEventListener('mousedown', handleRestaurantDrawerDragStart);
+    }
 
     // 初始化 UI
     updateWheelCount();

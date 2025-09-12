@@ -3,8 +3,25 @@
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
-import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js'; // *** 新增 flyToCoords ***
+import { 
+    showLoading, 
+    hideLoading, 
+    updateRadiusLabel, 
+    renderRestaurantPreviewList, 
+    updateWheelCount, 
+    initCategoriesMapAndRender, 
+    updateFilterUI, 
+    toggleRadiusEditMode, 
+    toggleHub, 
+    toggleSearchUI, 
+    renderSearchResults, 
+    clearSearchResults, 
+    showResult,
+    showRestaurantDrawer,
+    hideRestaurantDrawer,
+    showCategoryDrawer
+} from './ui.js';
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js';
 import { hideCandidateList } from './candidate.js';
 
 /**
@@ -104,7 +121,11 @@ export function applyFiltersAndRender() {
     }
     
     initCategoriesMapAndRender(finalFilteredData);
-    renderRestaurantPreviewList(state.activeCategory, finalFilteredData);
+    
+    // *** 新增：如果店家抽屜正開啟且有活動類別，渲染店家預覽 ***
+    if (state.isRestaurantDrawerOpen && state.activeCategory) {
+        renderRestaurantPreviewList(state.activeCategory, finalFilteredData);
+    }
 }
 
 /**
@@ -258,7 +279,7 @@ export function handleFilterChange(e) {
 }
 
 /**
- * 處理點擊美食類別的互動邏輯
+ * *** 重構：處理點擊美食類別的互動邏輯（雙抽屜系統）***
  * @param {Event} e - 點擊事件
  */
 export function handleCategoryInteraction(e) {
@@ -266,14 +287,19 @@ export function handleCategoryInteraction(e) {
     if (!categoryItem) return;
     const category = categoryItem.dataset.category;
 
+    // 更新選中狀態
     if (state.focusedCategories.has(category)) {
         state.focusedCategories.delete(category);
         if (state.activeCategory === category) {
             state.activeCategory = null;
+            // 隱藏店家抽屜
+            hideRestaurantDrawer();
         }
     } else {
         state.focusedCategories.add(category);
         state.activeCategory = category;
+        // 顯示店家抽屜並載入店家列表
+        showRestaurantDrawer(category);
     }
     
     applyFiltersAndRender();
@@ -286,6 +312,7 @@ export function handleResetView() {
     if (state.focusedCategories.size > 0) {
         state.focusedCategories.clear();
         state.activeCategory = null;
+        hideRestaurantDrawer(); // 隱藏店家抽屜
         applyFiltersAndRender();
     }
 }
@@ -386,6 +413,86 @@ export async function handleRandomDecisionOnMap() {
         state.isDecidingOnMap = false;
         applyFiltersAndRender();
     }
+}
+
+// === 新增：雙抽屜系統的拖曳處理邏輯 ===
+
+/**
+ * 處理店家抽屜拖曳開始事件
+ * @param {Event} e - 觸摸或滑鼠事件
+ */
+export function handleRestaurantDrawerDragStart(e) {
+    if (!state.isRestaurantDrawerOpen) return;
+    
+    state.restaurantDrawerDragState.isDragging = true;
+    state.restaurantDrawerDragState.startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+    state.restaurantDrawerDragState.currentY = state.restaurantDrawerDragState.startY;
+    state.restaurantDrawerDragState.startTransform = 0; // 抽屜開啟時的初始位置
+    
+    // 禁用過渡效果以便流暢拖曳
+    DOMElements.restaurantDrawer.style.transition = 'none';
+    
+    // 綁定移動和結束事件
+    const moveEvent = e.type === 'touchstart' ? 'touchmove' : 'mousemove';
+    const endEvent = e.type === 'touchstart' ? 'touchend' : 'mouseup';
+    
+    document.addEventListener(moveEvent, handleRestaurantDrawerDragMove);
+    document.addEventListener(endEvent, handleRestaurantDrawerDragEnd);
+    
+    e.preventDefault();
+}
+
+/**
+ * 處理店家抽屜拖曳移動事件
+ * @param {Event} e - 觸摸或滑鼠事件
+ */
+export function handleRestaurantDrawerDragMove(e) {
+    if (!state.restaurantDrawerDragState.isDragging) return;
+    
+    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    const deltaY = currentY - state.restaurantDrawerDragState.startY;
+    
+    // 只允許向下拖曳（正值）
+    if (deltaY > 0) {
+        const transformValue = state.restaurantDrawerDragState.startTransform + deltaY;
+        DOMElements.restaurantDrawer.style.transform = `translateY(${transformValue}px)`;
+        state.restaurantDrawerDragState.currentY = currentY;
+    }
+    
+    e.preventDefault();
+}
+
+/**
+ * 處理店家抽屜拖曳結束事件
+ * @param {Event} e - 觸摸或滑鼠事件
+ */
+export function handleRestaurantDrawerDragEnd(e) {
+    if (!state.restaurantDrawerDragState.isDragging) return;
+    
+    // 恢復過渡效果
+    DOMElements.restaurantDrawer.style.transition = '';
+    
+    const deltaY = state.restaurantDrawerDragState.currentY - state.restaurantDrawerDragState.startY;
+    const threshold = 80; // 拖曳超過80px就關閉抽屜
+    
+    if (deltaY > threshold) {
+        // 關閉抽屜
+        hideRestaurantDrawer();
+        // 清除活動類別但保持選中狀態
+        state.activeCategory = null;
+        applyFiltersAndRender();
+    } else {
+        // 回彈到原位
+        DOMElements.restaurantDrawer.style.transform = 'translateY(0)';
+    }
+    
+    // 清理狀態和事件監聽器
+    state.restaurantDrawerDragState.isDragging = false;
+    const moveEvent = e.type === 'touchend' ? 'touchmove' : 'mousemove';
+    const endEvent = e.type === 'touchend' ? 'touchend' : 'mouseup';
+    
+    document.removeEventListener(moveEvent, handleRestaurantDrawerDragMove);
+    document.removeEventListener(endEvent, handleRestaurantDrawerDragEnd);
 }
 
 

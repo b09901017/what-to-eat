@@ -90,9 +90,9 @@
                     <div class="filter-buttons" data-filter="priceLevel">
                         <button data-value="0" class="active">不拘</button>
                         <button data-value="1">$</button>
-                        <button data-value="2">$</button>
-                        <button data-value="3">$$</button>
-                        <button data-value="4">$$</button>
+                        <button data-value="2">$$</button>
+                        <button data-value="3">$$$</button>
+                        <button data-value="4">$$$$</button>
                     </div>
                 </div>
                 <div class="filter-option">
@@ -138,12 +138,24 @@
                     </button>
                 </div>
 
-                <div class="map-bottom-drawer">
-                    <div class="show-all-container">
-                        <button id="show-all-btn" class="show-all-btn">顯示所有店家</button>
+                <!-- 重設檢視按鈕，現在位於類別抽屜上方 -->
+                <div class="show-all-container">
+                    <button id="show-all-btn" class="show-all-btn">顯示所有店家</button>
+                </div>
+
+                <!-- 抽屜二：店家列表抽屜（可拖曳）-->
+                <div id="restaurant-drawer" class="restaurant-drawer">
+                    <div class="restaurant-drawer-handle"></div>
+                    <div class="restaurant-drawer-content">
+                        <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
                     </div>
-                    <div id="restaurant-preview-list" class="restaurant-preview-list"></div>
-                    <div id="category-list" class="category-list"></div>
+                </div>
+
+                <!-- 抽屜一：美食類別抽屜（固定底部）-->
+                <div id="category-drawer" class="category-drawer">
+                    <div class="category-drawer-content">
+                        <div id="category-list" class="category-list"></div>
+                    </div>
                 </div>
             </div>
             
