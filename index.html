@@ -105,42 +105,39 @@
             </div>
             
             <div class="map-ui-overlay">
+                <header class="page-header-condensed">
+                    <div class="header-content">
+                        <h2 class="font-serif">附近的美食地圖</h2>
+                        <p>點選下方類別以探索</p>
+                    </div>
+                </header>
+
+                <div id="floating-action-hub" class="floating-action-hub">
+                    <div id="hub-item-list">
+                        <div class="hub-item">
+                            <span class="hub-label">命運羅盤</span>
+                            <button id="go-to-wheel-btn" class="hub-action-btn" title="命運羅盤"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg></button>
+                        </div>
+                        <div class="hub-item">
+                            <span class="hub-label">調整範圍</span>
+                            <button id="resize-radius-btn" class="hub-action-btn" title="調整範圍"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.66"></path><path d="M22 4V2H20"></path><path d="M12 18V12L7 7"></path></svg></button>
+                        </div>
+                        <div class="hub-item">
+                            <span class="hub-label">回到中心</span>
+                            <button id="return-to-center-btn" class="hub-action-btn" title="回到探索中心"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8"></circle></svg></button>
+                        </div>
+                        <div class="hub-item">
+                            <span class="hub-label">篩選</span>
+                            <button id="filter-btn" class="hub-action-btn" title="篩選"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
+                        </div>
+                    </div>
+                    
+                    <button id="hub-toggle-btn" class="hub-toggle-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 5"/><path d="M12 19L12 22"/><path d="M5 12L2 12"/><path d="M22 12L19 12"/><path d="M19.07 4.93L17 7"/><path d="M7 17L4.93 19.07"/><path d="M19.07 19.07L17 17"/><path d="M7 7L4.93 4.93"/></svg>
+                    </button>
+                </div>
 
                 <div class="map-bottom-drawer">
-                    <div class="drawer-handle-container">
-                        <div class="drawer-handle"></div>
-                    </div>
-                    <header class="page-header-condensed">
-                        <div class="header-content">
-                            <h2 class="font-serif">附近的美食地圖</h2>
-                            <p>點選下方類別以探索</p>
-                        </div>
-                        <div id="floating-action-hub" class="floating-action-hub">
-                            <div id="hub-item-list">
-                                <div class="hub-item">
-                                    <span class="hub-label">命運羅盤</span>
-                                    <button id="go-to-wheel-btn" class="hub-action-btn" title="命運羅盤"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg></button>
-                                </div>
-                                <div class="hub-item">
-                                    <span class="hub-label">調整範圍</span>
-                                    <button id="resize-radius-btn" class="hub-action-btn" title="調整範圍"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.66"></path><path d="M22 4V2H20"></path><path d="M12 18V12L7 7"></path></svg></button>
-                                </div>
-                                <div class="hub-item">
-                                    <span class="hub-label">回到中心</span>
-                                    <button id="return-to-center-btn" class="hub-action-btn" title="回到探索中心"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8"></circle></svg></button>
-                                </div>
-                                <div class="hub-item">
-                                    <span class="hub-label">篩選</span>
-                                    <button id="filter-btn" class="hub-action-btn" title="篩選"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
-                                </div>
-                            </div>
-                            
-                            <button id="hub-toggle-btn" class="hub-toggle-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 5"/><path d="M12 19L12 22"/><path d="M5 12L2 12"/><path d="M22 12L19 12"/><path d="M19.07 4.93L17 7"/><path d="M7 17L4.93 19.07"/><path d="M19.07 19.07L17 17"/><path d="M7 7L4.93 4.93"/></svg>
-                            </button>
-                        </div>
-                    </header>
-
                     <div class="show-all-container">
                         <button id="show-all-btn" class="show-all-btn">顯示所有店家</button>
                     </div>
