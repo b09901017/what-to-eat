@@ -1,24 +1,18 @@
-/* --- 美食地圖頁面 (雙抽屜重構) --- */
+/* --- 美食地圖頁面 (沉浸式重構與底部抽屜 UI) --- */
 
 #categories-page .map-ui-overlay {
     display: flex;
     flex-direction: column;
-    pointer-events: none;
-    position: absolute;
+    pointer-events: none; /* 允許點擊穿透到地圖 */
+    position: absolute; /* 讓 overlay 覆蓋整個地圖 */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 5;
-    overflow: hidden;
+    z-index: 5; /* 確保在地圖上方 */
 }
-
-#categories-page .map-ui-overlay.click-interceptor-active {
-    pointer-events: auto;
-}
-
 #categories-page .map-ui-overlay > * {
-    pointer-events: auto;
+    pointer-events: auto; /* 恢復子元素的點擊 */
 }
 
 .page-header-condensed {
@@ -30,15 +24,23 @@
     background: linear-gradient(to bottom, rgba(248, 245, 242, 0.9) 70%, transparent);
     text-align: left;
     z-index: 10;
-    transition: all var(--transition-slow);
+    transition: visibility 0.3s, opacity 0.3s;
 }
+.page-header-condensed .header-content h2 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+.page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
+
 
 .floating-action-hub {
     position: absolute;
     right: calc(1.5rem + var(--safe-area-inset-right));
-    bottom: calc(220px + 1rem + var(--safe-area-inset-bottom));
+    bottom: calc(40% + 1rem + var(--safe-area-inset-bottom));
     z-index: 1001;
     transition: all var(--transition-slow);
+}
+
+/* *** 新增 ***: 當抽屜展開時，讓 Hub 往上移動 */
+.map-bottom-drawer.expanded + .floating-action-hub {
+    bottom: calc(52% + 1rem + var(--safe-area-inset-bottom));
 }
 
 .floating-action-hub.hidden-for-edit {
@@ -47,130 +49,50 @@
     transform: translateX(100%);
 }
 
-/* --- 全新雙抽屜容器 --- */
-.drawers-container {
+
+.map-bottom-drawer {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    height: calc(220px + 160px); /* 兩個抽屜的總高度 */
     z-index: 8;
-    
-    /* 初始狀態在螢幕外 */
-    transform: translateY(100%);
-    transition: transform var(--transition-slow);
-    
-    /* 確保容器本身不攔截任何在地圖上的點擊 */
-    pointer-events: none;
-}
-
-.drawers-container.is-active {
-    transform: translateY(calc(100% - 220px - var(--safe-area-inset-bottom))); /* 滑入後只露出分類抽屜的高度 */
-}
-
-/* 容器內的子元素可以接收點擊 */
-.drawers-container > * {
-    pointer-events: auto;
-}
-
-/* --- 店家列表抽屜 (上半部) --- */
-.restaurant-drawer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 160px;
-    
-    background: rgba(248, 245, 242, 0.9);
-    backdrop-filter: blur(5px);
+    background: var(--bg-color);
+    max-height: 40%;
+    overflow: hidden;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-    
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+    transform: translateY(100%);
+    /* *** 修改 ***: 讓 max-height 的變化也產生動畫 */
+    transition: transform 0.3s ease-out, visibility 0.3s, max-height 0.3s ease-out;
+    padding: 1rem 0;
     display: flex;
     flex-direction: column;
-    
-    /* 使用 CSS 變數來處理拖曳，初始為 0 */
-    --drag-offset: 0px; 
-    
-    /* 預設隱藏在容器的底部 (也就是分類抽屜的位置) */
-    transform: translateY(calc(220px + var(--drag-offset)));
-    visibility: hidden;
-    transition: transform var(--transition-fast), visibility 0s var(--transition-fast);
+    padding-bottom: 6rem;
 }
 
-.restaurant-drawer.is-active {
-    /* active 狀態時，向上滑動到容器頂部 */
-    transform: translateY(var(--drag-offset));
-    visibility: visible;
-    transition: transform var(--transition-fast), visibility 0s;
+/* *** 新增 ***: 抽屜展開時的新高度 */
+.map-bottom-drawer.expanded {
+    max-height: 52%;
 }
 
-.restaurant-drawer.is-dragging {
-    transition: none; /* 拖曳時禁用動畫 */
-}
-
-.drawer-handle-area {
-    width: 100%;
-    padding: 0.75rem 0;
-    cursor: grab;
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.drawer-handle-area:active { cursor: grabbing; }
-.drawer-handle {
-    width: 40px;
-    height: 5px;
-    background-color: var(--border-color);
-    border-radius: 2.5px;
-}
-
-.restaurant-preview-list { 
-    width: 100%;
-    display: flex; 
-    gap: 0.75rem; 
-    overflow-x: auto; 
-    padding: 0 0 1rem calc(1.5rem + var(--safe-area-inset-left));
-    -ms-overflow-style: none; 
-    scrollbar-width: none;
-    flex-grow: 1;
-}
-.restaurant-preview-list::-webkit-scrollbar { display: none; }
-
-
-/* --- 美食類別抽屜 (下半部) --- */
-.category-drawer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(220px + var(--safe-area-inset-bottom));
-    padding-bottom: var(--safe-area-inset-bottom);
-    
-    background: var(--bg-color);
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -2px 15px rgba(0,0,0,0.08);
-
-    display: flex;
-    flex-direction: column;
-}
-
-.drawer-content {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-top: 1.5rem;
+.map-bottom-drawer.visible {
+    transform: translateY(0);
 }
 
 .category-list {
     width: 100%;
-    padding: 0 calc(1.5rem + var(--safe-area-inset-left));
+    overflow-x: auto;
+    padding: 0.5rem calc(1.5rem + var(--safe-area-inset-left));
+    -ms-overflow-style: none;
+    scrollbar-width: none;
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
+    height: 105px;
     gap: 0.75rem 1rem;
 }
+.category-list::-webkit-scrollbar { display: none; }
 
 .category-list-item { 
     padding: 0.6rem 1.2rem;
@@ -194,20 +116,19 @@
 .category-list-item.unfocused { opacity: 0.4; }
 .category-list-item.unfocused:hover { opacity: 0.7; transform: translateY(-4px); }
 
+
 .show-all-container {
-    padding: 0 1.5rem 0.75rem;
+    padding: 0 1.5rem 0.75rem 1.5rem;
     opacity: 0;
     visibility: hidden;
-    max-height: 0;
+    transform: translateY(-10px);
     transition: all var(--transition-fast);
     pointer-events: none;
-    overflow: hidden;
-    flex-shrink: 0;
 }
 .show-all-container.visible {
     opacity: 1;
     visibility: visible;
-    max-height: 50px;
+    transform: translateY(0);
     pointer-events: auto;
 }
 .show-all-btn {
@@ -221,13 +142,37 @@
     cursor: pointer;
     font-size: 0.9rem;
 }
-.show-all-btn:hover { background-color: var(--secondary-hover); }
+.show-all-btn:hover {
+    background-color: var(--secondary-hover);
+}
+
 
 .empty-state-message { 
     width: 100%; 
     text-align: center; 
     color: var(--text-light); 
     padding: 1rem; 
+}
+
+.restaurant-preview-list { 
+    width: 100%;
+    display: flex; 
+    gap: 0.75rem; 
+    overflow-x: auto; 
+    height: 0;
+    opacity: 0; 
+    padding: 0; 
+    transition: all var(--transition-fast); 
+    -ms-overflow-style: none; 
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.restaurant-preview-list.hidden { display: none; }
+.restaurant-preview-list::-webkit-scrollbar { display: none; }
+.restaurant-preview-list.visible { 
+    height: 90px;
+    opacity: 1; 
+    padding: 0.5rem 0 1rem calc(1.5rem + var(--safe-area-inset-left));
 }
 
 .restaurant-preview-card { 
@@ -252,7 +197,6 @@
 }
 .restaurant-preview-card p { font-size: 0.8rem; color: var(--text-light); }
 
-/* --- Footer and Edit Mode (No changes, but included for completeness) --- */
 .page#categories-page .page-footer#main-footer {
     position: absolute;
     bottom: 0;
@@ -261,7 +205,7 @@
     z-index: 10;
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
-    background: linear-gradient(to top, var(--bg-color) 70%, transparent);
+    background: linear-gradient(to top, rgba(248, 245, 242, 0.95) 70%, transparent);
     margin: 0;
     display: flex;
     justify-content: center;
@@ -272,6 +216,7 @@
     width: calc(100% - 3rem - var(--safe-area-inset-left) - var(--safe-area-inset-right));
 }
 
+/* --- 調整範圍模式 --- */
 .edit-mode-controls {
     position: absolute;
     top: 0;
@@ -289,15 +234,23 @@
     flex-direction: column;
     justify-content: flex-end; 
 }
+
 .edit-mode-controls > .edit-mode-hint,
 .edit-mode-controls > .edit-mode-footer,
-.edit-mode-controls > .location-search-container { pointer-events: auto; }
-.edit-mode-controls .edit-mode-spacer { flex-grow: 1; }
+.edit-mode-controls > .location-search-container {
+    pointer-events: auto;
+}
+
+.edit-mode-controls .edit-mode-spacer {
+    flex-grow: 1;
+}
+
 .edit-mode-controls.visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
+
 .edit-mode-hint {
     padding: 1rem;
     text-align: center;
@@ -312,5 +265,9 @@
     padding-top: 0;
     border-top: 1px solid var(--border-color);
 }
-.edit-mode-footer .btn-secondary { flex-grow: 1; }
-.edit-mode-footer .btn-primary { flex-grow: 3; }
+.edit-mode-footer .btn-secondary {
+    flex-grow: 1;
+}
+.edit-mode-footer .btn-primary {
+    flex-grow: 3;
+}

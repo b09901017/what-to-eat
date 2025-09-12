@@ -25,13 +25,11 @@ export const state = {
     searchTimeoutId: null,
     isDecidingOnMap: false,
     lastWinner: null,
-    isDrawerDragging: false,
 };
 
 export const DOMElements = {
     pages: document.querySelectorAll('.page'),
     startBtn: document.getElementById('start-btn'),
-    startBtnTest: document.getElementById('start-btn-test'),
     locationStatus: document.getElementById('location-status'),
     radiusMap: document.getElementById('radius-map'),
     recenterBtn: document.getElementById('recenter-btn'),
@@ -73,31 +71,33 @@ export const DOMElements = {
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
     
-    // *** 抽屜 DOM 元素 (重構) ***
-    drawersContainer: document.getElementById('drawers-container'),
-    categoryDrawer: document.getElementById('category-drawer'),
-    restaurantDrawer: document.getElementById('restaurant-drawer'),
-    drawerHandle: document.getElementById('drawer-handle'),
+    // *** 新增：取得 header 和 bottom drawer 的參照 ***
+    pageHeaderCondensed: document.querySelector('.page-header-condensed'),
+    mapBottomDrawer: document.querySelector('.map-bottom-drawer'),
 
     floatingActionHub: document.getElementById('floating-action-hub'),
     hubToggleBtn: document.getElementById('hub-toggle-btn'),
     hubItemList: document.getElementById('hub-item-list'),
 
+    // 調整範圍模式相關元素
     mainFooter: document.getElementById('main-footer'),
     editModeControls: document.getElementById('edit-mode-controls'),
     reSearchBtn: document.getElementById('re-search-btn'),
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
     
+    // 候選清單視窗相關元素
     showCandidatesFooterBtn: document.getElementById('show-candidates-footer-btn'),
     candidateListOverlay: document.getElementById('candidate-list-overlay'),
     candidateListContent: document.getElementById('candidate-list-content'),
     closeCandidateListBtn: document.getElementById('close-candidate-list-btn'),
     randomDecisionBtn: document.getElementById('random-decision-btn'),
     
+    // 地點搜尋相關元素
     locationSearchContainer: document.getElementById('location-search-container'),
     locationSearchToggleBtn: document.querySelector('.location-search-toggle-btn'),
     locationSearchInput: document.getElementById('location-search-input'),
     locationSearchResults: document.getElementById('location-search-results'),
     
+    // 新的「顯示所有店家」按鈕
     showAllBtn: document.getElementById('show-all-btn'),
 };
