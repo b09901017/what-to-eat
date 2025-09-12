@@ -4,7 +4,7 @@ import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, fitBoundsToSearchRadius } from './map.js';
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, fitBoundsToSearchRadius, updateMapMarkers } from './map.js';
 import { hideCandidateList } from './candidate.js';
 
 /**
@@ -375,7 +375,7 @@ export function handlePreviewCardInteraction(e) {
 }
 
 /**
- * 處理在地圖上隨機決定的按鈕點擊事件
+ * 處理在地圖上隨機決定的按鈕點擊事件 (*** 已修正 Bug ***)
  */
 export async function handleRandomDecisionOnMap() {
     if (state.isDecidingOnMap || state.wheelItems.size < 2) return;
@@ -384,6 +384,10 @@ export async function handleRandomDecisionOnMap() {
     hideCandidateList();
     
     const candidates = [...state.wheelItems];
+    
+    // *** Bug修復 ***: 強制使用完整的餐廳數據更新地圖，確保所有候選者圖標都存在
+    updateMapMarkers(state.restaurantData, state.userLocation, state.searchCenter, new Set(), null);
+    
     showOnlyCandidateMarkers(candidates);
 
     try {

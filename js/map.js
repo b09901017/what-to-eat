@@ -253,6 +253,7 @@ export function showOnlyCandidateMarkers(candidateNames) {
         if (candidateSet.has(name)) {
             marker.setOpacity(1);
         } else {
+            // *** 修改 ***: 將不相關的 marker 直接隱藏，而不是設為透明
             marker.setOpacity(0);
         }
     }
@@ -316,6 +317,9 @@ export function flyToMarker(name) {
     }
 }
 
+/**
+ * *** 已修改 ***: 重寫動畫邏輯，實現由快到慢的變速效果和更長的持續時間
+ */
 export function startRandomMarkerAnimation(candidateNames) {
     return new Promise((resolve) => {
         const map = mapInstances.categories;
@@ -324,23 +328,26 @@ export function startRandomMarkerAnimation(candidateNames) {
         const candidateMarkers = candidateNames.map(name => restaurantMarkers[name]).filter(Boolean);
         if (candidateMarkers.length < 2) resolve(candidateMarkers.length > 0 ? candidateNames[0] : null);
 
-        // *** 已移除 ***: 移除 map.flyToBounds(...) 來防止地圖自動縮放
-        // 動畫將在當前視野中進行
-
         const winnerIndex = Math.floor(Math.random() * candidateNames.length);
         const winnerName = candidateNames[winnerIndex];
 
-        let delay = 100;
-        let totalFlashes = candidateMarkers.length * 2 + winnerIndex;
-        let flashCount = 0;
+        const ANIMATION_DURATION = 7000; // 動畫總時長 (7秒)
+        const totalFlashes = candidateMarkers.length * 4 + winnerIndex; // 增加總閃爍次數
         let lastMarker = null;
+        let startTimestamp = null;
+        
+        // 由快到慢的緩動函式
+        const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
 
-        function flashNext() {
-            if (lastMarker && lastMarker._icon) {
-                lastMarker._icon.classList.remove('marker-flash');
-            }
+        const animationStep = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = (timestamp - startTimestamp) / ANIMATION_DURATION;
 
-            if (flashCount >= totalFlashes) {
+            if (progress >= 1) {
+                // 動畫結束
+                if (lastMarker && lastMarker._icon) {
+                    lastMarker._icon.classList.remove('marker-flash');
+                }
                 const winnerMarker = restaurantMarkers[winnerName];
                 if (winnerMarker && winnerMarker._icon) {
                     winnerMarker._icon.classList.add('marker-winner');
@@ -350,19 +357,25 @@ export function startRandomMarkerAnimation(candidateNames) {
                 return;
             }
 
-            const currentMarker = candidateMarkers[flashCount % candidateMarkers.length];
-            if (currentMarker && currentMarker._icon) {
-                currentMarker._icon.classList.add('marker-flash');
+            // 使用緩動函式計算當前應該在哪個閃爍步驟
+            const easedProgress = easeOutCubic(progress);
+            const currentFlashIndex = Math.floor(easedProgress * totalFlashes);
+            const currentMarkerIndex = currentFlashIndex % candidateMarkers.length;
+            const currentMarker = candidateMarkers[currentMarkerIndex];
+
+            if (currentMarker !== lastMarker) {
+                if (lastMarker && lastMarker._icon) {
+                    lastMarker._icon.classList.remove('marker-flash');
+                }
+                if (currentMarker && currentMarker._icon) {
+                    currentMarker._icon.classList.add('marker-flash');
+                }
+                lastMarker = currentMarker;
             }
-            lastMarker = currentMarker;
 
-            if (flashCount > Math.floor(totalFlashes * 0.5)) delay *= 1.2;
-            if (flashCount > Math.floor(totalFlashes * 0.8)) delay *= 1.3;
-            
-            flashCount++;
-            setTimeout(flashNext, delay);
-        }
+            requestAnimationFrame(animationStep);
+        };
 
-        setTimeout(flashNext, 500);
+        requestAnimationFrame(animationStep);
     });
 }
