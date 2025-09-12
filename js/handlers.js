@@ -3,10 +3,11 @@
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
-import { showLoading, hideLoading, updateRadiusLabel, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
+import { showLoading, hideLoading, updateRadiusLabel, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
 import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js';
 import { hideCandidateList } from './candidate.js';
 import { show as showRestaurantDrawer, hide as hideRestaurantDrawer } from './restaurantDrawer.js';
+import { addCandidate, removeCandidate, hasCandidate } from './store.js'; // *** 新增：從 store 引入 ***
 
 
 // --- UI 測試模式處理函式 ---
@@ -27,7 +28,7 @@ export async function handleUITestMode() {
 
         hideLoading();
         navigateTo('categories-page');
-        applyFiltersAndRender();
+        // applyFiltersAndRender(); // navigateTo 會觸發，此處可省略
 
     } catch (error) {
         console.error("UI 測試模式失敗:", error);
@@ -94,7 +95,6 @@ export function applyFiltersAndRender() {
     
     initCategoriesMapAndRender(finalFilteredData);
 
-    // *** 修改：根據 activeCategory 決定是否顯示店家抽屜 ***
     if (state.activeCategory && finalFilteredData[state.activeCategory]) {
         showRestaurantDrawer(finalFilteredData[state.activeCategory]);
     } else {
@@ -130,13 +130,15 @@ function handleRadiusChange(newRadius) {
 }
 
 async function performSearch(center, radius) {
-    if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') {
+    if (!center || typeof center.lat !== 'number' || typeof (center.lng ?? center.lon) !== 'number') {
         alert("無法獲取有效的地理位置，請重試。");
         return false;
     }
+    const lon = center.lng ?? center.lon;
+
     showLoading("正在大海撈針，尋找美食...");
     try {
-        const rawRestaurantData = await findPlaces(center.lat, center.lng, radius);
+        const rawRestaurantData = await findPlaces(center.lat, lon, radius);
         const restaurantCount = Object.keys(rawRestaurantData).length;
         if (restaurantCount === 0) {
             hideLoading();
@@ -164,7 +166,9 @@ export async function handleConfirmRadius() {
     const { center, radius } = editorState;
     state.searchCenter = { lat: center.lat, lon: center.lng }; 
     const success = await performSearch(center, radius);
-    if (success) { navigateTo('categories-page'); applyFiltersAndRender(); }
+    if (success) { 
+        navigateTo('categories-page'); 
+    }
 }
 
 export async function handleConfirmRadiusReSearch() {
@@ -173,7 +177,10 @@ export async function handleConfirmRadiusReSearch() {
     const { center, radius } = editorState;
     state.searchCenter = { lat: center.lat, lon: center.lng };
     const success = await performSearch(center, radius);
-    if (success) { toggleRadiusEditMode(false, handleRadiusChange); applyFiltersAndRender(); }
+    if (success) { 
+        toggleRadiusEditMode(false, handleRadiusChange); 
+        // applyFiltersAndRender(); // performSearch 後 navigateTo 會觸發
+    }
 }
 
 export function handleRecenter() {
@@ -219,10 +226,6 @@ export function handleFilterChange(e) {
     applyFiltersAndRender();
 }
 
-/**
- * 處理點擊美食類別的互動邏輯
- * @param {Event} e - 點擊事件
- */
 export function handleCategoryInteraction(e) {
     const categoryItem = e.target.closest('.category-list-item');
     if (!categoryItem) return;
@@ -241,9 +244,6 @@ export function handleCategoryInteraction(e) {
     applyFiltersAndRender();
 }
 
-/**
- * 處理點擊「顯示所有店家」按鈕的事件
- */
 export function handleResetView() {
     if (state.focusedCategories.size > 0) {
         state.focusedCategories.clear();
@@ -263,31 +263,20 @@ export function handlePopupInteraction(e) {
     if (!btn) return;
     const name = btn.dataset.name;
     if (btn.classList.contains('add-to-wheel-btn')) {
-        const isAdded = toggleWheelItem(name);
-        btn.classList.toggle('added', isAdded);
-        btn.textContent = isAdded ? '✓' : '+';
+        // *** 修改：呼叫 store 模組來處理業務邏輯 ***
+        const isCurrentlyAdded = hasCandidate(name);
+        if (isCurrentlyAdded) {
+            removeCandidate(name);
+        } else {
+            addCandidate(name);
+        }
+        // UI 更新會由 store 內部觸發
     } else if (btn.classList.contains('details-btn')) {
         showDetails(name);
     }
 }
 
-export function toggleWheelItem(name, shouldAdd = true) {
-    let isAdded;
-    if (state.wheelItems.has(name)) {
-        state.wheelItems.delete(name);
-        isAdded = false;
-    } else if (shouldAdd) {
-        if (state.wheelItems.size >= 8) {
-            alert('候選清單最多8個選項喔！');
-            return state.wheelItems.has(name);
-        }
-        state.wheelItems.add(name);
-        isAdded = true;
-    }
-    updateWheelCount();
-    applyFiltersAndRender();
-    return isAdded;
-}
+// *** 核心修改：toggleWheelItem 函式已被移除，其邏輯移至 store.js ***
 
 function showDetails(name) {
     const restaurant = Object.values(state.restaurantData).flat().find(r => r.name === name);

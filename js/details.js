@@ -1,7 +1,7 @@
 // js/details.js
 
 import { state, DOMElements } from './state.js';
-import { toggleWheelItem } from './handlers.js'; // 依賴 handlers 中的核心邏輯
+import { addCandidate, removeCandidate, hasCandidate } from './store.js'; // *** 修改：從 store 引入 ***
 
 /**
  * 根據 state.currentRestaurantDetails 渲染店家詳情頁面
@@ -17,7 +17,7 @@ export function renderDetailsPage() {
     DOMElements.detailsStatus.textContent = data.hours;
 
     // 更新「加入候選」按鈕的狀態
-    const isAdded = state.wheelItems.has(data.name);
+    const isAdded = hasCandidate(data.name);
     DOMElements.addToWheelDetailsBtn.classList.toggle('added', isAdded);
     DOMElements.addToWheelDetailsBtn.querySelector('span').textContent = isAdded ? '已加入' : '加入候選';
 
@@ -61,8 +61,18 @@ export function renderDetailsPage() {
 export function handleAddToWheelFromDetails() {
     if (state.currentRestaurantDetails) {
         const name = state.currentRestaurantDetails.name;
-        const isAdded = toggleWheelItem(name); // 調用核心處理邏輯
-        DOMElements.addToWheelDetailsBtn.classList.toggle('added', isAdded);
-        DOMElements.addToWheelDetailsBtn.querySelector('span').textContent = isAdded ? '已加入' : '加入候選';
+        
+        // *** 修改：使用 store 進行邏輯判斷與操作 ***
+        const isCurrentlyAdded = hasCandidate(name);
+        if (isCurrentlyAdded) {
+            removeCandidate(name);
+        } else {
+            addCandidate(name);
+        }
+        
+        // 操作後再次檢查狀態並更新 UI
+        const isAddedAfterOperation = hasCandidate(name);
+        DOMElements.addToWheelDetailsBtn.classList.toggle('added', isAddedAfterOperation);
+        DOMElements.addToWheelDetailsBtn.querySelector('span').textContent = isAddedAfterOperation ? '已加入' : '加入候選';
     }
 }

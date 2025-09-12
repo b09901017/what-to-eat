@@ -16,13 +16,11 @@ let isVisible = false;
 const DRAWER_HEIGHT = 160; 
 
 function setDrawerPosition(y) {
-    // *** 修改：拖曳時移除動畫 ***
     drawer.style.transition = 'none';
     drawer.style.transform = `translateY(${y}px)`;
 }
 
 function snapToPosition(y) {
-    // *** 修改：吸附時恢復動畫 ***
     drawer.style.transition = ''; 
     drawer.style.transform = `translateY(${y}px)`;
 }
@@ -59,12 +57,17 @@ function endDrag() {
     if (!state.isDrawerDragging) return;
     state.isDrawerDragging = false;
     
-    // *** 新增：恢復動畫 ***
     drawer.style.transition = '';
 
     const currentTranslateY = getTranslateY(drawer);
     
     if (currentTranslateY > DRAWER_HEIGHT / 3) {
+        // --- 核心修改：將狀態重置邏輯移至此處 ---
+        // 在隱藏抽屜前，先重置 activeCategory 並重新渲染地圖
+        if (state.activeCategory) {
+            state.activeCategory = null;
+            applyFiltersAndRender();
+        }
         hide();
     } else {
         snapToPosition(0);
@@ -108,15 +111,15 @@ export function show(restaurants) {
     isVisible = true;
 }
 
+/**
+ * --- 核心修改：hide 函式變得純粹 ---
+ * 現在它只負責處理 UI 的隱藏，不再包含任何修改全局 state 的邏輯。
+ */
 export function hide() {
     if (!drawer) return;
     drawer.classList.remove('is-visible');
     isVisible = false;
-
-    if (state.activeCategory) {
-        state.activeCategory = null;
-        applyFiltersAndRender();
-    }
+    // 原本的 state 修改邏輯已被移除
 }
 
 export function initRestaurantDrawer() {

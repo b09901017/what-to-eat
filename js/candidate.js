@@ -1,7 +1,7 @@
 // js/candidate.js
 
 import { state, DOMElements } from './state.js';
-import { toggleWheelItem } from './handlers.js'; // 依賴 handlers 中的核心邏輯
+import { removeCandidate } from './store.js'; // *** 修改：從 store 引入 ***
 
 /**
  * 根據 state.wheelItems 渲染候選清單
@@ -28,11 +28,7 @@ export function renderCandidateList() {
     }
 
     // 根據候選數量決定是否禁用決定按鈕
-    if (itemCount >= 2) {
-        decisionBtn.disabled = false;
-    } else {
-        decisionBtn.disabled = true;
-    }
+    decisionBtn.disabled = itemCount < 2;
 }
 
 /**
@@ -65,7 +61,8 @@ export function handleCandidateListInteraction(e) {
     const removeBtn = e.target.closest('.remove-candidate-btn');
     if (removeBtn) {
         const name = removeBtn.dataset.name;
-        toggleWheelItem(name, false); // 調用核心處理邏輯來移除
+        // *** 修改：呼叫 store 中職責單一的函式 ***
+        removeCandidate(name);
         renderCandidateList(); // 重新渲染列表
     }
 }
