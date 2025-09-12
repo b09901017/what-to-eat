@@ -6,6 +6,8 @@ import { initCategoriesMap, updateMapMarkers, fitMapToBounds, destroyRadiusMap, 
 import { renderWheel, hideResult as hideWheelResult } from './wheel.js';
 import { renderDetailsPage } from './details.js';
 import { hideCandidateList } from './candidate.js';
+import { show as showCategoryDrawer } from './categoryDrawer.js';
+import { hide as hideRestaurantDrawer } from './restaurantDrawer.js';
 
 /**
  * 根據頁面 ID 渲染對應內容或執行初始化
@@ -27,6 +29,8 @@ export function renderPageContent(pageId) {
             }
             clearWinnerMarker();
             hideCandidateList();
+            hideRestaurantDrawer();
+            showCategoryDrawer();
             break;
         case 'wheel-page':
             renderWheel();
@@ -64,11 +68,13 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         editModeControls,
         locationSearchContainer,
         pageHeaderCondensed,
-        mapBottomDrawer
+        categoryDrawer,
+        restaurantDrawer
     } = DOMElements;
     
     if (pageHeaderCondensed) pageHeaderCondensed.style.visibility = isEditing ? 'hidden' : 'visible';
-    if (mapBottomDrawer) mapBottomDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
+    if (categoryDrawer) categoryDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
+    if (restaurantDrawer) restaurantDrawer.style.visibility = isEditing ? 'hidden' : 'visible';
     if (mainFooter) mainFooter.style.visibility = isEditing ? 'hidden' : 'visible';
     
     if (floatingActionHub) floatingActionHub.classList.toggle('hidden-for-edit', isEditing);
@@ -135,13 +141,6 @@ export function initCategoriesMapAndRender(filteredData) {
 
     renderCategories(filteredData);
     
-    const mapBottomDrawer = DOMElements.mapBottomDrawer;
-    if (mapBottomDrawer) {
-        mapBottomDrawer.classList.add('visible');
-    }
-
-    DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
-    
     if (Object.keys(filteredData).length === 0 && Object.keys(state.restaurantData).length > 0) {
          DOMElements.categoryList.innerHTML = `<p class="empty-state-message">找不到符合條件的餐廳耶，試著放寬篩選看看？</p>`;
     } else if (Object.keys(state.restaurantData).length === 0) {
@@ -163,28 +162,6 @@ function renderCategories(filteredData) {
         item.textContent = category;
         DOMElements.categoryList.appendChild(item);
     });
-}
-
-export function renderRestaurantPreviewList(category, filteredData) {
-    const listEl = DOMElements.restaurantPreviewList;
-    const drawerEl = DOMElements.mapBottomDrawer; // 取得抽屜元素
-    listEl.innerHTML = '';
-
-    if (!category || !filteredData[category] || filteredData[category].length === 0) {
-        listEl.classList.remove('visible');
-        drawerEl.classList.remove('expanded'); // *** 修改 ***: 隱藏時移除 expanded class
-        return;
-    }
-
-    filteredData[category].forEach(restaurant => {
-        const card = document.createElement('div');
-        card.className = 'restaurant-preview-card';
-        card.dataset.name = restaurant.name;
-        card.innerHTML = `<h5>${restaurant.name}</h5><p>⭐ ${restaurant.rating} | ${'$'.repeat(restaurant.price_level)}</p>`;
-        listEl.appendChild(card);
-    });
-    listEl.classList.add('visible');
-    drawerEl.classList.add('expanded'); // *** 修改 ***: 顯示時加上 expanded class
 }
 
 export function updateWheelCount() {

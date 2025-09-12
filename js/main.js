@@ -18,7 +18,7 @@ import {
     handleSearchResultClick,
     handleRandomDecisionOnMap,
     handleReturnToCenter,
-    handleUITestMode, // *** 新增 ***
+    handleUITestMode,
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -28,12 +28,14 @@ import {
 import { handleSpinWheel } from './wheel.js';
 import { handleAddToWheelFromDetails } from './details.js';
 import { updateWheelCount, hideResult } from './ui.js';
+import { initCategoryDrawer } from './categoryDrawer.js'; // *** 新增 ***
+import { initRestaurantDrawer } from './restaurantDrawer.js'; // *** 新增 ***
 
 // 初始化應用程式
 function init() {
     // 綁定所有事件監聽器
     DOMElements.startBtn.addEventListener('click', () => navigateTo('map-page'));
-    DOMElements.startBtnTest.addEventListener('click', handleUITestMode); // *** 新增 ***
+    DOMElements.startBtnTest.addEventListener('click', handleUITestMode);
     DOMElements.confirmRadiusBtn.addEventListener('click', handleConfirmRadius);
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     
@@ -53,7 +55,7 @@ function init() {
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.showAllBtn.addEventListener('click', handleResetView); // *** 修改 ***
+    DOMElements.showAllBtn.addEventListener('click', handleResetView);
     DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit);
     DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter);
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
@@ -79,6 +81,8 @@ function init() {
 
     // 初始化 UI
     updateWheelCount();
+    initCategoryDrawer(); // *** 新增 ***
+    initRestaurantDrawer(); // *** 新增 ***
 }
 
 document.addEventListener('DOMContentLoaded', init);
