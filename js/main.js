@@ -8,8 +8,7 @@ import {
     handlePreviewCardInteraction,
     toggleFilterPanel,
     handleFilterChange,
-    handleCategoryPress,
-    handleCategoryRelease,
+    handleCategoryInteraction,
     handleResetView,
     handleToggleRadiusEdit,
     handleConfirmRadiusReSearch,
@@ -19,6 +18,7 @@ import {
     handleSearchResultClick,
     handleRandomDecisionOnMap,
     handleReturnToCenter,
+    handleUITestMode, // 新增：UI測試模式處理器
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -33,6 +33,7 @@ import { updateWheelCount, hideResult } from './ui.js';
 function init() {
     // 綁定所有事件監聽器
     DOMElements.startBtn.addEventListener('click', () => navigateTo('map-page'));
+    DOMElements.uiTestBtn.addEventListener('click', handleUITestMode); // 新增：UI測試按鈕事件
     DOMElements.confirmRadiusBtn.addEventListener('click', handleConfirmRadius);
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     
@@ -46,18 +47,13 @@ function init() {
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
-    DOMElements.categoryList.addEventListener('mousedown', handleCategoryPress);
-    DOMElements.categoryList.addEventListener('mouseup', handleCategoryRelease);
-    DOMElements.categoryList.addEventListener('touchstart', handleCategoryPress, { passive: true });
-    DOMElements.categoryList.addEventListener('touchend', handleCategoryRelease);
-    DOMElements.categoryList.addEventListener('mouseleave', handleCategoryRelease);
-
+    DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.showAllBtn.addEventListener('click', handleResetView);
+    DOMElements.showAllBtn.addEventListener('click', handleResetView); // *** 修改 ***
     DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit);
     DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter);
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);

@@ -7,6 +7,48 @@ import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewLis
 import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js'; // *** 新增 flyToCoords ***
 import { hideCandidateList } from './candidate.js';
 
+/**
+ * 新增：載入假資料並進入測試模式
+ */
+export async function handleUITestMode() {
+    try {
+        showLoading("載入測試資料中...");
+        
+        // 載入假資料
+        const response = await fetch('./fake-data.json');
+        if (!response.ok) {
+            throw new Error('無法載入測試資料');
+        }
+        const fakeData = await response.json();
+        
+        // 設定測試模式狀態
+        state.isTestMode = true;
+        state.restaurantData = fakeData;
+        state.userLocation = { lat: 25.0330, lon: 121.5654 }; // 台北市中心
+        state.searchCenter = { lat: 25.0330, lon: 121.5654 };
+        state.searchRadiusMeters = 800;
+        
+        // 重設篩選和焦點狀態
+        state.focusedCategories.clear();
+        state.activeCategory = null;
+        state.filters = {
+            openNow: true,
+            priceLevel: 0,
+            rating: 0,
+        };
+        
+        hideLoading();
+        
+        // 直接進入美食地圖頁面
+        navigateTo('categories-page');
+        applyFiltersAndRender();
+        
+    } catch (error) {
+        console.error('載入測試資料失敗:', error);
+        hideLoading();
+        alert('載入測試資料失敗，請確認 fake-data.json 檔案存在');
+    }
+}
 
 /**
  * 處理懸浮按鈕的展開與收合，並動態綁定外部點擊事件。
@@ -125,7 +167,6 @@ async function performSearch(center, radius) {
         state.restaurantData = categorizedData;
         state.focusedCategories.clear();
         state.activeCategory = null;
-        state.isMultiSelectMode = false; // *** 新增：重設為非多選模式 ***
         hideLoading();
         return true;
     } catch (error) {
@@ -217,80 +258,26 @@ export function handleFilterChange(e) {
 }
 
 /**
- * *** 修改：處理美食類別互動的完整邏輯（短按與長按） ***
+ * 處理點擊美食類別的互動邏輯
+ * @param {Event} e - 點擊事件
  */
-let pressTimer = null;
-let isLongPress = false;
-
-export function handleCategoryPress(e) {
-    const categoryItem = e.target.closest('.category-list-item');
-    if (!categoryItem) return;
-
-    isLongPress = false;
-    pressTimer = setTimeout(() => {
-        isLongPress = true;
-        
-        // 觸發視覺回饋
-        categoryItem.classList.add('long-press-feedback');
-        setTimeout(() => categoryItem.classList.remove('long-press-feedback'), 400);
-
-        // 進入或繼續多選模式
-        state.isMultiSelectMode = true;
-        const category = categoryItem.dataset.category;
-        
-        // 多選邏輯
-        if (state.focusedCategories.has(category)) {
-            state.focusedCategories.delete(category);
-            if (state.activeCategory === category) {
-                state.activeCategory = [...state.focusedCategories].pop() || null;
-            }
-        } else {
-            state.focusedCategories.add(category);
-            state.activeCategory = category;
-        }
-        applyFiltersAndRender();
-
-    }, 500); // 500ms 觸發長按
-}
-
-export function handleCategoryRelease(e) {
-    clearTimeout(pressTimer);
-    if (isLongPress) {
-        e.preventDefault(); // 防止觸發 click 事件
-        return;
-    }
-
-    // --- 短按邏輯 ---
+export function handleCategoryInteraction(e) {
     const categoryItem = e.target.closest('.category-list-item');
     if (!categoryItem) return;
     const category = categoryItem.dataset.category;
 
-    // 如果當前是多選模式，短按也視為多選操作
-    if (state.isMultiSelectMode) {
-        if (state.focusedCategories.has(category)) {
-            state.focusedCategories.delete(category);
-            if (state.activeCategory === category) {
-                 state.activeCategory = [...state.focusedCategories].pop() || null;
-            }
-        } else {
-            state.focusedCategories.add(category);
-            state.activeCategory = category;
+    if (state.focusedCategories.has(category)) {
+        state.focusedCategories.delete(category);
+        if (state.activeCategory === category) {
+            state.activeCategory = null;
         }
     } else {
-        // 單選模式
-        // 如果點擊的是同一個已選中的類別，則取消選取
-        if (state.focusedCategories.has(category)) {
-            state.focusedCategories.clear();
-            state.activeCategory = null;
-        } else {
-            state.focusedCategories.clear();
-            state.focusedCategories.add(category);
-            state.activeCategory = category;
-        }
+        state.focusedCategories.add(category);
+        state.activeCategory = category;
     }
+    
     applyFiltersAndRender();
 }
-
 
 /**
  * 處理點擊「重設檢視」按鈕的事件
@@ -299,7 +286,6 @@ export function handleResetView() {
     if (state.focusedCategories.size > 0) {
         state.focusedCategories.clear();
         state.activeCategory = null;
-        state.isMultiSelectMode = false; // *** 新增：重設為非多選模式 ***
         applyFiltersAndRender();
     }
 }
