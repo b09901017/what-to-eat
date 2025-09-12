@@ -73,10 +73,11 @@ export const DOMElements = {
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
     
-    // *** 修改：抽屜 DOM 元素 ***
-    pageHeaderCondensed: document.querySelector('.page-header-condensed'),
+    // *** 抽屜 DOM 元素 (重構) ***
+    drawersContainer: document.getElementById('drawers-container'),
     categoryDrawer: document.getElementById('category-drawer'),
     restaurantDrawer: document.getElementById('restaurant-drawer'),
+    drawerHandle: document.getElementById('drawer-handle'),
 
     floatingActionHub: document.getElementById('floating-action-hub'),
     hubToggleBtn: document.getElementById('hub-toggle-btn'),

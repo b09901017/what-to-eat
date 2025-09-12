@@ -13,7 +13,7 @@ let currentY;
 let initialDrawerY;
 let isVisible = false;
 
-const DRAWER_HEIGHT = 160; 
+const DRAWER_HEIGHT = 160;
 
 function setDrawerPosition(y) {
     drawer.style.transition = 'none';
@@ -21,7 +21,7 @@ function setDrawerPosition(y) {
 }
 
 function snapToPosition(y) {
-    drawer.style.transition = ''; 
+    drawer.style.transition = '';
     drawer.style.transform = `translateY(${y}px)`;
 }
 
@@ -30,11 +30,11 @@ function startDrag(e) {
     e.preventDefault();
     state.isDrawerDragging = true;
     startY = e.touches ? e.touches[0].clientY : e.clientY;
-    
+
     const style = window.getComputedStyle(drawer);
     const matrix = new DOMMatrix(style.transform);
     initialDrawerY = matrix.m42;
-    
+
     window.addEventListener('mousemove', onDrag);
     window.addEventListener('mouseup', endDrag);
     window.addEventListener('touchmove', onDrag, { passive: false });
@@ -48,31 +48,29 @@ function onDrag(e) {
     const diffY = currentY - startY;
     let newY = initialDrawerY + diffY;
 
+    // 限制拖曳範圍，不能向上拖超過頂部
     newY = Math.max(0, newY);
-    
+
     setDrawerPosition(newY);
 }
 
 function endDrag() {
     if (!state.isDrawerDragging) return;
     state.isDrawerDragging = false;
-    
+
     drawer.style.transition = '';
 
     const currentTranslateY = getTranslateY(drawer);
-    
+
     if (currentTranslateY > DRAWER_HEIGHT / 3) {
-        // --- 核心修改：將狀態重置邏輯移至此處 ---
-        // 在隱藏抽屜前，先重置 activeCategory 並重新渲染地圖
         if (state.activeCategory) {
             state.activeCategory = null;
             applyFiltersAndRender();
         }
-        hide();
     } else {
         snapToPosition(0);
     }
-    
+
     window.removeEventListener('mousemove', onDrag);
     window.removeEventListener('mouseup', endDrag);
     window.removeEventListener('touchmove', onDrag);
@@ -100,10 +98,14 @@ function renderContent(restaurants) {
     });
 }
 
+/**
+ * --- 核心修改：移除 show 函式中錯誤的 style.transform = '' ---
+ * 確保動畫起始點正確，避免視覺跳動。
+ */
 export function show(restaurants) {
     if (!drawer) return;
     renderContent(restaurants);
-    
+
     const isFocusMode = state.focusedCategories.size > 0;
     showAllContainer.classList.toggle('visible', isFocusMode);
 
@@ -111,15 +113,18 @@ export function show(restaurants) {
     isVisible = true;
 }
 
-/**
- * --- 核心修改：hide 函式變得純粹 ---
- * 現在它只負責處理 UI 的隱藏，不再包含任何修改全局 state 的邏輯。
- */
 export function hide() {
-    if (!drawer) return;
+    if (!drawer || !isVisible) return;
+
+    const onTransitionEnd = () => {
+        if (!isVisible) {
+            drawer.style.transform = '';
+        }
+    };
+    drawer.addEventListener('transitionend', onTransitionEnd, { once: true });
+
     drawer.classList.remove('is-visible');
     isVisible = false;
-    // 原本的 state 修改邏輯已被移除
 }
 
 export function initRestaurantDrawer() {

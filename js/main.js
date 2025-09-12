@@ -28,8 +28,7 @@ import {
 import { handleSpinWheel } from './wheel.js';
 import { handleAddToWheelFromDetails } from './details.js';
 import { updateWheelCount, hideResult } from './ui.js';
-import { initCategoryDrawer } from './categoryDrawer.js'; // *** 新增 ***
-import { initRestaurantDrawer } from './restaurantDrawer.js'; // *** 新增 ***
+import * as Drawers from './drawers.js'; // *** 匯入新的抽屜模組 ***
 
 // 初始化應用程式
 function init() {
@@ -81,8 +80,7 @@ function init() {
 
     // 初始化 UI
     updateWheelCount();
-    initCategoryDrawer(); // *** 新增 ***
-    initRestaurantDrawer(); // *** 新增 ***
+    Drawers.init(DOMElements); // *** 初始化新的抽屜模組 ***
 }
 
 document.addEventListener('DOMContentLoaded', init);

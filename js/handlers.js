@@ -6,8 +6,8 @@ import { findPlaces, categorizePlaces, geocodeLocation } from './api.js';
 import { showLoading, hideLoading, updateRadiusLabel, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult } from './ui.js';
 import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, flyToCoords } from './map.js';
 import { hideCandidateList } from './candidate.js';
-import { show as showRestaurantDrawer, hide as hideRestaurantDrawer } from './restaurantDrawer.js';
-import { addCandidate, removeCandidate, hasCandidate } from './store.js'; // *** 新增：從 store 引入 ***
+import * as Drawers from './drawers.js'; // *** 匯入新的抽屜模組 ***
+import { addCandidate, removeCandidate, hasCandidate } from './store.js';
 
 
 // --- UI 測試模式處理函式 ---
@@ -28,7 +28,6 @@ export async function handleUITestMode() {
 
         hideLoading();
         navigateTo('categories-page');
-        // applyFiltersAndRender(); // navigateTo 會觸發，此處可省略
 
     } catch (error) {
         console.error("UI 測試模式失敗:", error);
@@ -95,10 +94,11 @@ export function applyFiltersAndRender() {
     
     initCategoriesMapAndRender(finalFilteredData);
 
+    // *** 更新抽屜的顯示邏輯 ***
     if (state.activeCategory && finalFilteredData[state.activeCategory]) {
-        showRestaurantDrawer(finalFilteredData[state.activeCategory]);
+        Drawers.showRestaurants(finalFilteredData[state.activeCategory]);
     } else {
-        hideRestaurantDrawer();
+        Drawers.hideRestaurants();
     }
 }
 
@@ -179,7 +179,6 @@ export async function handleConfirmRadiusReSearch() {
     const success = await performSearch(center, radius);
     if (success) { 
         toggleRadiusEditMode(false, handleRadiusChange); 
-        // applyFiltersAndRender(); // performSearch 後 navigateTo 會觸發
     }
 }
 
@@ -263,20 +262,16 @@ export function handlePopupInteraction(e) {
     if (!btn) return;
     const name = btn.dataset.name;
     if (btn.classList.contains('add-to-wheel-btn')) {
-        // *** 修改：呼叫 store 模組來處理業務邏輯 ***
         const isCurrentlyAdded = hasCandidate(name);
         if (isCurrentlyAdded) {
             removeCandidate(name);
         } else {
             addCandidate(name);
         }
-        // UI 更新會由 store 內部觸發
     } else if (btn.classList.contains('details-btn')) {
         showDetails(name);
     }
 }
-
-// *** 核心修改：toggleWheelItem 函式已被移除，其邏輯移至 store.js ***
 
 function showDetails(name) {
     const restaurant = Object.values(state.restaurantData).flat().find(r => r.name === name);
