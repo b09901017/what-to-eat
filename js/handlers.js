@@ -3,53 +3,50 @@
 import { state, DOMElements } from './state.js';
 import { navigateTo } from './navigation.js';
 import { findPlaces, categorizePlaces, getPlaceDetails, geocodeLocation } from './api.js';
-import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult, renderCategories } from './ui.js';
-import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, fitBoundsToSearchRadius, updateMapMarkers, updateCategorizedMarkers } from './map.js';
+import { showLoading, hideLoading, updateRadiusLabel, renderRestaurantPreviewList, updateWheelCount, initCategoriesMapAndRender, updateFilterUI, toggleRadiusEditMode, toggleHub, toggleSearchUI, renderSearchResults, clearSearchResults, showResult, renderCategories, updateCategoryStyles } from './ui.js';
+import { initRadiusMap, recenterRadiusMap, flyToMarker, getEditorState, startRandomMarkerAnimation, showOnlyCandidateMarkers, fitBoundsToSearchRadius, updateMapMarkers, updateCategorizedMarkers, updateOpenPopups } from './map.js';
 import { hideCandidateList } from './candidate.js';
 
-
-/**
- * ** [重構後] ** 核心搜尋流程，實現非同步分類
- */
-async function performSearch(center, radius) {
+async function performSearch(center, radius, isRetry = false) {
     if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') {
         alert("無法獲取有效的地理位置，請重試。");
         return false;
     }
-    showLoading(); // 顯示隨機載入文字
+    showLoading();
 
     try {
-        // --- 第一步: 快速獲取未分類的店家 ---
-        const unclassifiedPlaces = await findPlaces(center.lat, center.lng, radius);
-        
-        if (unclassifiedPlaces.length === 0) {
-            hideLoading();
-            alert("哎呀！這個範圍內似乎沒有找到任何餐廳，試著擴大搜索圈吧！");
-            return false;
+        let unclassifiedPlaces;
+        if (isRetry && Array.isArray(state.restaurantData) && state.restaurantData.length > 0) {
+            unclassifiedPlaces = state.restaurantData;
+        } else {
+            unclassifiedPlaces = await findPlaces(center.lat, center.lng, radius);
+            if (unclassifiedPlaces.length === 0) {
+                hideLoading();
+                alert("哎呀！這個範圍內似乎沒有找到任何餐廳，試著擴大搜索圈吧！");
+                return false;
+            }
         }
-
+        
         state.restaurantData = unclassifiedPlaces;
         state.isCategorizing = true;
-        state.detailedRestaurantCache = {}; // 清空舊的詳情快取
+        state.detailedRestaurantCache = {};
         state.focusedCategories.clear();
         state.activeCategory = null;
 
-        hideLoading();
-        state.isInitialMapView = true;
-        navigateTo('categories-page');
-        applyFiltersAndRender(); // 第一次渲染，顯示「待分類」狀態
+        if (!isRetry) {
+            hideLoading();
+            state.isInitialMapView = true;
+            navigateTo('categories-page');
+        }
+        applyFiltersAndRender();
 
-        // --- 第二步: 發送非同步請求進行 AI 分類 ---
-        // 確保這個請求被正確地觸發
         console.log("正在發送請求進行 AI 分類...");
         categorizePlaces(unclassifiedPlaces)
             .then(handleCategorizationResult)
             .catch(error => {
                 console.error("AI 分類失敗:", error);
                 state.isCategorizing = false;
-                // 你可以在此處更新 UI，告訴使用者分類失敗
-                const listEl = DOMElements.categoryList;
-                listEl.innerHTML = `<p class="empty-state-message">哎呀，AI 大廚罷工了！分類失敗... 😭</p>`;
+                renderCategories(null);
             });
         
         return true;
@@ -61,62 +58,43 @@ async function performSearch(center, radius) {
     }
 }
 
-/**
- * ** [增強後] ** 處理 AI 分類結果，並更新已打開的 Popup
- */
 function handleCategorizationResult(categorizedData) {
     console.log("AI 分類完成！", categorizedData);
     state.isCategorizing = false;
     state.restaurantData = categorizedData;
     
-    renderCategories(categorizedData);
+    // 分類完成後，觸發一次完整的渲染
+    applyFiltersAndRender();
+    
+    // 更新地圖標記和已打開的 Popup
     updateCategorizedMarkers(categorizedData);
-    updateOpenPopups(); // *** 新增 ***: 更新已打開的 Popup 內容
+    updateOpenPopups();
 }
 
-/**
- * ** [新增] ** 處理點擊「重試」按鈕的事件
- */
 export function handleRetryCategorization() {
     if (Array.isArray(state.restaurantData) && state.restaurantData.length > 0) {
         console.log("正在重試 AI 分類...");
         state.isCategorizing = true;
-        renderCategories(null); // 再次顯示載入中動畫
+        renderCategories(null);
         
         categorizePlaces(state.restaurantData)
             .then(handleCategorizationResult)
             .catch(error => {
                 console.error("AI 分類重試失敗:", error);
                 state.isCategorizing = false;
-                renderCategories(null); // 顯示失敗 UI
+                renderCategories(null);
             });
     }
 }
 
-/**
- * 根據當前篩選條件過濾餐廳資料並重新渲染地圖和列表
- */
 export function applyFiltersAndRender() {
     const { restaurantData } = state;
-    
-    if (Array.isArray(restaurantData)) { // AI 分類前
-        initCategoriesMapAndRender(restaurantData);
+    initCategoriesMapAndRender(restaurantData); 
+
+    if (!Array.isArray(restaurantData)) {
+        renderRestaurantPreviewList(state.activeCategory, restaurantData);
+    } else {
         renderRestaurantPreviewList(null, []);
-    } else { // AI 分類後
-        // 當前版本的篩選邏輯在漸進式載入下作用有限，先不過濾
-        const allRestaurants = Object.values(restaurantData).flat();
-        const globallyFilteredNames = new Set(allRestaurants.map(r => r.name));
-        
-        const finalFilteredData = {};
-        for (const category in restaurantData) {
-            const categoryRestaurants = restaurantData[category].filter(r => globallyFilteredNames.has(r.name));
-            if (categoryRestaurants.length > 0) {
-                finalFilteredData[category] = categoryRestaurants;
-            }
-        }
-        
-        initCategoriesMapAndRender(finalFilteredData);
-        renderRestaurantPreviewList(state.activeCategory, finalFilteredData);
     }
 }
 
@@ -136,38 +114,28 @@ export async function handleConfirmRadiusReSearch() {
     await performSearch(center, radius);
 }
 
-/**
- * ** [重構後] ** 處理點擊美食類別，只切換樣式，不重繪
- */
 export function handleCategoryInteraction(e) {
-    if (state.isCategorizing) {
-        const item = e.target.closest('.category-list-item');
-        if (item) {
-            item.classList.add('shake');
-            setTimeout(() => item.classList.remove('shake'), 500);
+    const categoryItem = e.target.closest('.category-list-item');
+    if (!categoryItem || state.isCategorizing) {
+        if (state.isCategorizing && categoryItem) {
+            categoryItem.classList.add('shake');
+            setTimeout(() => categoryItem.classList.remove('shake'), 500);
         }
         return;
     }
-    const categoryItem = e.target.closest('.category-list-item');
-    if (!categoryItem) return;
 
     const category = categoryItem.dataset.category;
     state.activeCategory = state.activeCategory === category ? null : category;
     
     state.focusedCategories.clear();
-    if(state.activeCategory) {
+    if (state.activeCategory) {
         state.focusedCategories.add(state.activeCategory);
     }
     
-    // *** 修改 ***: 不再呼叫 applyFiltersAndRender，而是直接更新樣式和地圖
-    updateCategoryStyles();
-    updateMapMarkers(state.restaurantData, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
-    renderRestaurantPreviewList(state.activeCategory, state.restaurantData);
+    // ** [修正] ** 互動後，讓 applyFiltersAndRender 處理所有更新
+    applyFiltersAndRender();
 }
-/**
- * ** [修正後] ** 根據 place_id 顯示詳情頁
- * @param {string} placeId - Google Place ID
- */
+
 async function showDetails(placeId) {
     if (!placeId) {
         alert("店家資料不完整，無法查看詳情。");
@@ -214,10 +182,8 @@ export function handlePreviewCardInteraction(e) {
     flyToMarker(name);
 }
 
-// --- 以下是其他未變動的函式，為確保完整性，全部提供 ---
-
 export function handleUITestMode() {
-    // 測試模式的邏輯暫時維持原樣
+    // This function can be implemented later if needed
 }
 
 export function handleToggleHub() {
@@ -232,9 +198,7 @@ export function handleToggleHub() {
         }
     };
     if (state.isHubExpanded) {
-        setTimeout(() => {
-            eventListenerTarget.addEventListener('click', closeHubHandler, true);
-        }, 0);
+        setTimeout(() => eventListenerTarget.addEventListener('click', closeHubHandler, true), 0);
     } else {
         eventListenerTarget.removeEventListener('click', closeHubHandler, true);
     }
@@ -327,7 +291,6 @@ export function toggleWheelItem(name, shouldAdd = true) {
         isAdded = true;
     }
     updateWheelCount();
-    // 僅在分類完成後才重繪地圖，避免不必要的刷新
     if (!state.isCategorizing) {
         applyFiltersAndRender();
     }
@@ -339,7 +302,6 @@ export async function handleRandomDecisionOnMap() {
     state.isDecidingOnMap = true;
     hideCandidateList();
     const candidates = [...state.wheelItems];
-    // 確保地圖上顯示的是最新狀態
     updateMapMarkers(state.restaurantData, state.userLocation, state.searchCenter, new Set(), null);
     showOnlyCandidateMarkers(candidates);
     try {

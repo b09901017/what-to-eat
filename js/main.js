@@ -19,7 +19,7 @@ import {
     handleRandomDecisionOnMap,
     handleReturnToCenter,
     handleUITestMode,
-    handleRetryCategorization // *** 新增 ***: 匯入重試處理器
+    handleRetryCategorization 
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -46,7 +46,6 @@ function init() {
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
-    // *** 修改 ***: categoryList 現在也處理重試按鈕的點擊
     DOMElements.categoryList.addEventListener('click', (e) => {
         if (e.target.classList.contains('retry-btn')) {
             handleRetryCategorization();

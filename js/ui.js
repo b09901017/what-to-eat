@@ -7,18 +7,82 @@ import { renderWheel, hideResult as hideWheelResult } from './wheel.js';
 import { renderDetailsPage } from './details.js';
 import { hideCandidateList } from './candidate.js';
 
+export function initCategoriesMapAndRender(data) {
+    initCategoriesMap();
+    updateMapMarkers(data, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
+    if (state.isInitialMapView) {
+        fitBoundsToSearchRadius();
+        state.isInitialMapView = false;
+    }
+    
+    // ** [修正] ** 渲染分類列表的邏輯現在由 applyFiltersAndRender 觸發後，
+    // 在這裡被調用，以確保 UI 正確
+    renderCategories(Array.isArray(data) ? null : data, state.isCategorizing);
+
+    DOMElements.mapBottomDrawer?.classList.add('visible');
+    const isFocusMode = state.focusedCategories.size > 0;
+    DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
+}
+
+export function renderCategories(filteredData, isCategorizing) {
+    const listEl = DOMElements.categoryList;
+    listEl.innerHTML = '';
+    listEl.classList.remove('reveal');
+
+    if (isCategorizing) {
+        listEl.innerHTML = `
+            <div class="chef-animation-container">
+                <div class="chef"><div class="chef-hat"></div><div class="chef-head"><div class="chef-eye left"></div><div class="chef-eye right"></div></div></div>
+                <div class="chef-pot"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
+            </div>
+            <p class="empty-state-message" style="padding-top: 0;">AI 大廚正在料理美食標籤...</p>`;
+        return;
+    }
+
+    if (!filteredData) {
+        const errorMessage = `<p>哎呀，AI 大廚罷工了！😭</p><button class="retry-btn">再試一次</button>`;
+        listEl.innerHTML = `<div class="empty-state-message">${errorMessage}</div>`;
+        return;
+    }
+
+    if (Object.keys(filteredData).length === 0) {
+        const message = "此區域似乎沒有餐廳喔！";
+        listEl.innerHTML = `<p class="empty-state-message">${message}</p>`;
+        return;
+    }
+    
+    const categoryKeys = Object.keys(filteredData);
+    categoryKeys.forEach(category => {
+        const item = document.createElement('div');
+        item.className = 'category-list-item';
+        item.dataset.category = category;
+        item.textContent = category;
+        listEl.appendChild(item);
+    });
+
+    setTimeout(() => listEl.classList.add('reveal'), 100);
+    updateCategoryStyles();
+}
+
+export function updateCategoryStyles() {
+    const isFocusMode = state.focusedCategories.size > 0;
+    DOMElements.categoryList.querySelectorAll('.category-list-item').forEach(item => {
+        const category = item.dataset.category;
+        const isActive = state.focusedCategories.has(category);
+        item.classList.toggle('active', isActive);
+        item.classList.toggle('unfocused', isFocusMode && !isActive);
+        if (isActive) item.classList.remove('unfocused');
+    });
+}
+
+// --- 以下是其他未變動的函式，為確保完整性，全部提供 ---
+
 export function renderPageContent(pageId) {
     switch (pageId) {
         case 'map-page': getUserLocation(); break;
         case 'categories-page':
-            if (state.isEditingRadius) {
-                state.isEditingRadius = false;
-                toggleRadiusEditMode(false);
-            }
-            if (state.isHubExpanded) {
-                state.isHubExpanded = false;
-                toggleHub(false);
-            }
+            if (state.isEditingRadius) { state.isEditingRadius = false; toggleRadiusEditMode(false); }
+            if (state.isHubExpanded) { state.isHubExpanded = false; toggleHub(false); }
             clearWinnerMarker();
             hideCandidateList();
             break;
@@ -84,102 +148,6 @@ export function toggleRadiusEditMode(isEditing, onRadiusChange) {
         DOMElements.radiusLabel.classList.remove('visible');
         applyFiltersAndRender();
     }
-}
-
-export function initCategoriesMapAndRender(data) {
-    initCategoriesMap();
-    updateMapMarkers(data, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
-    if (state.isInitialMapView) {
-        fitBoundsToSearchRadius();
-        state.isInitialMapView = false;
-    }
-    if (Array.isArray(data)) {
-        renderCategories(null);
-    } else {
-        renderCategories(data);
-    }
-    DOMElements.mapBottomDrawer?.classList.add('visible');
-    const isFocusMode = state.focusedCategories.size > 0;
-    DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
-}
-
-/**
- * ** [重構後] ** 渲染分類列表，加入 AI 大廚動畫和失敗重試 UI
- */
-export function renderCategories(filteredData) {
-    const listEl = DOMElements.categoryList;
-    listEl.innerHTML = '';
-    listEl.classList.remove('reveal');
-
-    if (state.isCategorizing) {
-        // *** 修改 ***: 顯示 AI 大廚動畫
-        listEl.innerHTML = `
-            <div class="chef-animation-container">
-                <div class="chef">
-                    <div class="chef-hat"></div>
-                    <div class="chef-head">
-                        <div class="chef-eye left"></div>
-                        <div class="chef-eye right"></div>
-                    </div>
-                </div>
-                <div class="chef-pot">
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
-                    <div class="bubble"></div>
-                </div>
-            </div>
-            <p class="empty-state-message" style="padding-top: 0;">AI 大廚正在料理美食標籤...</p>
-        `;
-        return;
-    }
-
-    if (!filteredData) { // 這涵蓋了 null 和 undefined 的情況
-        // *** 修改 ***: 處理分類失敗的 UI
-        const errorMessage = `
-            <p>哎呀，AI 大廚罷工了！😭</p>
-            <button class="retry-btn">再試一次</button>
-        `;
-        listEl.innerHTML = `<div class="empty-state-message">${errorMessage}</div>`;
-        return;
-    }
-
-    if (Object.keys(filteredData).length === 0) {
-        const message = "此區域似乎沒有餐廳喔！";
-        listEl.innerHTML = `<p class="empty-state-message">${message}</p>`;
-        return;
-    }
-    
-    const categoryKeys = Object.keys(filteredData);
-    categoryKeys.forEach(category => {
-        const item = document.createElement('div');
-        item.className = 'category-list-item';
-        item.dataset.category = category;
-        item.textContent = category;
-        listEl.appendChild(item);
-    });
-
-    // 觸發揭曉動畫
-    setTimeout(() => listEl.classList.add('reveal'), 100);
-    // 初始渲染後，根據當前 activeCategory 更新樣式
-    updateCategoryStyles();
-}
-
-/**
- * ** [新增] ** 輔助函式，僅更新分類按鈕的樣式，避免重繪
- */
-export function updateCategoryStyles() {
-    const isFocusMode = state.focusedCategories.size > 0;
-    DOMElements.categoryList.querySelectorAll('.category-list-item').forEach(item => {
-        const category = item.dataset.category;
-        const isActive = state.focusedCategories.has(category);
-        
-        item.classList.toggle('active', isActive);
-        item.classList.toggle('unfocused', isFocusMode && !isActive);
-        // 確保 active 的項目不會同時有 unfocused 樣式
-        if (isActive) {
-            item.classList.remove('unfocused');
-        }
-    });
 }
 
 export function renderRestaurantPreviewList(category, filteredData) {

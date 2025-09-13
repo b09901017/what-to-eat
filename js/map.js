@@ -3,11 +3,45 @@
 import { state, DOMElements } from './state.js';
 import { handlePopupInteraction } from './handlers.js';
 
-export const mapInstances = {
-    radius: null,
-    categories: null
-};
+function renderPopupContent(restaurant) {
+    const isAdded = state.wheelItems.has(restaurant.name);
+    const placeId = restaurant.place_id || '';
+    
+    const infoText = state.isCategorizing ? '分類魔法進行中...' : `按 '+' 加入候選清單！`;
 
+    return `
+        <div class="popup-content">
+            <h4>${restaurant.name}</h4>
+            <div class="popup-info">
+                <span>${infoText}</span>
+            </div>
+            <div class="popup-actions">
+                <button data-place-id="${placeId}" data-name="${restaurant.name}" class="btn-secondary details-btn">更多</button>
+                <button data-place-id="${placeId}" data-name="${restaurant.name}" class="btn-primary add-to-wheel-btn ${isAdded ? 'added' : ''}">${isAdded ? '✓' : '+'}</button>
+            </div>
+        </div>
+    `;
+}
+
+export function updateOpenPopups() {
+    const map = mapInstances.categories;
+    if (!map) return;
+
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker && layer.isPopupOpen()) {
+            const restaurantName = Object.keys(restaurantMarkers).find(name => restaurantMarkers[name] === layer);
+            if (restaurantName) {
+                const restaurantData = Object.values(state.restaurantData).flat().find(r => r.name === restaurantName);
+                if (restaurantData) {
+                    layer.setPopupContent(renderPopupContent(restaurantData));
+                }
+            }
+        }
+    });
+}
+
+// --- 以下是其他未變動的函式，為確保完整性，全部提供 ---
+export const mapInstances = { radius: null, categories: null };
 let restaurantMarkers = {};
 let centerMarker = null;
 
@@ -39,30 +73,29 @@ export function updateMapMarkers(data, userLocation, searchCenter, focusedCatego
     const map = mapInstances.categories;
     if (!map) return;
 
+    // ** [修正] ** 只清除餐廳標記，不清除使用者和中心點標記
     Object.values(restaurantMarkers).forEach(marker => marker.remove());
     restaurantMarkers = {};
-    if (centerMarker) centerMarker.remove();
-    
-    if (userLocation) {
+
+    if (!centerMarker && userLocation) { // 僅在第一次載入時創建
         L.marker([userLocation.lat, userLocation.lon], {
             icon: L.divIcon({ html: '<div class="user-location-marker"></div>', className: '', iconSize: [24, 24] }),
             zIndexOffset: 1500
         }).addTo(map);
     }
-    if (searchCenter) {
+    if (!centerMarker && searchCenter) { // 僅在第一次載入時創建
         centerMarker = L.marker([searchCenter.lat, searchCenter.lon], {
             icon: L.divIcon({ html: '<div class="search-center-marker"></div>', className: '', iconSize: [24, 24] }),
             zIndexOffset: 2000
         }).addTo(map);
     }
 
-    if (Array.isArray(data)) { // 未分類
+    if (Array.isArray(data)) {
         data.forEach(restaurant => createMarker(restaurant, '✨', 'unclassified'));
-    } else { // 已分類
+    } else {
         const isFocusMode = focusedCategories && focusedCategories.size > 0;
         for (const category in data) {
             if (isFocusMode && !focusedCategories.has(category)) continue;
-
             const iconMatch = category.match(/(\p{Emoji})/u);
             const iconEmoji = iconMatch ? iconMatch[1] : '📍';
             const isHighlighted = activeCategory === category;
@@ -92,18 +125,11 @@ export function updateCategorizedMarkers(categorizedData) {
     }
 }
 
-// --- 以下是其他未變動的函式，為確保完整性，全部提供 ---
-
-const editorLayers = {
-    radius: null,
-    categories: null
-};
+const editorLayers = { radius: null, categories: null };
 
 function destinationPoint(lat, lon, distance, bearing) {
     const R = 6371e3;
-    const latRad = lat * Math.PI / 180;
-    const lonRad = lon * Math.PI / 180;
-    const bearingRad = bearing * Math.PI / 180;
+    const latRad = lat * Math.PI / 180, lonRad = lon * Math.PI / 180, bearingRad = bearing * Math.PI / 180;
     const newLatRad = Math.asin(Math.sin(latRad) * Math.cos(distance / R) + Math.cos(latRad) * Math.sin(distance / R) * Math.cos(bearingRad));
     const newLonRad = lonRad + Math.atan2(Math.sin(bearingRad) * Math.sin(distance / R) * Math.cos(latRad), Math.cos(distance / R) - Math.sin(latRad) * Math.sin(newLatRad));
     return L.latLng(newLatRad * 180 / Math.PI, newLonRad * 180 / Math.PI);
@@ -116,14 +142,8 @@ export function drawRadiusEditor(mapKey, location, radius, onRadiusChange) {
     const centerLatLng = L.latLng(location.lat, location.lon);
     const circle = L.circle(centerLatLng, { radius, color: 'var(--primary-color)', weight: 2, fillOpacity: 0.1 });
     const edgeLatLng = destinationPoint(location.lat, location.lon, radius, 90);
-    const handleMarker = L.marker(edgeLatLng, {
-        draggable: true,
-        icon: L.divIcon({ html: '<div class="radius-drag-handle-container"><div class="radius-drag-handle"></div></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 20] })
-    });
-    const centerMarker = L.marker(centerLatLng, {
-        draggable: true,
-        icon: L.divIcon({ html: '<div class="radius-center-marker"></div>', className: '', iconSize: [24, 24], iconAnchor: [12, 12] })
-    });
+    const handleMarker = L.marker(edgeLatLng, { draggable: true, icon: L.divIcon({ html: '<div class="radius-drag-handle-container"><div class="radius-drag-handle"></div></div>', className: '', iconSize: [40, 40], iconAnchor: [20, 20] }) });
+    const centerMarker = L.marker(centerLatLng, { draggable: true, icon: L.divIcon({ html: '<div class="radius-center-marker"></div>', className: '', iconSize: [24, 24], iconAnchor: [12, 12] }) });
     handleMarker.on('drag', (e) => {
         const currentCenter = centerMarker.getLatLng();
         const newRadius = Math.max(50, Math.round(currentCenter.distanceTo(e.target.getLatLng())));
@@ -141,10 +161,7 @@ export function drawRadiusEditor(mapKey, location, radius, onRadiusChange) {
 }
 
 export function removeRadiusEditor(mapKey) {
-    if (editorLayers[mapKey]) {
-        editorLayers[mapKey].remove();
-        editorLayers[mapKey] = null;
-    }
+    if (editorLayers[mapKey]) { editorLayers[mapKey].remove(); editorLayers[mapKey] = null; }
 }
 
 export function getEditorState(mapKey) {
@@ -153,9 +170,7 @@ export function getEditorState(mapKey) {
     const layers = editor.getLayers();
     const circle = layers.find(layer => layer instanceof L.Circle);
     const centerMarker = layers.find(layer => layer instanceof L.Marker && layer.options.icon.options.html.includes('radius-center-marker'));
-    if (circle && centerMarker) {
-        return { center: centerMarker.getLatLng(), radius: circle.getRadius(), circle: circle };
-    }
+    if (circle && centerMarker) { return { center: centerMarker.getLatLng(), radius: circle.getRadius(), circle: circle }; }
     return null;
 }
 
@@ -163,10 +178,7 @@ export function initRadiusMap(location, radius, onRadiusChange) {
     const mapKey = 'radius';
     if (!mapInstances[mapKey]) {
         mapInstances[mapKey] = L.map(DOMElements.radiusMap, { zoomControl: false }).setView([location.lat, location.lon], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 20,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        }).addTo(mapInstances[mapKey]);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }).addTo(mapInstances[mapKey]);
     }
     drawRadiusEditor(mapKey, location, radius, onRadiusChange);
 }
@@ -176,9 +188,7 @@ export function initCategoriesMap() {
     if (!mapInstances[mapKey]) {
         mapInstances[mapKey] = L.map(DOMElements.leafletMap).setView([24.97, 121.54], 15);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(mapInstances[mapKey]);
-        mapInstances[mapKey].on('popupopen', (e) => {
-            e.popup.getElement().addEventListener('click', handlePopupInteraction);
-        });
+        mapInstances[mapKey].on('popupopen', (e) => { e.popup.getElement().addEventListener('click', handlePopupInteraction); });
     }
     return mapInstances[mapKey];
 }
@@ -206,6 +216,9 @@ export function destroyRadiusMap() {
     if (mapInstances[mapKey]) {
         mapInstances[mapKey].remove();
         mapInstances[mapKey] = null;
+        // ** [新增] ** 清除標記引用，避免內存洩漏
+        centerMarker = null;
+        restaurantMarkers = {};
     }
 }
 
@@ -236,10 +249,7 @@ export function fitBoundsToSearchRadius() {
         const bounds = L.latLngBounds(northEast, southWest);
         const topUIHeight = DOMElements.pageHeaderCondensed?.offsetHeight || 80;
         const bottomUIHeight = DOMElements.mapBottomDrawer?.offsetHeight || 200;
-        const paddingOptions = {
-            paddingTopLeft: [20, topUIHeight + 20],
-            paddingBottomRight: [20, bottomUIHeight + 20]
-        };
+        const paddingOptions = { paddingTopLeft: [20, topUIHeight + 20], paddingBottomRight: [20, bottomUIHeight + 20] };
         map.flyToBounds(bounds, { ...paddingOptions, duration: 1.0, maxZoom: 16 });
     }
 }
@@ -251,9 +261,7 @@ export function flyToMarker(name) {
         marker.openPopup();
         if (marker._icon) {
             marker._icon.classList.add('marker-active');
-            setTimeout(() => {
-                if (marker._icon) marker._icon.classList.remove('marker-active');
-            }, 800);
+            setTimeout(() => { if (marker._icon) marker._icon.classList.remove('marker-active'); }, 800);
         }
     }
 }
