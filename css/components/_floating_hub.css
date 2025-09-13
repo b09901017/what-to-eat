@@ -5,7 +5,6 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    pointer-events: none; /* 讓容器本身不攔截點擊事件 */
 }
 
 #hub-item-list {
@@ -13,7 +12,7 @@
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 1rem;
-    /* 移除舊的 pointer-events 設定 */
+    pointer-events: none; /* 核心修改：預設整個子按鈕列表不可互動 */
 }
 
 .hub-item {
@@ -26,7 +25,7 @@
 }
 
 .floating-action-hub.is-active #hub-item-list {
-    pointer-events: auto; /* 當 Hub 展開時，讓整個項目列表恢復事件響應 */
+    pointer-events: auto; /* 核心修改：僅在展開時，才讓列表恢復互動 */
 }
 
 .floating-action-hub.is-active .hub-item {
@@ -64,7 +63,7 @@
     cursor: pointer;
     border: none;
     transition: all var(--transition-fast);
-    pointer-events: auto; /* 讓按鈕可以被點擊 */
+    /* 移除 pointer-events: auto，讓其繼承父層的設定 */
 }
 .hub-item .hub-action-btn:hover {
     transform: scale(1.1);
@@ -88,7 +87,7 @@
     box-shadow: 0 4px 15px rgba(229, 115, 115, 0.5);
     cursor: pointer;
     transition: all var(--transition-fast);
-    pointer-events: auto; /* 讓主按鈕可以被點擊 */
+    /* 主按鈕永遠可以點擊，不需特別設定 pointer-events */
 }
 .hub-toggle-btn:hover {
     transform: scale(1.05);
