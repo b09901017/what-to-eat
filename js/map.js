@@ -3,24 +3,6 @@
 import { state, DOMElements } from './state.js';
 import { handlePopupInteraction } from './handlers.js';
 
-function renderPopupContent(restaurant) {
-    const isAdded = state.wheelItems.has(restaurant.name);
-    // 即使是未分類狀態，也要確保 place_id 存在
-    const placeId = restaurant.place_id || ''; 
-    return `
-        <div class="popup-content">
-            <h4>${restaurant.name}</h4>
-            <div class="popup-info">
-                <span>${state.isCategorizing ? '分類魔法進行中...' : '點擊「更多」查看詳情'}</span>
-            </div>
-            <div class="popup-actions">
-                <button data-place-id="${placeId}" data-name="${restaurant.name}" class="btn-secondary details-btn">更多</button>
-                <button data-place-id="${placeId}" data-name="${restaurant.name}" class="btn-primary add-to-wheel-btn ${isAdded ? 'added' : ''}">${isAdded ? '✓' : '+'}</button>
-            </div>
-        </div>
-    `;
-}
-
 export const mapInstances = {
     radius: null,
     categories: null

@@ -62,17 +62,35 @@ async function performSearch(center, radius) {
 }
 
 /**
- * ** [新增] ** 處理非同步 AI 分類回傳結果的函式
- * @param {object} categorizedData - 後端回傳的已分類店家資料
+ * ** [增強後] ** 處理 AI 分類結果，並更新已打開的 Popup
  */
 function handleCategorizationResult(categorizedData) {
     console.log("AI 分類完成！", categorizedData);
     state.isCategorizing = false;
     state.restaurantData = categorizedData;
     
-    // 動態更新 UI
     renderCategories(categorizedData);
     updateCategorizedMarkers(categorizedData);
+    updateOpenPopups(); // *** 新增 ***: 更新已打開的 Popup 內容
+}
+
+/**
+ * ** [新增] ** 處理點擊「重試」按鈕的事件
+ */
+export function handleRetryCategorization() {
+    if (Array.isArray(state.restaurantData) && state.restaurantData.length > 0) {
+        console.log("正在重試 AI 分類...");
+        state.isCategorizing = true;
+        renderCategories(null); // 再次顯示載入中動畫
+        
+        categorizePlaces(state.restaurantData)
+            .then(handleCategorizationResult)
+            .catch(error => {
+                console.error("AI 分類重試失敗:", error);
+                state.isCategorizing = false;
+                renderCategories(null); // 顯示失敗 UI
+            });
+    }
 }
 
 /**
@@ -118,6 +136,9 @@ export async function handleConfirmRadiusReSearch() {
     await performSearch(center, radius);
 }
 
+/**
+ * ** [重構後] ** 處理點擊美食類別，只切換樣式，不重繪
+ */
 export function handleCategoryInteraction(e) {
     if (state.isCategorizing) {
         const item = e.target.closest('.category-list-item');
@@ -132,11 +153,17 @@ export function handleCategoryInteraction(e) {
 
     const category = categoryItem.dataset.category;
     state.activeCategory = state.activeCategory === category ? null : category;
+    
     state.focusedCategories.clear();
-    if(state.activeCategory) state.focusedCategories.add(state.activeCategory);
-    applyFiltersAndRender();
+    if(state.activeCategory) {
+        state.focusedCategories.add(state.activeCategory);
+    }
+    
+    // *** 修改 ***: 不再呼叫 applyFiltersAndRender，而是直接更新樣式和地圖
+    updateCategoryStyles();
+    updateMapMarkers(state.restaurantData, state.userLocation, state.searchCenter, state.focusedCategories, state.activeCategory);
+    renderRestaurantPreviewList(state.activeCategory, state.restaurantData);
 }
-
 /**
  * ** [修正後] ** 根據 place_id 顯示詳情頁
  * @param {string} placeId - Google Place ID

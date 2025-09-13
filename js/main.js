@@ -18,7 +18,8 @@ import {
     handleSearchResultClick,
     handleRandomDecisionOnMap,
     handleReturnToCenter,
-    handleUITestMode, // 新增：UI測試模式處理器
+    handleUITestMode,
+    handleRetryCategorization // *** 新增 ***: 匯入重試處理器
 } from './handlers.js';
 import {
     handleShowCandidateList,
@@ -29,11 +30,9 @@ import { handleSpinWheel } from './wheel.js';
 import { handleAddToWheelFromDetails } from './details.js';
 import { updateWheelCount, hideResult } from './ui.js';
 
-// 初始化應用程式
 function init() {
-    // 綁定所有事件監聽器
     DOMElements.startBtn.addEventListener('click', () => navigateTo('map-page'));
-    DOMElements.uiTestBtn.addEventListener('click', handleUITestMode); // 新增：UI測試按鈕事件
+    DOMElements.uiTestBtn.addEventListener('click', handleUITestMode);
     DOMElements.confirmRadiusBtn.addEventListener('click', handleConfirmRadius);
     DOMElements.recenterBtn.addEventListener('click', handleRecenter);
     
@@ -47,13 +46,21 @@ function init() {
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
-    DOMElements.categoryList.addEventListener('click', handleCategoryInteraction);
+    // *** 修改 ***: categoryList 現在也處理重試按鈕的點擊
+    DOMElements.categoryList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('retry-btn')) {
+            handleRetryCategorization();
+        } else {
+            handleCategoryInteraction(e);
+        }
+    });
+    
     DOMElements.restaurantPreviewList.addEventListener('click', handlePreviewCardInteraction);
     
     DOMElements.addToWheelDetailsBtn.addEventListener('click', handleAddToWheelFromDetails);
 
     DOMElements.filterBtn.addEventListener('click', toggleFilterPanel);
-    DOMElements.showAllBtn.addEventListener('click', handleResetView); // *** 修改 ***
+    DOMElements.showAllBtn.addEventListener('click', handleResetView);
     DOMElements.resizeRadiusBtn.addEventListener('click', handleToggleRadiusEdit);
     DOMElements.returnToCenterBtn.addEventListener('click', handleReturnToCenter);
     DOMElements.closeFilterBtn.addEventListener('click', toggleFilterPanel);
@@ -71,13 +78,10 @@ function init() {
     DOMElements.candidateListContent.addEventListener('click', handleCandidateListInteraction);
     DOMElements.randomDecisionBtn.addEventListener('click', handleRandomDecisionOnMap);
     
-    // 為地點搜尋元件綁定事件
     DOMElements.locationSearchToggleBtn.addEventListener('click', handleSearchIconClick);
     DOMElements.locationSearchInput.addEventListener('input', handleSearchInput);
     DOMElements.locationSearchResults.addEventListener('click', handleSearchResultClick);
 
-
-    // 初始化 UI
     updateWheelCount();
 }
 

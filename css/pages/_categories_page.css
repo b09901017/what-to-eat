@@ -77,7 +77,6 @@
 }
 .category-list::-webkit-scrollbar { display: none; }
 
-/* *** 新增 ***: 分類揭曉動畫 */
 .category-list.reveal .category-list-item {
     animation: category-fade-in 0.5s var(--transition-slow) forwards;
 }
@@ -85,12 +84,10 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* *** 新增 ***: 讓每個按鈕有延遲效果 */
 .category-list.reveal .category-list-item:nth-child(2) { animation-delay: 0.05s; }
 .category-list.reveal .category-list-item:nth-child(3) { animation-delay: 0.1s; }
 .category-list.reveal .category-list-item:nth-child(4) { animation-delay: 0.15s; }
 .category-list.reveal .category-list-item:nth-child(5) { animation-delay: 0.2s; }
-/* ... 可以根據需要增加更多延遲 */
 
 
 .category-list-item { 
@@ -104,7 +101,7 @@
     transition: all var(--transition-fast); 
     white-space: nowrap;
     flex-shrink: 0;
-    opacity: 0; /* 預設隱藏，等待動畫 */
+    opacity: 0;
 }
 .category-list-item:hover { transform: translateY(-4px); }
 .category-list-item.active { 
@@ -112,11 +109,11 @@
     color: white; 
     border-color: var(--primary-color); 
     transform: translateY(-4px); 
+    opacity: 1;
 }
 .category-list-item.unfocused { opacity: 0.4; }
 .category-list-item.unfocused:hover { opacity: 0.7; transform: translateY(-4px); }
 
-/* *** 新增 ***: 提示使用者等待的抖動動畫 */
 .category-list-item.shake {
     animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
@@ -128,44 +125,118 @@
 }
 
 
-.show-all-container {
-    padding: 0 1.5rem 0.75rem 1.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all var(--transition-fast);
-    pointer-events: none;
-}
-.show-all-container.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-.show-all-btn {
-    width: auto;
-    display: inline-block;
-    padding: 0.5rem 1.25rem;
-    border: 1px solid var(--border-color);
-    background-color: white;
-    color: var(--text-dark);
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-.show-all-btn:hover {
-    background-color: var(--secondary-hover);
-}
-
-
 .empty-state-message { 
     width: 100%; 
     text-align: center; 
     color: var(--text-light); 
     padding: 1rem; 
     font-style: italic;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
+/* *** 新增 ***: 分類失敗時的重試按鈕樣式 */
+.retry-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+}
+.retry-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+
+/* --- AI 大廚動畫 --- */
+.chef-animation-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.5rem;
+}
+.chef {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    animation: chef-bob 2s infinite ease-in-out;
+}
+@keyframes chef-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+.chef-hat {
+    width: 40px; height: 30px;
+    background: white; border: 2px solid #ccc;
+    border-radius: 20px 20px 0 0;
+    position: absolute; top: 0; left: 20px;
+}
+.chef-hat::before {
+    content: '';
+    width: 50px; height: 20px;
+    background: white; border: 2px solid #ccc;
+    border-radius: 50%;
+    position: absolute; top: -10px; left: -5px;
+}
+.chef-head {
+    width: 40px; height: 40px;
+    background: #FFDAB9; border-radius: 50%;
+    position: absolute; top: 25px; left: 20px;
+}
+.chef-eye {
+    width: 5px; height: 5px;
+    background: #333; border-radius: 50%;
+    position: absolute; top: 15px;
+    animation: chef-blink 4s infinite;
+}
+.chef-eye.left { left: 10px; }
+.chef-eye.right { right: 10px; }
+@keyframes chef-blink {
+    0%, 95%, 100% { transform: scaleY(1); }
+    97.5% { transform: scaleY(0.1); }
+}
+.chef-pot {
+    width: 60px; height: 40px;
+    background: #c0c0c0;
+    border-radius: 5px 5px 30px 30px;
+    position: relative;
+    margin-top: -10px;
+}
+.chef-pot::before {
+    content: '';
+    width: 70px; height: 10px;
+    background: #a9a9a9;
+    border-radius: 5px;
+    position: absolute; top: -5px; left: -5px;
+}
+.bubble {
+    width: 8px; height: 8px;
+    background: var(--primary-hover);
+    border-radius: 50%;
+    position: absolute;
+    bottom: 5px;
+    animation: bubble-rise 1.5s infinite ease-in;
+}
+.bubble:nth-child(1) { left: 15px; animation-duration: 1.2s; animation-delay: 0.2s; }
+.bubble:nth-child(2) { left: 30px; animation-duration: 1.5s; animation-delay: 0.5s; }
+.bubble:nth-child(3) { left: 45px; animation-duration: 1s; animation-delay: 0.8s; }
+@keyframes bubble-rise {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-30px); opacity: 0; }
+}
+
+
+/* --- 其他樣式 ... --- */
 .restaurant-preview-list { 
     width: 100%;
     display: flex; 
@@ -228,7 +299,35 @@
     width: calc(100% - 3rem - var(--safe-area-inset-left) - var(--safe-area-inset-right));
 }
 
-/* --- 調整範圍模式 --- */
+.show-all-container {
+    padding: 0 1.5rem 0.75rem 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast);
+    pointer-events: none;
+}
+.show-all-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.show-all-btn {
+    width: auto;
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    color: var(--text-dark);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.show-all-btn:hover {
+    background-color: var(--secondary-hover);
+}
+
 .edit-mode-controls {
     position: absolute;
     top: 0;

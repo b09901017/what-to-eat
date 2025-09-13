@@ -103,38 +103,83 @@ export function initCategoriesMapAndRender(data) {
     DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
 }
 
+/**
+ * ** [重構後] ** 渲染分類列表，加入 AI 大廚動畫和失敗重試 UI
+ */
 export function renderCategories(filteredData) {
     const listEl = DOMElements.categoryList;
     listEl.innerHTML = '';
     listEl.classList.remove('reveal');
 
     if (state.isCategorizing) {
-        listEl.innerHTML = `<p class="empty-state-message">AI 大廚正在施展魔法，美食分類即將揭曉... 👨‍🍳✨</p>`;
+        // *** 修改 ***: 顯示 AI 大廚動畫
+        listEl.innerHTML = `
+            <div class="chef-animation-container">
+                <div class="chef">
+                    <div class="chef-hat"></div>
+                    <div class="chef-head">
+                        <div class="chef-eye left"></div>
+                        <div class="chef-eye right"></div>
+                    </div>
+                </div>
+                <div class="chef-pot">
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                    <div class="bubble"></div>
+                </div>
+            </div>
+            <p class="empty-state-message" style="padding-top: 0;">AI 大廚正在料理美食標籤...</p>
+        `;
         return;
     }
 
-    if (!filteredData || Object.keys(filteredData).length === 0) {
-        const message = Array.isArray(state.restaurantData) && state.restaurantData.length > 0
-            ? "發生錯誤，找不到分類後的店家。"
-            : "此區域似乎沒有餐廳喔！";
+    if (!filteredData) { // 這涵蓋了 null 和 undefined 的情況
+        // *** 修改 ***: 處理分類失敗的 UI
+        const errorMessage = `
+            <p>哎呀，AI 大廚罷工了！😭</p>
+            <button class="retry-btn">再試一次</button>
+        `;
+        listEl.innerHTML = `<div class="empty-state-message">${errorMessage}</div>`;
+        return;
+    }
+
+    if (Object.keys(filteredData).length === 0) {
+        const message = "此區域似乎沒有餐廳喔！";
         listEl.innerHTML = `<p class="empty-state-message">${message}</p>`;
         return;
     }
     
     const categoryKeys = Object.keys(filteredData);
-    const isFocusMode = state.focusedCategories.size > 0;
-
     categoryKeys.forEach(category => {
         const item = document.createElement('div');
         item.className = 'category-list-item';
         item.dataset.category = category;
-        if (state.focusedCategories.has(category)) { item.classList.add('active'); }
-        else if (isFocusMode) { item.classList.add('unfocused'); }
         item.textContent = category;
         listEl.appendChild(item);
     });
 
+    // 觸發揭曉動畫
     setTimeout(() => listEl.classList.add('reveal'), 100);
+    // 初始渲染後，根據當前 activeCategory 更新樣式
+    updateCategoryStyles();
+}
+
+/**
+ * ** [新增] ** 輔助函式，僅更新分類按鈕的樣式，避免重繪
+ */
+export function updateCategoryStyles() {
+    const isFocusMode = state.focusedCategories.size > 0;
+    DOMElements.categoryList.querySelectorAll('.category-list-item').forEach(item => {
+        const category = item.dataset.category;
+        const isActive = state.focusedCategories.has(category);
+        
+        item.classList.toggle('active', isActive);
+        item.classList.toggle('unfocused', isFocusMode && !isActive);
+        // 確保 active 的項目不會同時有 unfocused 樣式
+        if (isActive) {
+            item.classList.remove('unfocused');
+        }
+    });
 }
 
 export function renderRestaurantPreviewList(category, filteredData) {
