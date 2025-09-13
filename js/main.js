@@ -46,9 +46,10 @@ function init() {
     DOMElements.spinBtn.addEventListener('click', handleSpinWheel);
     DOMElements.closeResultBtn.addEventListener('click', hideResult);
     
+    // ** [修改] ** 區分點擊 "重試按鈕" 和 "分類項目"
     DOMElements.categoryList.addEventListener('click', (e) => {
         if (e.target.classList.contains('retry-btn')) {
-            handleRetryCategorization();
+            handleRetryCategorization(e); // 將事件傳遞下去
         } else {
             handleCategoryInteraction(e);
         }

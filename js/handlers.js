@@ -71,28 +71,66 @@ function handleCategorizationResult(categorizedData) {
     updateOpenPopups();
 }
 
-export function handleRetryCategorization() {
+export function handleRetryCategorization(e) {
+    // ** [修改] ** 優化重試機制
+    const retryBtn = e.target.closest('.retry-btn');
+    if (retryBtn) {
+        retryBtn.disabled = true; // 立刻禁用按鈕
+        retryBtn.textContent = '重試中...';
+    }
+
     if (Array.isArray(state.restaurantData) && state.restaurantData.length > 0) {
         console.log("正在重試 AI 分類...");
         state.isCategorizing = true;
-        renderCategories(null);
+        renderCategories(null, true); // 立刻重新渲染為 "AI大廚" 畫面
         
         categorizePlaces(state.restaurantData)
             .then(handleCategorizationResult)
             .catch(error => {
                 console.error("AI 分類重試失敗:", error);
                 state.isCategorizing = false;
-                renderCategories(null);
+                renderCategories(null); // 再次顯示錯誤訊息和重試按鈕
             });
     }
 }
 
-export function applyFiltersAndRender() {
-    const { restaurantData } = state;
-    initCategoriesMapAndRender(restaurantData); 
+// ** [新增] ** 核心篩選邏輯
+function getFilteredRestaurants() {
+    const { restaurantData, filters } = state;
+    
+    // 如果沒有任何資料或篩選器關閉，則返回原始資料
+    if (!restaurantData || !filters.openNow) {
+        return restaurantData;
+    }
 
-    if (!Array.isArray(restaurantData)) {
-        renderRestaurantPreviewList(state.activeCategory, restaurantData);
+    // 當資料是未分類的陣列時
+    if (Array.isArray(restaurantData)) {
+        return restaurantData.filter(place => place.is_open);
+    } 
+    // 當資料是已分類的物件時
+    else {
+        const filteredCategorizedData = {};
+        for (const category in restaurantData) {
+            const openPlaces = restaurantData[category].filter(place => place.is_open);
+            // 只保留那些篩選後仍然有店家的類別
+            if (openPlaces.length > 0) {
+                filteredCategorizedData[category] = openPlaces;
+            }
+        }
+        return filteredCategorizedData;
+    }
+}
+
+
+export function applyFiltersAndRender() {
+    // ** [修改] ** 在所有渲染之前，先獲取經過篩選的資料
+    const filteredData = getFilteredRestaurants();
+
+    initCategoriesMapAndRender(filteredData); 
+
+    // ** [修改] ** 使用篩選後的資料來渲染預覽列表
+    if (typeof filteredData === 'object' && !Array.isArray(filteredData)) {
+        renderRestaurantPreviewList(state.activeCategory, filteredData);
     } else {
         renderRestaurantPreviewList(null, []);
     }
@@ -132,7 +170,7 @@ export function handleCategoryInteraction(e) {
         state.focusedCategories.add(state.activeCategory);
     }
     
-    // ** [修正] ** 互動後，讓 applyFiltersAndRender 處理所有更新
+    // ** [修改] ** 維持呼叫 applyFiltersAndRender，但其內部的 renderCategories 已被優化，不會閃爍
     applyFiltersAndRender();
 }
 
@@ -254,14 +292,19 @@ export function handleFilterChange(e) {
     const target = e.target;
     const filterType = target.dataset.filter || target.closest('[data-filter]').dataset.filter;
     if (!filterType) return;
-    if (filterType === 'openNow') { state.filters.openNow = target.checked; }
-    else {
+
+    if (filterType === 'openNow') { 
+        state.filters.openNow = target.checked; 
+    } else {
         const button = target.closest('button');
         if (!button) return;
         state.filters[filterType] = Number(button.dataset.value);
     }
+    
     updateFilterUI();
-    alert("篩選功能將在您查看店家詳情時生效。");
+
+    // ** [修改] ** 移除 alert，改為直接觸發重新渲染
+    applyFiltersAndRender();
 }
 
 export function handleResetView() {
@@ -291,9 +334,9 @@ export function toggleWheelItem(name, shouldAdd = true) {
         isAdded = true;
     }
     updateWheelCount();
-    if (!state.isCategorizing) {
-        applyFiltersAndRender();
-    }
+    
+    // ** [修改] ** 移除 applyFiltersAndRender()，解決點擊 "+" 時的閃爍問題
+    
     return isAdded;
 }
 

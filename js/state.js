@@ -10,9 +10,10 @@ export const state = {
     userLocation: null,
     searchRadiusMeters: 500,
     searchCenter: null,
-    // restaurantData 現在會先存未分類的 Array，分類完後變成 { category: [...] }
     restaurantData: [], 
-    isCategorizing: false, // ** [新增] ** 追蹤 AI 是否正在分類中
+    isCategorizing: false,
+    categorizationTimerId: null,
+    loadingMessageIntervalId: null, // ** [新增] ** 用於追蹤載入訊息計時器
     activeCategory: null,
     focusedCategories: new Set(),
     currentWheelRotation: 0,
@@ -32,6 +33,7 @@ export const state = {
     isInitialMapView: true,
 };
 
+// ** [修改] ** 擴充 loadingMessages 陣列
 export const loadingMessages = [
     "正在召喚美食之神...",
     "派出美食探測無人機...",
@@ -41,6 +43,13 @@ export const loadingMessages = [
     "過濾掉看起來不好吃的選項...",
     "美食雷達掃描中，請稍候...",
     "繪製香噴噴的美食地圖...",
+    "正在與外星人交換食譜...",
+    "計算麵條的最佳Q彈係數...",
+    "把地圖上的地標變成雞腿...",
+    "檢查每家餐廳的 WiFi 速度...",
+    "為了您，正在跟Google地圖吵架...",
+    "派遣鴿子確認店家位置...",
+    "下載台灣美食的靈魂..."
 ];
 
 export const DOMElements = {

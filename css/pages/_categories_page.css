@@ -154,16 +154,22 @@
     background: var(--primary-hover);
     transform: translateY(-2px);
 }
+.retry-btn:disabled {
+    background: var(--secondary-color);
+    cursor: not-allowed;
+}
 
 
-/* --- AI 大廚動畫 --- */
+/* --- AI 大廚動畫 (尺寸優化) --- */
 .chef-animation-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 0.5rem;
+    padding: 0; /* 移除 padding */
+    transform: scale(0.8); /* *** 修改：將動畫整體縮小 *** */
+    margin-top: -10px; /* *** 新增：向上移動一點以補償縮小後的空間 *** */
 }
 .chef {
     width: 80px;

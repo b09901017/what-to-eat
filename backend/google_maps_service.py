@@ -62,13 +62,16 @@ def get_basic_places(location, radius):
     formatted_places = []
     for place_id, place_data in unique_places.items():
         if 'geometry' in place_data and 'location' in place_data['geometry']:
+            is_open_status = place_data.get('opening_hours', {}).get('open_now', False)
             formatted_places.append({
                 "place_id": place_id,
                 "name": place_data.get('name'),
                 "lat": place_data['geometry']['location']['lat'],
                 "lon": place_data['geometry']['location']['lng'],
-                "types": place_data.get('types', [])
+                "types": place_data.get('types', []),
+                "is_open": is_open_status
             })
+            # ** [修改] ** 移除此處的 logging.info
 
     logging.info(f"複合式搜尋完成，共找到 {len(formatted_places)} 家不重複的店家。")
     return formatted_places

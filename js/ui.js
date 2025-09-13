@@ -15,8 +15,6 @@ export function initCategoriesMapAndRender(data) {
         state.isInitialMapView = false;
     }
     
-    // ** [修正] ** 渲染分類列表的邏輯現在由 applyFiltersAndRender 觸發後，
-    // 在這裡被調用，以確保 UI 正確
     renderCategories(Array.isArray(data) ? null : data, state.isCategorizing);
 
     DOMElements.mapBottomDrawer?.classList.add('visible');
@@ -24,20 +22,64 @@ export function initCategoriesMapAndRender(data) {
     DOMElements.showAllBtn.parentElement.classList.toggle('visible', isFocusMode);
 }
 
+
+// --- 倒數計時器邏輯 ---
+function startCategorizationTimer() {
+    stopCategorizationTimer(); 
+    let timeLeft = 30;
+    const timerElement = document.getElementById('categorization-timer');
+    if (timerElement) {
+        timerElement.textContent = `... 預計需要 ${timeLeft} 秒`;
+    }
+
+    state.categorizationTimerId = setInterval(() => {
+        timeLeft--;
+        const currentTimerElement = document.getElementById('categorization-timer');
+        if (currentTimerElement) {
+            if (timeLeft > 0) {
+                currentTimerElement.textContent = `... 預計需要 ${timeLeft} 秒`;
+            } else {
+                currentTimerElement.textContent = '... 請再稍等一下';
+                stopCategorizationTimer();
+            }
+        }
+    }, 1000);
+}
+
+function stopCategorizationTimer() {
+    if (state.categorizationTimerId) {
+        clearInterval(state.categorizationTimerId);
+        state.categorizationTimerId = null;
+    }
+}
+
+
 export function renderCategories(filteredData, isCategorizing) {
     const listEl = DOMElements.categoryList;
+
+    if (listEl.querySelector('.category-list-item') && !isCategorizing && filteredData) {
+        updateCategoryStyles();
+        return;
+    }
+
     listEl.innerHTML = '';
     listEl.classList.remove('reveal');
 
     if (isCategorizing) {
+        stopCategorizationTimer();
         listEl.innerHTML = `
             <div class="chef-animation-container">
                 <div class="chef"><div class="chef-hat"></div><div class="chef-head"><div class="chef-eye left"></div><div class="chef-eye right"></div></div></div>
                 <div class="chef-pot"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
             </div>
-            <p class="empty-state-message" style="padding-top: 0;">AI 大廚正在料理美食標籤...</p>`;
+            <p class="empty-state-message" style="padding-top: 0;">
+                AI 大廚正在料理美食標籤<span id="categorization-timer"></span>
+            </p>`;
+        startCategorizationTimer();
         return;
     }
+    
+    stopCategorizationTimer();
 
     if (!filteredData) {
         const errorMessage = `<p>哎呀，AI 大廚罷工了！😭</p><button class="retry-btn">再試一次</button>`;
@@ -46,7 +88,7 @@ export function renderCategories(filteredData, isCategorizing) {
     }
 
     if (Object.keys(filteredData).length === 0) {
-        const message = "此區域似乎沒有餐廳喔！";
+        const message = state.filters.openNow ? "篩選後沒有店家了，試試關閉「目前營業中」？" : "此區域似乎沒有餐廳喔！";
         listEl.innerHTML = `<p class="empty-state-message">${message}</p>`;
         return;
     }
@@ -75,7 +117,34 @@ export function updateCategoryStyles() {
     });
 }
 
-// --- 以下是其他未變動的函式，為確保完整性，全部提供 ---
+// --- 以下函式有修改 ---
+
+export function showLoading(text) {
+    // ** [修改] ** 啟動動態訊息
+    hideLoading(); // 先確保舊的計時器已清除
+    
+    const updateMessage = () => {
+        const randomIndex = Math.floor(Math.random() * loadingMessages.length);
+        DOMElements.loadingText.textContent = loadingMessages[randomIndex];
+    };
+    
+    updateMessage(); // 先顯示一次
+    state.loadingMessageIntervalId = setInterval(updateMessage, 500); // 每 0.5 秒換一次
+
+    DOMElements.loadingOverlay.classList.add('visible');
+}
+
+export function hideLoading() {
+    // ** [修改] ** 清除動態訊息的計時器
+    if (state.loadingMessageIntervalId) {
+        clearInterval(state.loadingMessageIntervalId);
+        state.loadingMessageIntervalId = null;
+    }
+    DOMElements.loadingOverlay.classList.remove('visible');
+}
+
+
+// --- 以下是其他未變動的函式 ---
 
 export function renderPageContent(pageId) {
     switch (pageId) {
@@ -95,15 +164,6 @@ export function renderPageContent(pageId) {
 
 export function toggleHub(isExpanded) {
     DOMElements.floatingActionHub.classList.toggle('is-active', isExpanded);
-}
-
-export function showLoading(text) {
-    DOMElements.loadingText.textContent = text || loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
-    DOMElements.loadingOverlay.classList.add('visible');
-}
-
-export function hideLoading() {
-    DOMElements.loadingOverlay.classList.remove('visible');
 }
 
 export function updateRadiusLabel(radius) {
