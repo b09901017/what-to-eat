@@ -11,9 +11,15 @@
     height: 100%;
     z-index: 5; /* 確保在地圖上方 */
 }
-#categories-page .map-ui-overlay > * {
-    pointer-events: auto; /* 恢復子元素的點擊 */
+
+/* 核心修改：移除舊的 > * 全局設定，並從下方列表中移除 .floating-action-hub */
+#categories-page .page-header-condensed,
+#categories-page .map-bottom-drawer,
+#categories-page .page-footer,
+#categories-page .edit-mode-controls {
+    pointer-events: auto; /* 恢復指定UI元素的點擊 */
 }
+
 
 .page-header-condensed {
     position: absolute;
@@ -36,6 +42,7 @@
     bottom: calc(40% + 1rem + var(--safe-area-inset-bottom));
     z-index: 1001;
     transition: all var(--transition-slow);
+    pointer-events: auto; /* 讓 Hub 元件本身可以接收事件，以便其子元素能正確運作 */
 }
 
 /* *** 新增 ***: 當抽屜展開時，讓 Hub 往上移動 */
