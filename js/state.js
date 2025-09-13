@@ -1,15 +1,18 @@
-// 集中管理所有狀態和 DOM 元素參照
+// js/state.js
 
 export const state = {
     currentPage: 'splash-page',
     navigationStack: [],
     wheelItems: new Set(),
     currentRestaurantDetails: null,
+    detailedRestaurantCache: {},
     isSpinning: false,
     userLocation: null,
     searchRadiusMeters: 500,
     searchCenter: null,
-    restaurantData: {},
+    // restaurantData 現在會先存未分類的 Array，分類完後變成 { category: [...] }
+    restaurantData: [], 
+    isCategorizing: false, // ** [新增] ** 追蹤 AI 是否正在分類中
     activeCategory: null,
     focusedCategories: new Set(),
     currentWheelRotation: 0,
@@ -25,14 +28,26 @@ export const state = {
     searchTimeoutId: null,
     isDecidingOnMap: false,
     lastWinner: null,
-    isTestMode: false, // 新增：標示是否為測試模式
-    isInitialMapView: true, // 新增：用於判斷是否為首次載入美食地圖
+    isTestMode: false,
+    isInitialMapView: true,
 };
 
+export const loadingMessages = [
+    "正在召喚美食之神...",
+    "派出美食探測無人機...",
+    "分析地圖上的卡路里分佈...",
+    "詢問附近松鼠的私藏名單...",
+    "AI 大廚正在鍋裡翻攪數據...",
+    "過濾掉看起來不好吃的選項...",
+    "美食雷達掃描中，請稍候...",
+    "繪製香噴噴的美食地圖...",
+];
+
 export const DOMElements = {
+    // ... (DOM Elements 保持不變)
     pages: document.querySelectorAll('.page'),
     startBtn: document.getElementById('start-btn'),
-    uiTestBtn: document.getElementById('ui-test-btn'), // 新增：UI測試按鈕
+    uiTestBtn: document.getElementById('ui-test-btn'),
     locationStatus: document.getElementById('location-status'),
     radiusMap: document.getElementById('radius-map'),
     recenterBtn: document.getElementById('recenter-btn'),
@@ -74,7 +89,6 @@ export const DOMElements = {
     priceFilterButtons: document.querySelector('.filter-buttons[data-filter="priceLevel"]'),
     ratingFilterButtons: document.querySelector('.filter-buttons[data-filter="rating"]'),
     
-    // *** 新增：取得 header 和 bottom drawer 的參照 ***
     pageHeaderCondensed: document.querySelector('.page-header-condensed'),
     mapBottomDrawer: document.querySelector('.map-bottom-drawer'),
 
@@ -82,25 +96,21 @@ export const DOMElements = {
     hubToggleBtn: document.getElementById('hub-toggle-btn'),
     hubItemList: document.getElementById('hub-item-list'),
 
-    // 調整範圍模式相關元素
     mainFooter: document.getElementById('main-footer'),
     editModeControls: document.getElementById('edit-mode-controls'),
     reSearchBtn: document.getElementById('re-search-btn'),
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
     
-    // 候選清單視窗相關元素
     showCandidatesFooterBtn: document.getElementById('show-candidates-footer-btn'),
     candidateListOverlay: document.getElementById('candidate-list-overlay'),
     candidateListContent: document.getElementById('candidate-list-content'),
     closeCandidateListBtn: document.getElementById('close-candidate-list-btn'),
     randomDecisionBtn: document.getElementById('random-decision-btn'),
     
-    // 地點搜尋相關元素
     locationSearchContainer: document.getElementById('location-search-container'),
     locationSearchToggleBtn: document.querySelector('.location-search-toggle-btn'),
     locationSearchInput: document.getElementById('location-search-input'),
     locationSearchResults: document.getElementById('location-search-results'),
     
-    // 新的「顯示所有店家」按鈕
     showAllBtn: document.getElementById('show-all-btn'),
 };

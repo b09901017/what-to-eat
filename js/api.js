@@ -1,13 +1,7 @@
-// 處理 API 請求
+// js/api.js
+
 import { API_BASE_URL } from './config.js';
 
-/**
- * 根據經緯度和半徑搜尋附近的餐廳
- * @param {number} lat - 緯度
- * @param {number} lon - 經度
- * @param {number} radius - 搜尋半徑（公尺）
- * @returns {Promise<Object>} - 包含未分類餐廳詳細資訊的物件
- */
 export async function findPlaces(lat, lon, radius) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/find_places`, {
@@ -15,62 +9,57 @@ export async function findPlaces(lat, lon, radius) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lat, lon, radius })
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || `HTTP 錯誤! 狀態: ${response.status}`);
         }
-        
         return await response.json();
-
     } catch (error) {
         console.error("尋找餐廳失敗:", error);
         throw error;
     }
 }
 
-/**
- * 將餐廳資料傳送給後端進行 AI 分類
- * @param {Object} restaurants - 從 findPlaces 獲取的餐廳資料物件
- * @returns {Promise<Object>} - 包含已分類餐廳資訊的物件
- */
-export async function categorizePlaces(restaurants) {
+export async function categorizePlaces(places) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/categorize_places`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(restaurants)
+            body: JSON.stringify(places)
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || `HTTP 錯誤! 狀態: ${response.status}`);
         }
-        
         return await response.json();
-
     } catch (error) {
-        console.error("分類餐廳失敗:", error);
+        console.error("非同步分類餐廳失敗:", error);
         throw error;
     }
 }
 
-
-/**
- * 根據查詢字串，請求地理編碼轉換
- * @param {string} query - 使用者輸入的地址或地標
- * @returns {Promise<Array>} - 包含地點結果的陣列
- */
-export async function geocodeLocation(query) {
+export async function getPlaceDetails(placeId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/geocode?q=${encodeURIComponent(query)}`);
-        
+        const response = await fetch(`${API_BASE_URL}/api/place_details?place_id=${encodeURIComponent(placeId)}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || `HTTP 錯誤! 狀態: ${response.status}`);
         }
         return await response.json();
+    } catch (error) {
+        console.error("獲取店家詳情失敗:", error);
+        throw error;
+    }
+}
 
+export async function geocodeLocation(query) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/geocode?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP 錯誤! 狀態: ${response.status}`);
+        }
+        return await response.json();
     } catch (error) {
         console.error("地理編碼失敗:", error);
         throw error;

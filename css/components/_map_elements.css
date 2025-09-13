@@ -83,7 +83,6 @@
 .map-category-icon-container { 
     margin: 0; 
     padding: 0; 
-    /* --- 修正：移除此行的 transition --- */
 }
 
 .map-category-icon {
@@ -97,8 +96,21 @@
     align-items: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     border: 2px solid white;
-    transition: all 0.3s ease-in-out;
+    /* *** 新增 ***: 讓圖示內容變換時有漸變效果 */
+    transition: all 0.5s ease-in-out; 
 }
+
+/* *** 新增 ***: 待分類圖示的樣式與動畫 */
+.map-category-icon.unclassified {
+    font-size: 20px;
+    animation: sparkle 2s infinite ease-in-out;
+}
+
+@keyframes sparkle {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+}
+
 
 .leaflet-popup-content-wrapper { 
     border-radius: 12px; 
@@ -121,7 +133,6 @@
 .popup-actions .add-to-wheel-btn.added { background-color: var(--winner-color); }
 .leaflet-popup-tip { box-shadow: none; }
 
-/* --- 新增：探索中心點樣式 --- */
 .search-center-marker {
     background-color: var(--primary-color);
     width: 18px;

@@ -19,6 +19,14 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GOOGLE_MAPS_API_KEY or not GEMINI_API_KEY:
     raise ValueError("請在 .env 檔案中設定 GOOGLE_MAPS_API_KEY 和 GEMINI_API_KEY")
 
+# --- Google Maps API 設定 ---
+# 地點詳情請求的欄位 (從舊的 config.py 移入)
+PLACE_DETAIL_FIELDS = [
+    'place_id', 'name', 'geometry', 'rating', 'user_ratings_total', 
+    'price_level', 'opening_hours', 'formatted_phone_number', 'website', 
+    'photo', 'review', 'type'
+]
+
 # --- 外部服務初始化 ---
 try:
     # 建立具備連線池的 Session 以提升效能

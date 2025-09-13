@@ -3,21 +3,20 @@
 #categories-page .map-ui-overlay {
     display: flex;
     flex-direction: column;
-    pointer-events: none; /* 允許點擊穿透到地圖 */
-    position: absolute; /* 讓 overlay 覆蓋整個地圖 */
+    pointer-events: none;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 5; /* 確保在地圖上方 */
+    z-index: 5;
 }
 
-/* 核心修改：移除舊的 > * 全局設定，並從下方列表中移除 .floating-action-hub */
 #categories-page .page-header-condensed,
 #categories-page .map-bottom-drawer,
 #categories-page .page-footer,
 #categories-page .edit-mode-controls {
-    pointer-events: auto; /* 恢復指定UI元素的點擊 */
+    pointer-events: auto;
 }
 
 
@@ -36,15 +35,6 @@
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
 
 
-/*
-    --- ARCHITECTURE REFACTOR ---
-    The entire .floating-action-hub styling block has been REMOVED from this file
-    and MERGED into its own component stylesheet: /css/components/_floating_hub.css
-
-    This improves modularity and fixes the pointer-events bug.
-*/
-
-
 .map-bottom-drawer {
     position: absolute;
     bottom: 0;
@@ -58,7 +48,6 @@
     border-top-right-radius: 20px;
     box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
     transform: translateY(100%);
-    /* *** 修改 ***: 讓 max-height 的變化也產生動畫 */
     transition: transform 0.3s ease-out, visibility 0.3s, max-height 0.3s ease-out;
     padding: 1rem 0;
     display: flex;
@@ -66,7 +55,6 @@
     padding-bottom: 6rem;
 }
 
-/* *** 新增 ***: 抽屜展開時的新高度 */
 .map-bottom-drawer.expanded {
     max-height: 52%;
 }
@@ -89,6 +77,22 @@
 }
 .category-list::-webkit-scrollbar { display: none; }
 
+/* *** 新增 ***: 分類揭曉動畫 */
+.category-list.reveal .category-list-item {
+    animation: category-fade-in 0.5s var(--transition-slow) forwards;
+}
+@keyframes category-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* *** 新增 ***: 讓每個按鈕有延遲效果 */
+.category-list.reveal .category-list-item:nth-child(2) { animation-delay: 0.05s; }
+.category-list.reveal .category-list-item:nth-child(3) { animation-delay: 0.1s; }
+.category-list.reveal .category-list-item:nth-child(4) { animation-delay: 0.15s; }
+.category-list.reveal .category-list-item:nth-child(5) { animation-delay: 0.2s; }
+/* ... 可以根據需要增加更多延遲 */
+
+
 .category-list-item { 
     padding: 0.6rem 1.2rem;
     border-radius: 20px; 
@@ -100,6 +104,7 @@
     transition: all var(--transition-fast); 
     white-space: nowrap;
     flex-shrink: 0;
+    opacity: 0; /* 預設隱藏，等待動畫 */
 }
 .category-list-item:hover { transform: translateY(-4px); }
 .category-list-item.active { 
@@ -110,6 +115,17 @@
 }
 .category-list-item.unfocused { opacity: 0.4; }
 .category-list-item.unfocused:hover { opacity: 0.7; transform: translateY(-4px); }
+
+/* *** 新增 ***: 提示使用者等待的抖動動畫 */
+.category-list-item.shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
 
 
 .show-all-container {
@@ -147,6 +163,7 @@
     text-align: center; 
     color: var(--text-light); 
     padding: 1rem; 
+    font-style: italic;
 }
 
 .restaurant-preview-list { 
