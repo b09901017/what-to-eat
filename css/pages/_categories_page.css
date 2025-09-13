@@ -36,25 +36,13 @@
 .page-header-condensed .header-content p { font-size: 0.9rem; color: var(--text-light); }
 
 
-.floating-action-hub {
-    position: absolute;
-    right: calc(1.5rem + var(--safe-area-inset-right));
-    bottom: calc(40% + 1rem + var(--safe-area-inset-bottom));
-    z-index: 1001;
-    transition: all var(--transition-slow);
-    pointer-events: auto; /* 讓 Hub 元件本身可以接收事件，以便其子元素能正確運作 */
-}
+/*
+    --- ARCHITECTURE REFACTOR ---
+    The entire .floating-action-hub styling block has been REMOVED from this file
+    and MERGED into its own component stylesheet: /css/components/_floating_hub.css
 
-/* *** 新增 ***: 當抽屜展開時，讓 Hub 往上移動 */
-.map-bottom-drawer.expanded + .floating-action-hub {
-    bottom: calc(52% + 1rem + var(--safe-area-inset-bottom));
-}
-
-.floating-action-hub.hidden-for-edit {
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(100%);
-}
+    This improves modularity and fixes the pointer-events bug.
+*/
 
 
 .map-bottom-drawer {

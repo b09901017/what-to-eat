@@ -8,7 +8,7 @@
  */
 
 // --- 開發環境 ---
-export const API_BASE_URL = 'http://127.0.0.1:5000';
+// export const API_BASE_URL = 'http://127.0.0.1:5000';
 
 // --- 生產環境 (部署後使用) ---
-// export const API_BASE_URL = 'https://what-to-eat-93pq.onrender.com'; // <-- 部署後請取消註解並替換成您的 Render 網址
+export const API_BASE_URL = 'https://what-to-eat-93pq.onrender.com'; // <-- 部署後請取消註解並替換成您的 Render 網址
